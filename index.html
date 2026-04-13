@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Royal Drive Pro - Fixed Edition</title>
+    <title>Royal Drive Pro | النسخة المستقرة</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -13,55 +13,93 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; outline: none; }
         
-        /* حل مشكلة تداخل الصفحات */
-        body, html { margin: 0; padding: 0; width: 100%; overflow-x: hidden; }
+        /* نظام عزل الصفحات لمنع التداخل */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0f172a; }
         .page { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #f8fafc; display: none; overflow-y: auto; z-index: 10;
         }
-        .page.active { display: block; z-index: 50; }
+        .page.active { display: block !important; z-index: 50; }
         
         .royal-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        input:focus { border-color: #2563eb; ring: 2px #2563eb; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="welcome-page" class="page active royal-gradient flex flex-col items-center justify-center p-8 text-white">
-        <div class="mb-6 text-6xl">👑</div>
-        <h1 class="text-3xl font-black mb-10 tracking-widest uppercase italic">Royal Drive</h1>
+        <div class="mb-6 text-7xl animate-bounce">👑</div>
+        <h1 class="text-4xl font-black mb-12 tracking-tighter italic">ROYAL DRIVE</h1>
         <div class="w-full max-w-xs space-y-4">
-            <button onclick="showPage('login-page')" class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black shadow-2xl transition active:scale-95">دخول</button>
-            <button onclick="showPage('signup-page')" class="w-full border border-white/20 bg-white/5 py-4 rounded-2xl font-bold">تسجيل جديد</button>
+            <button onclick="goToPage('login-page')" class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black shadow-2xl active:scale-95 transition">تسجيل الدخول</button>
+            <button onclick="goToPage('signup-page')" class="w-full border-2 border-white/20 bg-white/5 py-4 rounded-2xl font-bold active:scale-95 transition">إنشاء حساب جديد</button>
         </div>
     </div>
 
-    <div id="login-page" class="page flex items-center justify-center p-6">
-        <div class="w-full max-w-md bg-white p-10 rounded-[2.5rem] shadow-2xl relative">
-            <h2 class="text-2xl font-black mb-8">تسجيل الدخول</h2>
-            <div class="space-y-4">
-                <input type="email" id="login-email" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-2xl border outline-none">
+    <div id="login-page" class="page bg-slate-50 flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
+            <h2 class="text-3xl font-black mb-8 text-slate-800 text-center">دخول النظام</h2>
+            <div class="space-y-5">
+                <input type="email" id="login-email" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-2xl border bg-slate-50 transition-all">
                 
                 <div class="relative">
-                    <input type="password" id="login-pass" placeholder="كلمة المرور" class="w-full p-4 rounded-2xl border outline-none">
-                    <button onclick="togglePass('login-pass')" class="absolute left-4 top-4 text-slate-400">
-                        <i data-lucide="eye" id="eye-icon"></i>
+                    <input type="password" id="login-pass" placeholder="كلمة المرور" class="w-full p-4 rounded-2xl border bg-slate-50 transition-all">
+                    <button onclick="toggleVisibility('login-pass', 'eye-l')" class="absolute left-4 top-4 text-slate-400">
+                        <i id="eye-l" data-lucide="eye"></i>
                     </button>
                 </div>
 
-                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg transition active:scale-95">دخول</button>
-                <button onclick="handleResetPassword()" class="w-full text-xs text-blue-600 font-bold">نسيت كلمة السر؟</button>
+                <button onclick="doLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition">دخول آمن</button>
+                <button onclick="resetPass()" class="w-full text-xs text-blue-600 font-bold">هل نسيت كلمة السر؟</button>
             </div>
-            <button onclick="showPage('welcome-page')" class="mt-8 block mx-auto text-slate-400 text-sm font-bold">رجوع</button>
+            <button onclick="goToPage('welcome-page')" class="mt-8 block mx-auto text-slate-400 font-bold">← رجوع</button>
         </div>
     </div>
 
+    <div id="signup-page" class="page bg-slate-50 p-6 overflow-y-auto pb-20">
+        <div class="w-full max-w-md mx-auto bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
+            <h2 class="text-2xl font-black text-center mb-6 text-slate-800">حساب جديد</h2>
+            
+            <div class="flex p-1.5 bg-slate-100 rounded-2xl mb-8">
+                <button onclick="setRegRole('driver')" id="role-d" class="flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600">سائق</button>
+                <button onclick="setRegRole('staff')" id="role-s" class="flex-1 py-3 rounded-xl font-black text-slate-400">موظف</button>
+            </div>
+
+            <div class="space-y-4">
+                <input type="text" id="reg-name" placeholder="الاسم الكامل" class="w-full p-4 rounded-2xl border bg-slate-50">
+                <input type="tel" id="reg-phone" placeholder="رقم الهاتف" class="w-full p-4 rounded-2xl border bg-slate-50">
+                
+                <div id="extra-driver-fields" class="space-y-4">
+                    <input type="text" id="reg-nid" placeholder="الرقم القومي" class="w-full p-4 rounded-2xl border bg-slate-50">
+                    <input type="text" id="reg-car" placeholder="نوع السيارة" class="w-full p-4 rounded-2xl border bg-slate-50">
+                </div>
+
+                <hr class="border-slate-100 my-2">
+                <input type="email" id="reg-email" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-2xl border bg-slate-50">
+                
+                <div class="relative">
+                    <input type="password" id="reg-pass" placeholder="كلمة سر جديدة" class="w-full p-4 rounded-2xl border bg-slate-50">
+                    <button onclick="toggleVisibility('reg-pass', 'eye-s')" class="absolute left-4 top-4 text-slate-400">
+                        <i id="eye-s" data-lucide="eye"></i>
+                    </button>
+                </div>
+
+                <button onclick="doSignup()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition">إتمام التسجيل</button>
+            </div>
+            <button onclick="goToPage('welcome-page')" class="mt-8 block mx-auto text-slate-400 font-bold">إلغاء</button>
+        </div>
     </div>
 
+    <div id="staff-dashboard" class="page bg-white"> <div class="p-10 text-center font-black">جاري تحميل لوحة الموظف...</div> </div>
+    <div id="driver-dashboard" class="page bg-white"> <div class="p-10 text-center font-black">جاري تحميل لوحة السائق...</div> </div>
+    <div id="owner-dashboard" class="page royal-gradient"> <div class="p-10 text-center text-white font-black">جاري تحميل لوحة المالك...</div> </div>
+</div>
+
 <script>
-    // الإعدادات (نفس الإعدادات السابقة)
+    // --- ⚙️ الإعدادات ---
     const firebaseConfig = {
       apiKey: "AIzaSyBhZdYXdISIPlcCbC4yiVdlUx0QDWfITdk",
       authDomain: "royal-drive-38c15.firebaseapp.com",
@@ -73,42 +111,113 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    lucide.createIcons();
 
-    // تبديل الصفحات بشكل صحيح
-    function showPage(id) {
+    // --- 🔄 منطق التنقل الصحيح ---
+    function goToPage(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        lucide.createIcons();
+        const target = document.getElementById(id);
+        if (target) {
+            target.classList.add('active');
+            lucide.createIcons(); // تحديث الأيقونات في كل مرة
+        } else {
+            console.error("الصفحة غير موجودة: " + id);
+        }
     }
 
-    // إظهار/إخفاء كلمة السر
-    function togglePass(id) {
-        const input = document.getElementById(id);
-        const icon = document.getElementById('eye-icon');
-        if (input.type === "password") {
-            input.type = "text";
+    // --- 👁️ إظهار/إخفاء الباسورد ---
+    function toggleVisibility(inputId, iconId) {
+        const field = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (field.type === "password") {
+            field.type = "text";
             icon.setAttribute('data-lucide', 'eye-off');
         } else {
-            input.type = "password";
+            field.type = "password";
             icon.setAttribute('data-lucide', 'eye');
         }
         lucide.createIcons();
     }
 
-    // دالة تسجيل الدخول المحسنة
-    async function handleLogin() {
-        const email = document.getElementById('login-email').value;
+    // --- 👤 إدارة الأدوار في التسجيل ---
+    let signupRole = 'driver';
+    function setRegRole(role) {
+        signupRole = role;
+        const isD = (role === 'driver');
+        document.getElementById('role-d').className = isD ? 'flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600' : 'flex-1 py-3 rounded-xl font-black text-slate-400';
+        document.getElementById('role-s').className = !isD ? 'flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600' : 'flex-1 py-3 rounded-xl font-black text-slate-400';
+        document.getElementById('extra-driver-fields').style.display = isD ? 'block' : 'none';
+    }
+
+    // --- 🔐 تسجيل الدخول ---
+    async function doLogin() {
+        const email = document.getElementById('login-email').value.trim();
         const pass = document.getElementById('login-pass').value;
+        if (!email || !pass) return alert("يرجى إدخال البيانات");
         try {
-            const res = await auth.signInWithEmailAndPassword(email, pass);
-            // سيتم الانتقال تلقائياً عبر onAuthStateChanged
+            await auth.signInWithEmailAndPassword(email, pass);
         } catch (e) {
-            alert("فشل الدخول: تأكد من الإيميل وباسوردك أو وجود إنترنت.");
+            alert("خطأ: تأكد من الإيميل وكلمة السر.");
         }
     }
 
-    // باقي الدوال (Signup, route, الخ)
-    // ...
+    // --- 📝 إنشاء حساب ---
+    async function doSignup() {
+        const email = document.getElementById('reg-email').value.trim();
+        const pass = document.getElementById('reg-pass').value;
+        const name = document.getElementById('reg-name').value;
+        
+        try {
+            // التحقق من القائمة البيضاء (Allowed Users)
+            const allowed = await db.collection('allowed_users').doc(email).get();
+            if (!allowed.exists && email !== 'admin@royal.com') {
+                return alert("هذا الإيميل غير مصرح له بالتسجيل في النظام حالياً.");
+            }
+
+            const res = await auth.createUserWithEmailAndPassword(email, pass);
+            await db.collection('users').doc(res.user.uid).set({
+                uid: res.user.uid,
+                name: name,
+                email: email,
+                role: signupRole,
+                status: 'active',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            alert("تم إنشاء حسابك بنجاح!");
+        } catch (e) {
+            alert("فشل التسجيل: " + e.message);
+        }
+    }
+
+    // --- 🛡️ حماية المسارات (Routing) ---
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            if (user.email === 'admin@royal.com') {
+                goToPage('owner-dashboard');
+                return;
+            }
+            const doc = await db.collection('users').doc(user.uid).get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.status === 'frozen') {
+                    alert("عذراً، حسابك مجمد.");
+                    auth.signOut();
+                    goToPage('welcome-page');
+                } else {
+                    goToPage(data.role === 'staff' ? 'staff-dashboard' : 'driver-dashboard');
+                }
+            }
+        } else {
+            goToPage('welcome-page');
+        }
+    });
+
+    async function resetPass() {
+        const email = document.getElementById('login-email').value;
+        if (!email) return alert("اكتب إيميلك أولاً في خانة تسجيل الدخول.");
+        await auth.sendPasswordResetEmail(email);
+        alert("تم إرسال رابط إعادة تعيين كلمة السر لبريدك.");
+    }
 </script>
 </body>
 </html>
