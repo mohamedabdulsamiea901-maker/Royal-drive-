@@ -3,212 +3,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Royal Drive - Firebase Version</title>
+    <title>Royal Drive Pro | النظام المتكامل</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-    
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
-        body { background: #f8fafc; margin: 0; }
-        .auth-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .input-group { position: relative; }
-        .eye-icon { position: absolute; left: 12px; top: 42px; cursor: pointer; color: #94a3b8; z-index: 10; }
-        .crown-anim { animation: bounce 2s infinite; display: inline-block; }
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+        * { font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f8fafc; margin: 0; padding: 0; overflow-x: hidden; }
+        .page { display: none; min-height: 100vh; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .royal-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        .glass-card { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.4); }
+        .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-size: 14px; margin-bottom: 10px; line-height: 1.5; }
+        .bubble-me { background: #2563eb; color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 12px rgba(37,99,235,0.2); }
+        .bubble-them { background: #e2e8f0; color: #1e293b; align-self: flex-start; border-bottom-left-radius: 4px; }
+        input::placeholder { color: #94a3b8; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div id="auth-screen" class="min-h-screen auth-gradient flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-white rounded-[2rem] p-8 shadow-2xl">
-            <div class="text-center mb-8">
-                <div class="text-6xl mb-2 crown-anim">👑</div>
-                <h1 class="text-3xl font-bold text-gray-800">Royal Drive</h1>
-                <p class="text-gray-500">نظام الإدارة الآمن</p>
-            </div>
-
-            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
-                <div class="input-group">
-                    <label class="block text-sm font-bold mb-1 text-gray-700">البريد الإلكتروني</label>
-                    <input type="email" id="email" required class="w-full p-4 rounded-2xl border-2 border-gray-100 outline-none focus:border-purple-500 transition-all" placeholder="name@company.com">
-                </div>
-                <div class="input-group">
-                    <label class="block text-sm font-bold mb-1 text-gray-700">كلمة المرور</label>
-                    <input type="password" id="password" required class="w-full p-4 rounded-2xl border-2 border-gray-100 outline-none focus:border-purple-500 transition-all" placeholder="••••••••">
-                    <div class="eye-icon" onclick="togglePass('password')"><i data-lucide="eye" id="eye-icon-svg"></i></div>
-                </div>
-                <div id="error-msg" class="text-red-500 text-xs hidden text-center font-bold">❌ خطأ في الإيميل أو الباسورد</div>
-                <button type="submit" id="login-btn" class="w-full bg-purple-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-purple-700 transition-all active:scale-95">دخول آمن</button>
-            </form>
+    <div id="welcome-page" class="page active royal-gradient flex flex-col items-center justify-center p-8 text-white text-center">
+        <div class="mb-8 w-24 h-24 bg-amber-500 rounded-[2rem] flex items-center justify-center text-5xl shadow-2xl animate-pulse">👑</div>
+        <h1 class="text-4xl font-black mb-3 tracking-tighter">ROYAL DRIVE PRO</h1>
+        <p class="text-slate-400 mb-12 text-sm leading-relaxed max-w-xs">أهلاً بك في النسخة الاحترافية لإدارة الرحلات الذكية والدردشة الفورية</p>
+        <div class="w-full max-w-xs space-y-4">
+            <button onclick="showPage('login-page')" class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition">تسجيل الدخول</button>
+            <button onclick="showPage('signup-page')" class="w-full border-2 border-white/10 bg-white/5 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition">إنشاء حساب جديد</button>
         </div>
     </div>
 
-    <div id="dashboard" class="hidden min-h-screen flex flex-col">
-        <nav class="auth-gradient p-5 text-white flex justify-between items-center shadow-xl sticky top-0 z-50">
+    <div id="login-page" class="page flex items-center justify-center p-6">
+        <div class="w-full max-w-md glass-card p-10 rounded-[3rem] shadow-2xl">
+            <h2 class="text-3xl font-black mb-8 text-slate-800 text-center">دخول النظام</h2>
+            <div class="space-y-5">
+                <input type="email" id="login-email" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-2xl border bg-slate-50 outline-none focus:ring-2 ring-blue-500 transition-all">
+                <input type="password" id="login-pass" placeholder="كلمة المرور" class="w-full p-4 rounded-2xl border bg-slate-50 outline-none focus:ring-2 ring-blue-500 transition-all">
+                <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg hover:bg-blue-700 active:scale-95 transition">دخول آمن</button>
+                <button onclick="handleResetPassword()" class="w-full text-sm text-blue-600 font-bold underline decoration-2 underline-offset-4">نسيت كلمة السر؟ (إرسال OTP)</button>
+            </div>
+            <button onclick="showPage('welcome-page')" class="mt-10 block mx-auto text-slate-400 font-bold">← العودة للرئيسية</button>
+        </div>
+    </div>
+
+    <div id="signup-page" class="page p-6 overflow-y-auto pb-12">
+        <div class="w-full max-w-md mx-auto glass-card p-10 rounded-[3rem] shadow-2xl">
+            <h2 class="text-2xl font-black text-center mb-8">تسجيل حساب جديد</h2>
+            <div class="flex p-1.5 bg-slate-100 rounded-2xl mb-8">
+                <button onclick="selectRole('driver')" id="s-role-d" class="flex-1 py-3 rounded-xl font-black bg-white shadow-md text-blue-600">سائق</button>
+                <button onclick="selectRole('staff')" id="s-role-s" class="flex-1 py-3 rounded-xl font-black text-slate-400">موظف</button>
+            </div>
+            <div id="signup-form" class="space-y-4">
+                <input type="text" id="reg-name" placeholder="الاسم الكامل كما في البطاقة" class="w-full p-4 rounded-2xl border outline-none">
+                <input type="tel" id="reg-phone" placeholder="رقم الهاتف النشط" class="w-full p-4 rounded-2xl border outline-none">
+                
+                <div id="driver-fields" class="space-y-4">
+                    <input type="text" id="reg-nid" placeholder="الرقم القومي (14 رقم)" class="w-full p-4 rounded-2xl border outline-none">
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="text" id="reg-car" placeholder="نوع السيارة" class="p-4 rounded-2xl border outline-none">
+                        <input type="text" id="reg-plate" placeholder="رقم اللوحة" class="p-4 rounded-2xl border outline-none">
+                    </div>
+                </div>
+
+                <hr class="border-slate-100 my-4">
+                <input type="email" id="reg-email" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-2xl border outline-none">
+                <input type="password" id="reg-pass" placeholder="كلمة سر (6 خانات على الأقل)" class="w-full p-4 rounded-2xl border outline-none">
+                
+                <button onclick="handleSignup()" class="w-full bg-green-600 text-white py-5 rounded-2xl font-black shadow-xl mt-4 active:scale-95 transition">تأكيد طلب الانضمام</button>
+            </div>
+            <button onclick="showPage('welcome-page')" class="mt-8 block mx-auto text-slate-400 font-bold">إلغاء الطلب</button>
+        </div>
+    </div>
+
+    <div id="staff-dashboard" class="page">
+        <nav class="bg-slate-900 text-white p-6 flex justify-between items-center shadow-xl sticky top-0 z-40">
             <div class="flex items-center gap-3">
-                <span class="text-2xl">👑</span>
-                <div>
-                    <p class="text-[10px] opacity-80 leading-none">مرحباً بك يا مدير</p>
-                    <span id="user-display" class="font-bold">المسؤول</span>
-                </div>
+                <div id="staff-premium-dot" class="w-3 h-3 bg-slate-500 rounded-full"></div>
+                <span class="font-black text-sm tracking-widest italic">STAFF CONSOLE</span>
             </div>
-            <button onclick="logout()" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition"><i data-lucide="log-out"></i></button>
+            <button onclick="logout()" class="p-2 bg-white/10 rounded-full"><i data-lucide="log-out"></i></button>
         </nav>
-
-        <div class="p-4 space-y-6 flex-1 overflow-y-auto">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-5 rounded-3xl shadow-sm border-b-4 border-blue-500">
-                    <i data-lucide="users" class="text-blue-500 mb-2 w-5"></i>
-                    <p class="text-gray-400 text-[10px]">إجمالي السائقين</p>
-                    <p class="text-2xl font-bold" id="drivers-count">0</p>
+        
+        <div class="p-5 space-y-6">
+            <div id="premium-alert" class="bg-amber-100 border-2 border-amber-300 p-5 rounded-[2rem] flex items-center justify-between">
+                <div>
+                    <h4 class="font-black text-amber-900 text-sm">الخطة المجانية</h4>
+                    <p class="text-[10px] text-amber-700">محدودة بـ 2 سائق فقط</p>
                 </div>
-                <div class="bg-white p-5 rounded-3xl shadow-sm border-b-4 border-green-500">
-                    <i data-lucide="trending-up" class="text-green-500 mb-2 w-5"></i>
-                    <p class="text-gray-400 text-[10px]">رحلات اليوم</p>
-                    <p class="text-2xl font-bold">0</p>
-                </div>
+                <button onclick="openSubscription()" class="bg-amber-600 text-white px-4 py-2 rounded-xl text-[10px] font-black">ترقية</button>
             </div>
 
-            <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50">
-                <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="shield-check" class="text-purple-600"></i> خيارات الأمان</h3>
-                <button onclick="resetPassword()" class="w-full text-right p-4 bg-orange-50 text-orange-700 rounded-2xl font-bold text-sm flex justify-between items-center transition active:bg-orange-100">
-                    تغيير كلمة المرور عبر الإيميل
-                    <i data-lucide="mail" class="w-4"></i>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="alert('جاري تطوير نظام الرحلات العامة')" class="bg-white p-6 rounded-[2.5rem] shadow-sm border-b-4 border-blue-600 flex flex-col items-center gap-3 active:scale-95 transition">
+                    <i data-lucide="map-pin" class="text-blue-600"></i>
+                    <span class="text-[10px] font-black italic">إضافة رحلة</span>
+                </button>
+                <button onclick="alert('جاري تحضير نظام التقارير')" class="bg-white p-6 rounded-[2.5rem] shadow-sm border-b-4 border-indigo-600 flex flex-col items-center gap-3 active:scale-95 transition">
+                    <i data-lucide="file-bar-chart" class="text-indigo-600"></i>
+                    <span class="text-[10px] font-black italic">التقارير</span>
                 </button>
             </div>
 
-            <div class="bg-white rounded-[2rem] p-6 shadow-sm">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-gray-800">السائقين في Firestore</h3>
-                    <button onclick="addDriverPrompt()" class="bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold">+ إضافة</button>
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <h3 class="font-black text-slate-800 mb-5 flex items-center gap-2 text-sm"><i data-lucide="message-square" class="w-4"></i> دردشة مع السائقين</h3>
+                <div id="staff-driver-chat-list" class="space-y-4">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="driver-dashboard" class="page bg-slate-50">
+        <nav class="royal-gradient p-6 text-white flex justify-between items-center shadow-2xl sticky top-0 z-40">
+            <div class="flex items-center gap-3 text-sm font-black italic uppercase">
+                <i data-lucide="truck" class="text-amber-500"></i>
+                <span id="d-nav-name">الكابتن</span>
+            </div>
+            <button onclick="logout()"><i data-lucide="log-out"></i></button>
+        </nav>
+        <div class="p-6 space-y-6">
+            <div class="bg-white p-10 rounded-[3rem] shadow-sm border-2 border-dashed border-slate-200 text-center">
+                <div class="text-4xl mb-4 opacity-20">📡</div>
+                <p class="text-slate-400 text-sm font-bold italic leading-relaxed">في انتظار تعيين رحلات جديدة لك من الموظف المختص...</p>
+            </div>
+            <button onclick="openChatWithStaff()" class="w-full bg-blue-600 text-white p-6 rounded-[2rem] font-black shadow-xl flex items-center justify-center gap-3 active:scale-95 transition">
+                <i data-lucide="message-circle" class="w-5"></i>
+                مراسلة الإدارة (أونلاين)
+            </button>
+        </div>
+    </div>
+
+    <div id="owner-dashboard" class="page royal-gradient text-white">
+        <nav class="p-8 border-b border-white/10 flex justify-between items-center sticky top-0 bg-slate-900/50 backdrop-blur-md z-40">
+            <h2 class="text-2xl font-black text-amber-500 italic uppercase tracking-tighter">Owner Core</h2>
+            <button onclick="logout()" class="text-red-500"><i data-lucide="power"></i></button>
+        </nav>
+        <div class="p-8 space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white/5 p-6 rounded-[2.5rem] border border-white/10 text-center">
+                    <p class="text-[10px] opacity-40 uppercase font-black mb-2">الموظفين</p>
+                    <p id="owner-sc" class="text-5xl font-black text-blue-400">0</p>
                 </div>
-                <div id="drivers-list" class="space-y-3 py-4 text-center text-gray-400 text-sm">
-                    لا توجد بيانات حالياً في Firestore
+                <div class="bg-white/5 p-6 rounded-[2.5rem] border border-white/10 text-center">
+                    <p class="text-[10px] opacity-40 uppercase font-black mb-2">السائقين</p>
+                    <p id="owner-dc" class="text-5xl font-black text-green-400">0</p>
                 </div>
             </div>
+            <div class="space-y-4">
+                <h3 class="text-sm font-black text-amber-500 underline underline-offset-8">إدارة التراخيص النشطة</h3>
+                <div id="owner-all-users" class="space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-system" class="fixed inset-0 bg-slate-900/95 z-[100] hidden flex flex-col">
+        <nav class="p-6 bg-slate-800 text-white flex justify-between items-center border-b border-white/5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center font-black shadow-lg">💬</div>
+                <div>
+                    <span id="chat-title" class="font-black block text-sm">محادثة فورية</span>
+                    <span class="text-[8px] text-green-400 font-bold uppercase tracking-widest animate-pulse">Online Now</span>
+                </div>
+            </div>
+            <button onclick="closeChatSystem()" class="p-3 bg-white/10 rounded-full"><i data-lucide="x"></i></button>
+        </nav>
+        <div id="chat-flow" class="flex-1 p-6 overflow-y-auto flex flex-col space-y-1 bg-slate-50"></div>
+        <div class="p-6 bg-white border-t border-slate-100 flex gap-3 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+            <input type="text" id="chat-msg-input" placeholder="اكتب رسالتك للموظف..." class="flex-1 p-5 bg-slate-100 rounded-[1.5rem] outline-none border-2 border-transparent focus:border-blue-500 transition-all font-bold">
+            <button onclick="sendChatMessage()" class="bg-blue-600 text-white p-5 rounded-2xl shadow-xl active:scale-90 transition-transform"><i data-lucide="send"></i></button>
+        </div>
+    </div>
+
+    <div id="modal-payment" class="fixed inset-0 bg-black/90 z-[200] hidden flex items-center justify-center p-8">
+        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 text-center shadow-2xl">
+            <h3 class="text-2xl font-black mb-6 text-slate-800 italic">ترقية الحساب 💎</h3>
+            <div class="bg-red-50 p-6 rounded-3xl mb-8 border border-red-100">
+                <p class="text-[10px] text-slate-500 mb-2 font-bold uppercase">رقم محفظة المالك (كاش):</p>
+                <p class="text-2xl font-black text-red-600 tracking-[0.2em]">01552610460</p>
+            </div>
+            <p class="text-xs text-slate-400 leading-relaxed mb-8">بعد التحويل، أرسل سكرين شوت برقم العملية لتفعيل كافة المزايا (سائقين غير محدودين + تقارير بلا نهاية).</p>
+            <button onclick="window.open('https://wa.me/201552610460')" class="w-full bg-green-500 text-white py-5 rounded-2xl font-black shadow-lg mb-4 flex items-center justify-center gap-3">
+                <i data-lucide="message-square"></i> تأكيد بالواتساب
+            </button>
+            <button onclick="document.getElementById('modal-payment').style.display='none'" class="text-slate-400 font-bold text-sm">إغلاق</button>
         </div>
     </div>
 </div>
 
 <script>
-    // الإعدادات التي أرسلتها أنت
+    // --- ⚙️ FIREBASE INITIALIZATION ---
     const firebaseConfig = {
       apiKey: "AIzaSyBhZdYXdISIPlcCbC4yiVdlUx0QDWfITdk",
       authDomain: "royal-drive-38c15.firebaseapp.com",
       projectId: "royal-drive-38c15",
       storageBucket: "royal-drive-38c15.firebasestorage.app",
       messagingSenderId: "94912656002",
-      appId: "1:94912656002:web:f461fdf7c3cd67b4a77a9b",
-      measurementId: "G-ZSFHLWPJKV"
+      appId: "1:94912656002:web:f461fdf7c3cd67b4a77a9b"
     };
-
-    // تهيئة Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-
     lucide.createIcons();
 
-    // تبديل العين للباسورد
-    function togglePass(id) {
-        const el = document.getElementById(id);
-        el.type = el.type === 'password' ? 'text' : 'password';
+    let userRole = 'driver';
+    let currentChatRoom = null;
+    let staffIdForDriver = null; // سيتم تحديثه برمجياً للسائق
+
+    // --- 🔄 UI CONTROLS ---
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        lucide.createIcons();
     }
 
-    // تسجيل الدخول
-    async function handleLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        const btn = document.getElementById('login-btn');
-        const error = document.getElementById('error-msg');
+    function selectRole(role) {
+        userRole = role;
+        const isD = (role === 'driver');
+        document.getElementById('s-role-d').className = isD ? 'flex-1 py-3 rounded-xl font-black bg-white shadow-md text-blue-600' : 'flex-1 py-3 rounded-xl font-black text-slate-400';
+        document.getElementById('s-role-s').className = !isD ? 'flex-1 py-3 rounded-xl font-black bg-white shadow-md text-blue-600' : 'flex-1 py-3 rounded-xl font-black text-slate-400';
+        document.getElementById('driver-fields').style.display = isD ? 'block' : 'none';
+    }
 
-        btn.innerText = "جاري التحقق...";
-        error.classList.add('hidden');
+    // --- 🔐 CORE AUTH ---
+    async function handleLogin() {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+        if(!email || !pass) return alert("يرجى إكمال البيانات");
+        try {
+            const res = await auth.signInWithEmailAndPassword(email, pass);
+            checkUser(res.user);
+        } catch (e) { alert("خطأ: تأكد من الإيميل وكلمة المرور"); }
+    }
+
+    async function handleSignup() {
+        const email = document.getElementById('reg-email').value;
+        const pass = document.getElementById('reg-pass').value;
+        const name = document.getElementById('reg-name').value;
+        if(!email || !pass || !name) return alert("جميع الحقول مطلوبة");
 
         try {
-            await auth.signInWithEmailAndPassword(email, pass);
-            showDashboard();
-        } catch (err) {
-            btn.innerText = "دخول آمن";
-            error.classList.remove('hidden');
+            // التحقق من القائمة البيضاء
+            const allowRef = await db.collection('allowed_users').doc(email).get();
+            if(!allowRef.exists && email !== 'admin@royal.com') {
+                return alert(userRole === 'driver' ? "تواصل مع الموظف لإضافة إيميلك للقائمة أولاً" : "تواصل مع المالك لإضافة إيميلك كموظف");
+            }
+
+            const cred = await auth.createUserWithEmailAndPassword(email, pass);
+            await db.collection('users').doc(cred.user.uid).set({
+                uid: cred.user.uid,
+                name: name,
+                email: email,
+                phone: document.getElementById('reg-phone').value,
+                role: userRole,
+                status: 'active',
+                isPremium: false,
+                car: userRole === 'driver' ? {
+                    nid: document.getElementById('reg-nid').value,
+                    type: document.getElementById('reg-car').value,
+                    plate: document.getElementById('reg-plate').value
+                } : null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            checkUser(cred.user);
+        } catch (e) { alert("فشل التسجيل: " + e.message); }
+    }
+
+    async function checkUser(user) {
+        if(user.email === 'admin@royal.com') {
+            showPage('owner-dashboard');
+            syncOwner();
+            return;
+        }
+        const doc = await db.collection('users').doc(user.uid).get();
+        const data = doc.data();
+
+        if(data.status === 'frozen') {
+            alert("الحساب مجمد!");
+            auth.signOut();
+            return;
+        }
+
+        if(data.role === 'driver') {
+            showPage('driver-dashboard');
+            document.getElementById('d-nav-name').innerText = data.name;
+            // للسائق: ابحث عن أي موظف (أو الموظف الافتراضي) للتواصل معه
+            staffIdForDriver = "SYSTEM_ADMIN"; // افتراضي
+        } else {
+            showPage('staff-dashboard');
+            if(data.isPremium) {
+                document.getElementById('premium-alert').style.display = 'none';
+                document.getElementById('staff-premium-dot').className = 'w-3 h-3 bg-green-500 rounded-full shadow-[0_0_10px_green]';
+            }
+            syncStaffChatList();
         }
     }
 
-    // عرض لوحة التحكم
-    function showDashboard() {
-        document.getElementById('auth-screen').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-        document.getElementById('user-display').innerText = auth.currentUser.email.split('@')[0];
-        loadDrivers();
+    // --- 💬 REAL-TIME CHAT ENGINE ---
+    function openChat(targetId, targetName) {
+        const myId = auth.currentUser.uid;
+        currentChatRoom = myId < targetId ? `${myId}_${targetId}` : `${targetId}_${myId}`;
+        
+        document.getElementById('chat-system').classList.remove('hidden');
+        document.getElementById('chat-title').innerText = "دردشة: " + targetName;
+
+        db.collection('chats').doc(currentChatRoom).collection('messages')
+          .orderBy('timestamp', 'asc')
+          .onSnapshot(snap => {
+              const flow = document.getElementById('chat-flow');
+              flow.innerHTML = "";
+              snap.forEach(doc => {
+                  const m = doc.data();
+                  const isMe = m.senderId === myId;
+                  flow.innerHTML += `<div class="chat-bubble ${isMe ? 'bubble-me' : 'bubble-them'}">${m.text}</div>`;
+              });
+              flow.scrollTop = flow.scrollHeight;
+          });
     }
 
-    // جلب السائقين من Firestore
-    function loadDrivers() {
-        db.collection('drivers').onSnapshot(snapshot => {
-            const list = document.getElementById('drivers-list');
-            document.getElementById('drivers-count').innerText = snapshot.size;
-            
-            if (snapshot.empty) {
-                list.innerHTML = "قاعدة البيانات فارغة.. أضف أول سائق!";
-                return;
-            }
+    async function sendChatMessage() {
+        const input = document.getElementById('chat-msg-input');
+        if(!input.value || !currentChatRoom) return;
+        
+        await db.collection('chats').doc(currentChatRoom).collection('messages').add({
+            text: input.value,
+            senderId: auth.currentUser.uid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        input.value = "";
+    }
 
+    function closeChatSystem() { 
+        document.getElementById('chat-system').classList.add('hidden'); 
+        currentChatRoom = null;
+    }
+
+    function openChatWithStaff() {
+        // الموظف الافتراضي هو المالك أو أول موظف متاح
+        openChat('admin_system', 'إدارة رويال درايف');
+    }
+
+    // --- 👑 OWNER & STAFF SYNC ---
+    function syncOwner() {
+        db.collection('users').onSnapshot(snap => {
+            const list = document.getElementById('owner-all-users');
+            list.innerHTML = ""; let sc = 0, dc = 0;
+            snap.forEach(doc => {
+                const u = doc.data();
+                if(u.role === 'staff') {
+                    sc++;
+                    list.innerHTML += `
+                        <div class="bg-white/5 p-5 rounded-[2rem] border border-white/5 flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-bold">${u.name}</p>
+                                <p class="text-[8px] opacity-40">${u.email}</p>
+                                <span class="text-[8px] ${u.isPremium ? 'text-amber-500' : 'text-slate-500'} font-black">${u.isPremium ? '★ PREMIUM' : 'FREE'}</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="db.collection('users').doc('${u.uid}').update({isPremium: ${!u.isPremium}})" class="p-2 bg-amber-500/20 text-amber-500 rounded-lg text-[8px] font-black uppercase">التفعيل</button>
+                                <button onclick="db.collection('users').doc('${u.uid}').update({status: '${u.status === 'active'?'frozen':'active'}'})" class="p-2 bg-red-500/20 text-red-500 rounded-lg text-[8px] font-black uppercase">تجميد</button>
+                            </div>
+                        </div>`;
+                } else dc++;
+            });
+            document.getElementById('owner-sc').innerText = sc;
+            document.getElementById('owner-dc').innerText = dc;
+        });
+    }
+
+    function syncStaffChatList() {
+        db.collection('users').where('role', '==', 'driver').onSnapshot(snap => {
+            const list = document.getElementById('staff-driver-chat-list');
             list.innerHTML = "";
-            snapshot.forEach(doc => {
+            snap.forEach(doc => {
                 const d = doc.data();
                 list.innerHTML += `
-                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                    <div class="flex justify-between items-center bg-slate-50 p-4 rounded-3xl border border-slate-100">
                         <div class="text-right">
-                            <p class="font-bold text-gray-800">${d.name}</p>
-                            <p class="text-[10px] text-gray-500">${d.car || 'بدون سيارة'}</p>
+                            <p class="font-black text-sm text-slate-800">${d.name}</p>
+                            <p class="text-[9px] text-slate-400 font-bold tracking-widest">${d.car.plate} | ${d.car.type}</p>
                         </div>
-                        <i data-lucide="car" class="text-purple-500 w-4"></i>
-                    </div>
-                `;
+                        <button onclick="openChat('${d.uid}', '${d.name}')" class="p-3 bg-blue-600 text-white rounded-2xl shadow-md"><i data-lucide="message-square" class="w-4"></i></button>
+                    </div>`;
             });
             lucide.createIcons();
         });
     }
 
-    // إضافة سائق (تجريبي)
-    async function addDriverPrompt() {
-        const name = prompt("اسم السائق الجديد:");
-        const car = prompt("نوع السيارة:");
-        if (name) {
-            await db.collection('drivers').add({
-                name: name,
-                car: car,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
+    // --- 🛠️ HELPERS ---
+    function openSubscription() { document.getElementById('modal-payment').style.display = 'flex'; }
+    async function handleResetPassword() {
+        const e = document.getElementById('login-email').value;
+        if(!e) return alert("أدخل بريدك الإلكتروني أولاً");
+        await auth.sendPasswordResetEmail(e);
+        alert("تم إرسال رابط إعادة التعيين (OTP) لبريدك الإلكتروني بنجاح.");
     }
-
-    // رابط تعيين الباسورد
-    async function resetPassword() {
-        try {
-            await auth.sendPasswordResetEmail(auth.currentUser.email);
-            alert("تم إرسال رابط التغيير لإيميلك بنجاح!");
-        } catch (err) {
-            alert("حدث خطأ: " + err.message);
-        }
-    }
-
-    function logout() {
-        auth.signOut().then(() => location.reload());
-    }
-
-    // مراقبة حالة المستخدم
-    auth.onAuthStateChanged(user => {
-        if (user) showDashboard();
-    });
+    function logout() { auth.signOut().then(() => location.reload()); }
+    auth.onAuthStateChanged(u => { if(u) checkUser(u); });
 </script>
+
 </body>
 </html>
