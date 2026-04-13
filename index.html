@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Royal Drive Pro | النسخة المستقرة</title>
-    
+    <title>Royal Drive Pro</title>
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -12,212 +12,745 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; outline: none; }
-        
-        /* نظام عزل الصفحات لمنع التداخل */
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0f172a; }
-        .page { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #f8fafc; display: none; overflow-y: auto; z-index: 10;
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; outline: none; margin: 0; padding: 0; }
+
+        body, html {
+            width: 100%; height: 100%; overflow: hidden;
+            background: #0a0f1e;
         }
-        .page.active { display: block !important; z-index: 50; }
-        
-        .royal-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
-        input:focus { border-color: #2563eb; ring: 2px #2563eb; }
+
+        /* ===================================================
+         * BUG FIX #1: استخدام visibility بدلاً من display:none
+         * لأن display:block كان يلغي display:flex من Tailwind
+         * ويسبب كسر التصميم وعدم ظهور اللوجو + مشاكل الأزرار
+         * =================================================== */
+        .page {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            overflow-y: auto; z-index: 10;
+            visibility: hidden;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .page.active {
+            visibility: visible;
+            pointer-events: all;
+            opacity: 1;
+            z-index: 50;
+        }
+
+        /* ===================================================
+         * BUG FIX #2: اللوجو - عنصر مستقل بـ flex خاص به
+         * لا يعتمد على display الصفحة الأم
+         * =================================================== */
+        .app-logo {
+            width: 90px; height: 90px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 60%, #92400e 100%);
+            border-radius: 28px;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 8px rgba(245,158,11,0.15), 0 20px 50px rgba(245,158,11,0.3);
+            font-size: 42px;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .app-logo::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%);
+            border-radius: inherit;
+        }
+        .app-logo-sm {
+            width: 56px; height: 56px;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 18px;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(245,158,11,0.3);
+        }
+
+        .royal-gradient { background: linear-gradient(160deg, #0a0f1e 0%, #111827 50%, #0f1629 100%); }
+
+        /* Loading Spinner */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            display: inline-block; width: 20px; height: 20px;
+            border: 2.5px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+        }
+
+        /* Input Focus */
+        input:focus { border-color: #2563eb !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+
+        /* Pulse animation for welcome page dots */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Shimmer for cards */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.4s ease forwards; }
+        .fade-up-2 { animation: fadeUp 0.4s 0.1s ease both; }
+        .fade-up-3 { animation: fadeUp 0.4s 0.2s ease both; }
+
+        /* Stat card */
+        .stat-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top: 1px solid #f1f5f9;
+            padding: 10px 0 max(10px, env(safe-area-inset-bottom));
+            display: flex;
+            z-index: 100;
+            box-shadow: 0 -8px 30px rgba(0,0,0,0.08);
+        }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; gap: 3px;
+            font-size: 10px; font-weight: 700;
+            color: #94a3b8; cursor: pointer;
+            transition: color 0.2s;
+            padding: 4px 0;
+        }
+        .nav-item.active-nav { color: #2563eb; }
+        .nav-item svg { width: 22px; height: 22px; stroke-width: 1.8; }
     </style>
 </head>
 <body>
-
 <div id="app">
-    <div id="welcome-page" class="page active royal-gradient flex flex-col items-center justify-center p-8 text-white">
-        <div class="mb-6 text-7xl animate-bounce">👑</div>
-        <h1 class="text-4xl font-black mb-12 tracking-tighter italic">ROYAL DRIVE</h1>
-        <div class="w-full max-w-xs space-y-4">
-            <button onclick="goToPage('login-page')" class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black shadow-2xl active:scale-95 transition">تسجيل الدخول</button>
-            <button onclick="goToPage('signup-page')" class="w-full border-2 border-white/20 bg-white/5 py-4 rounded-2xl font-bold active:scale-95 transition">إنشاء حساب جديد</button>
+
+    <!-- ==================== صفحة الترحيب ==================== -->
+    <div id="welcome-page" class="page active royal-gradient flex flex-col items-center justify-center p-8 text-white" style="min-height:100vh;">
+        <div class="fade-up text-center mb-10">
+            <div class="app-logo mx-auto mb-5">👑</div>
+            <h1 class="text-4xl font-black tracking-tight">ROYAL DRIVE</h1>
+            <p class="text-slate-400 text-sm mt-2 font-semibold tracking-widest uppercase">نظام إدارة المركبات</p>
         </div>
+
+        <div class="w-full max-w-xs space-y-4 fade-up-2">
+            <button onclick="goToPage('login-page')"
+                class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-base shadow-2xl active:scale-95 transition-transform">
+                تسجيل الدخول
+            </button>
+            <button onclick="goToPage('signup-page')"
+                class="w-full border-2 border-white/20 bg-white/5 backdrop-blur-sm py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform">
+                إنشاء حساب جديد
+            </button>
+        </div>
+
+        <p class="text-slate-600 text-xs mt-12 fade-up-3">© 2025 Royal Drive · جميع الحقوق محفوظة</p>
     </div>
 
-    <div id="login-page" class="page bg-slate-50 flex items-center justify-center p-6">
-        <div class="w-full max-w-md bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
-            <h2 class="text-3xl font-black mb-8 text-slate-800 text-center">دخول النظام</h2>
-            <div class="space-y-5">
-                <input type="email" id="login-email" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-2xl border bg-slate-50 transition-all">
-                
-                <div class="relative">
-                    <input type="password" id="login-pass" placeholder="كلمة المرور" class="w-full p-4 rounded-2xl border bg-slate-50 transition-all">
-                    <button onclick="toggleVisibility('login-pass', 'eye-l')" class="absolute left-4 top-4 text-slate-400">
-                        <i id="eye-l" data-lucide="eye"></i>
-                    </button>
+    <!-- ==================== صفحة تسجيل الدخول ==================== -->
+    <div id="login-page" class="page bg-slate-50 flex items-center justify-center p-5">
+        <div class="w-full max-w-md bg-white p-8 rounded-[2rem] shadow-2xl border border-slate-100">
+            <!-- Logo داخل صفحة الدخول -->
+            <div class="flex justify-center mb-6">
+                <div class="app-logo-sm">👑</div>
+            </div>
+            <h2 class="text-2xl font-black mb-1 text-slate-800 text-center">دخول النظام</h2>
+            <p class="text-slate-400 text-sm text-center mb-7">أدخل بياناتك للمتابعة</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 mb-1.5 block">البريد الإلكتروني</label>
+                    <input type="email" id="login-email" placeholder="example@email.com"
+                        class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 transition-all focus:bg-white"
+                        autocomplete="email">
                 </div>
 
-                <button onclick="doLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition">دخول آمن</button>
-                <button onclick="resetPass()" class="w-full text-xs text-blue-600 font-bold">هل نسيت كلمة السر؟</button>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 mb-1.5 block">كلمة المرور</label>
+                    <div class="relative">
+                        <input type="password" id="login-pass" placeholder="••••••••"
+                            class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 transition-all focus:bg-white"
+                            autocomplete="current-password">
+                        <!-- BUG FIX #3: id على الزرار نفسه وليس على الأيقونة -->
+                        <button id="btn-eye-login"
+                            onclick="toggleVisibility('login-pass', 'btn-eye-login')"
+                            class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1">
+                            <i data-lucide="eye" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button id="login-btn" onclick="doLogin()"
+                    class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-base shadow-lg shadow-blue-600/25 active:scale-95 transition-transform mt-2">
+                    دخول آمن
+                </button>
+
+                <!-- BUG FIX #4: نسيان كلمة السر - تم تأمينه -->
+                <button onclick="resetPass()"
+                    class="w-full text-sm text-blue-500 font-bold py-1 hover:text-blue-700 transition-colors">
+                    نسيت كلمة المرور؟
+                </button>
             </div>
-            <button onclick="goToPage('welcome-page')" class="mt-8 block mx-auto text-slate-400 font-bold">← رجوع</button>
+
+            <button onclick="goToPage('welcome-page')"
+                class="mt-6 flex items-center gap-2 mx-auto text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
+                رجوع
+            </button>
         </div>
     </div>
 
-    <div id="signup-page" class="page bg-slate-50 p-6 overflow-y-auto pb-20">
-        <div class="w-full max-w-md mx-auto bg-white p-10 rounded-[2.5rem] shadow-2xl border border-slate-100">
-            <h2 class="text-2xl font-black text-center mb-6 text-slate-800">حساب جديد</h2>
-            
-            <div class="flex p-1.5 bg-slate-100 rounded-2xl mb-8">
-                <button onclick="setRegRole('driver')" id="role-d" class="flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600">سائق</button>
-                <button onclick="setRegRole('staff')" id="role-s" class="flex-1 py-3 rounded-xl font-black text-slate-400">موظف</button>
+    <!-- ==================== صفحة إنشاء حساب ==================== -->
+    <div id="signup-page" class="page bg-slate-50 flex items-start justify-center p-5 pt-8 pb-24">
+        <div class="w-full max-w-md bg-white p-8 rounded-[2rem] shadow-2xl border border-slate-100">
+            <div class="flex justify-center mb-4">
+                <div class="app-logo-sm">👑</div>
+            </div>
+            <h2 class="text-2xl font-black text-center mb-1 text-slate-800">حساب جديد</h2>
+            <p class="text-slate-400 text-sm text-center mb-6">اختر نوع حسابك وأكمل البيانات</p>
+
+            <!-- اختيار الدور -->
+            <div class="flex p-1.5 bg-slate-100 rounded-2xl mb-7 gap-1.5">
+                <button onclick="setRegRole('driver')" id="role-d"
+                    class="flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600 transition-all">
+                    🚗 سائق
+                </button>
+                <button onclick="setRegRole('staff')" id="role-s"
+                    class="flex-1 py-3 rounded-xl font-black text-slate-400 transition-all">
+                    💼 موظف
+                </button>
             </div>
 
             <div class="space-y-4">
-                <input type="text" id="reg-name" placeholder="الاسم الكامل" class="w-full p-4 rounded-2xl border bg-slate-50">
-                <input type="tel" id="reg-phone" placeholder="رقم الهاتف" class="w-full p-4 rounded-2xl border bg-slate-50">
-                
+                <input type="text" id="reg-name" placeholder="الاسم الكامل"
+                    class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all">
+                <input type="tel" id="reg-phone" placeholder="رقم الهاتف"
+                    class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all">
+
+                <!-- حقول خاصة بالسائق -->
                 <div id="extra-driver-fields" class="space-y-4">
-                    <input type="text" id="reg-nid" placeholder="الرقم القومي" class="w-full p-4 rounded-2xl border bg-slate-50">
-                    <input type="text" id="reg-car" placeholder="نوع السيارة" class="w-full p-4 rounded-2xl border bg-slate-50">
+                    <input type="text" id="reg-nid" placeholder="الرقم القومي"
+                        class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all">
+                    <input type="text" id="reg-car" placeholder="نوع السيارة"
+                        class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all">
                 </div>
 
-                <hr class="border-slate-100 my-2">
-                <input type="email" id="reg-email" placeholder="البريد الإلكتروني" class="w-full p-4 rounded-2xl border bg-slate-50">
-                
+                <div class="flex items-center gap-3 my-1">
+                    <div class="flex-1 h-px bg-slate-100"></div>
+                    <span class="text-xs text-slate-400 font-bold">بيانات الدخول</span>
+                    <div class="flex-1 h-px bg-slate-100"></div>
+                </div>
+
+                <input type="email" id="reg-email" placeholder="البريد الإلكتروني"
+                    class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all"
+                    autocomplete="email">
+
                 <div class="relative">
-                    <input type="password" id="reg-pass" placeholder="كلمة سر جديدة" class="w-full p-4 rounded-2xl border bg-slate-50">
-                    <button onclick="toggleVisibility('reg-pass', 'eye-s')" class="absolute left-4 top-4 text-slate-400">
-                        <i id="eye-s" data-lucide="eye"></i>
+                    <input type="password" id="reg-pass" placeholder="كلمة سر جديدة (٦ أحرف على الأقل)"
+                        class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all"
+                        autocomplete="new-password">
+                    <!-- BUG FIX #3: نفس الإصلاح هنا -->
+                    <button id="btn-eye-signup"
+                        onclick="toggleVisibility('reg-pass', 'btn-eye-signup')"
+                        class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1">
+                        <i data-lucide="eye" class="w-5 h-5"></i>
                     </button>
                 </div>
 
-                <button onclick="doSignup()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg active:scale-95 transition">إتمام التسجيل</button>
+                <button id="signup-btn" onclick="doSignup()"
+                    class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-base shadow-lg shadow-emerald-600/25 active:scale-95 transition-transform">
+                    إتمام التسجيل
+                </button>
             </div>
-            <button onclick="goToPage('welcome-page')" class="mt-8 block mx-auto text-slate-400 font-bold">إلغاء</button>
+
+            <button onclick="goToPage('welcome-page')"
+                class="mt-6 block mx-auto text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors">
+                إلغاء
+            </button>
         </div>
     </div>
 
-    <div id="staff-dashboard" class="page bg-white"> <div class="p-10 text-center font-black">جاري تحميل لوحة الموظف...</div> </div>
-    <div id="driver-dashboard" class="page bg-white"> <div class="p-10 text-center font-black">جاري تحميل لوحة السائق...</div> </div>
-    <div id="owner-dashboard" class="page royal-gradient"> <div class="p-10 text-center text-white font-black">جاري تحميل لوحة المالك...</div> </div>
-</div>
+    <!-- ==================== لوحة الموظف ==================== -->
+    <div id="staff-dashboard" class="page bg-slate-50 flex flex-col" style="padding-bottom:70px;">
+        <!-- Header -->
+        <div class="royal-gradient p-6 pb-8 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="app-logo-sm">👑</div>
+                    <div>
+                        <p class="text-yellow-400 text-xs font-bold tracking-widest uppercase">Royal Drive</p>
+                        <h2 id="staff-name" class="text-xl font-black">مرحباً</h2>
+                    </div>
+                </div>
+                <button onclick="doLogout()"
+                    class="bg-white/10 border border-white/15 text-white px-4 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform">
+                    خروج
+                </button>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
+                <div class="w-9 h-9 bg-blue-500 rounded-full flex items-center justify-center text-sm">💼</div>
+                <div>
+                    <p class="text-white text-sm font-bold">لوحة الموظف</p>
+                    <p class="text-slate-400 text-xs">صلاحيات عمليات النظام</p>
+                </div>
+                <div class="mr-auto">
+                    <span class="bg-green-500/20 text-green-400 text-xs font-bold px-2 py-1 rounded-full">نشط</span>
+                </div>
+            </div>
+        </div>
+        <!-- Content -->
+        <div class="p-5 space-y-4">
+            <h3 class="font-black text-slate-700 text-base">الإجراءات السريعة</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
+                    <div class="text-3xl mb-2">📋</div>
+                    <p class="font-black text-sm text-slate-700">الطلبات</p>
+                    <p class="text-xs text-slate-400">قيد التطوير</p>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
+                    <div class="text-3xl mb-2">👥</div>
+                    <p class="font-black text-sm text-slate-700">السائقون</p>
+                    <p class="text-xs text-slate-400">قيد التطوير</p>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
+                    <div class="text-3xl mb-2">🚗</div>
+                    <p class="font-black text-sm text-slate-700">المركبات</p>
+                    <p class="text-xs text-slate-400">قيد التطوير</p>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
+                    <div class="text-3xl mb-2">📊</div>
+                    <p class="font-black text-sm text-slate-700">التقارير</p>
+                    <p class="text-xs text-slate-400">قيد التطوير</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== لوحة السائق ==================== -->
+    <div id="driver-dashboard" class="page bg-slate-50 flex flex-col" style="padding-bottom:70px;">
+        <!-- Header -->
+        <div class="royal-gradient p-6 pb-8 text-white">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="app-logo-sm">👑</div>
+                    <div>
+                        <p class="text-yellow-400 text-xs font-bold tracking-widest uppercase">Royal Drive</p>
+                        <h2 id="driver-name" class="text-xl font-black">مرحباً</h2>
+                    </div>
+                </div>
+                <button onclick="doLogout()"
+                    class="bg-white/10 border border-white/15 text-white px-4 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform">
+                    خروج
+                </button>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
+                <div class="w-9 h-9 bg-amber-500 rounded-full flex items-center justify-center text-sm">🚗</div>
+                <div>
+                    <p class="text-white text-sm font-bold">لوحة السائق</p>
+                    <p class="text-slate-400 text-xs">متابعة الرحلات والمهام</p>
+                </div>
+                <div class="mr-auto">
+                    <span id="driver-status-badge" class="bg-green-500/20 text-green-400 text-xs font-bold px-2 py-1 rounded-full">نشط</span>
+                </div>
+            </div>
+        </div>
+        <!-- Content -->
+        <div class="p-5 space-y-4">
+            <h3 class="font-black text-slate-700 text-base">بياناتي</h3>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-3">
+                <div class="flex justify-between items-center py-2 border-b border-slate-50">
+                    <span class="text-slate-500 text-sm">الاسم</span>
+                    <span id="driver-name-info" class="font-bold text-slate-800 text-sm">—</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-slate-50">
+                    <span class="text-slate-500 text-sm">البريد الإلكتروني</span>
+                    <span id="driver-email-info" class="font-bold text-slate-800 text-sm">—</span>
+                </div>
+                <div class="flex justify-between items-center py-2">
+                    <span class="text-slate-500 text-sm">نوع السيارة</span>
+                    <span id="driver-car-info" class="font-bold text-slate-800 text-sm">—</span>
+                </div>
+            </div>
+
+            <h3 class="font-black text-slate-700 text-base pt-1">الإجراءات</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
+                    <div class="text-3xl mb-2">🗺️</div>
+                    <p class="font-black text-sm text-slate-700">رحلاتي</p>
+                    <p class="text-xs text-slate-400">قيد التطوير</p>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
+                    <div class="text-3xl mb-2">💰</div>
+                    <p class="font-black text-sm text-slate-700">أرباحي</p>
+                    <p class="text-xs text-slate-400">قيد التطوير</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== لوحة المالك ==================== -->
+    <div id="owner-dashboard" class="page royal-gradient flex flex-col text-white" style="padding-bottom:70px;">
+        <!-- Header -->
+        <div class="p-6 border-b border-white/10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="app-logo-sm">👑</div>
+                    <div>
+                        <p class="text-yellow-400 text-xs font-bold tracking-widest uppercase">Owner Access</p>
+                        <h2 class="text-xl font-black">لوحة المالك</h2>
+                    </div>
+                </div>
+                <button onclick="doLogout()"
+                    class="bg-white/10 border border-white/15 text-white px-4 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform">
+                    خروج
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="p-5 space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="stat-card">
+                    <p class="text-slate-400 text-xs mb-1">إجمالي السائقين</p>
+                    <p class="text-2xl font-black text-white">—</p>
+                    <p class="text-yellow-400 text-xs mt-1">قيد التطوير</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-slate-400 text-xs mb-1">الموظفون</p>
+                    <p class="text-2xl font-black text-white">—</p>
+                    <p class="text-yellow-400 text-xs mt-1">قيد التطوير</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-slate-400 text-xs mb-1">الرحلات اليوم</p>
+                    <p class="text-2xl font-black text-white">—</p>
+                    <p class="text-yellow-400 text-xs mt-1">قيد التطوير</p>
+                </div>
+                <div class="stat-card">
+                    <p class="text-slate-400 text-xs mb-1">الإيرادات</p>
+                    <p class="text-2xl font-black text-white">—</p>
+                    <p class="text-yellow-400 text-xs mt-1">قيد التطوير</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <p class="text-slate-400 text-xs mb-3 font-bold">إدارة سريعة</p>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between py-2 border-b border-white/5">
+                        <span class="text-sm text-slate-300">إدارة المستخدمين</span>
+                        <span class="text-xs bg-white/10 px-2 py-1 rounded-lg">قيد التطوير</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-white/5">
+                        <span class="text-sm text-slate-300">السماح بالتسجيل</span>
+                        <span class="text-xs bg-white/10 px-2 py-1 rounded-lg">قيد التطوير</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2">
+                        <span class="text-sm text-slate-300">التقارير المالية</span>
+                        <span class="text-xs bg-white/10 px-2 py-1 rounded-lg">قيد التطوير</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- end #app -->
 
 <script>
-    // --- ⚙️ الإعدادات ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyBhZdYXdISIPlcCbC4yiVdlUx0QDWfITdk",
-      authDomain: "royal-drive-38c15.firebaseapp.com",
-      projectId: "royal-drive-38c15",
-      storageBucket: "royal-drive-38c15.firebasestorage.app",
-      messagingSenderId: "94912656002",
-      appId: "1:94912656002:web:f461fdf7c3cd67b4a77a9b"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    lucide.createIcons();
+// ============================================================
+// ⚙️ إعدادات Firebase
+// ============================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyBhZdYXdISIPlcCbC4yiVdlUx0QDWfITdk",
+    authDomain: "royal-drive-38c15.firebaseapp.com",
+    projectId: "royal-drive-38c15",
+    storageBucket: "royal-drive-38c15.firebasestorage.app",
+    messagingSenderId: "94912656002",
+    appId: "1:94912656002:web:f461fdf7c3cd67b4a77a9b"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+lucide.createIcons();
 
-    // --- 🔄 منطق التنقل الصحيح ---
-    function goToPage(id) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const target = document.getElementById(id);
-        if (target) {
-            target.classList.add('active');
-            lucide.createIcons(); // تحديث الأيقونات في كل مرة
-        } else {
-            console.error("الصفحة غير موجودة: " + id);
-        }
-    }
-
-    // --- 👁️ إظهار/إخفاء الباسورد ---
-    function toggleVisibility(inputId, iconId) {
-        const field = document.getElementById(inputId);
-        const icon = document.getElementById(iconId);
-        if (field.type === "password") {
-            field.type = "text";
-            icon.setAttribute('data-lucide', 'eye-off');
-        } else {
-            field.type = "password";
-            icon.setAttribute('data-lucide', 'eye');
-        }
+// ============================================================
+// 🔄 التنقل بين الصفحات
+// ============================================================
+function goToPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById(id);
+    if (target) {
+        target.classList.add('active');
         lucide.createIcons();
+    } else {
+        console.error('الصفحة غير موجودة:', id);
+    }
+}
+
+// ============================================================
+// BUG FIX #3: إصلاح toggleVisibility
+// المشكلة: lucide.createIcons() تحوّل <i> إلى SVG،
+// ثم setAttribute على SVG لا يعمل لأن createIcons تبحث عن <i>
+// الحل: استبدال innerHTML الزرار بـ <i> جديدة في كل مرة
+// ============================================================
+function toggleVisibility(inputId, btnId) {
+    const field = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    if (!field || !btn) return;
+
+    const isPassword = (field.type === 'password');
+    field.type = isPassword ? 'text' : 'password';
+
+    // استبدال محتوى الزرار بـ <i> جديدة حتى تشتغل createIcons
+    btn.innerHTML = isPassword
+        ? '<i data-lucide="eye-off" class="w-5 h-5"></i>'
+        : '<i data-lucide="eye" class="w-5 h-5"></i>';
+    lucide.createIcons();
+}
+
+// ============================================================
+// 👤 إدارة الأدوار في التسجيل
+// ============================================================
+let signupRole = 'driver';
+function setRegRole(role) {
+    signupRole = role;
+    const isDriver = (role === 'driver');
+    document.getElementById('role-d').className = isDriver
+        ? 'flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600 transition-all'
+        : 'flex-1 py-3 rounded-xl font-black text-slate-400 transition-all';
+    document.getElementById('role-s').className = !isDriver
+        ? 'flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600 transition-all'
+        : 'flex-1 py-3 rounded-xl font-black text-slate-400 transition-all';
+    document.getElementById('extra-driver-fields').style.display = isDriver ? 'block' : 'none';
+}
+
+// ============================================================
+// ⏳ حالة تحميل الأزرار
+// ============================================================
+function setLoading(btnId, isLoading, label) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = isLoading;
+    btn.style.opacity = isLoading ? '0.7' : '1';
+    btn.innerHTML = isLoading ? '<span class="spinner"></span>' : label;
+}
+
+// ============================================================
+// BUG FIX #1 (المتعلق بالزرار): تسجيل الدخول
+// الزرار كان "يعمل" لكن إذا كان هناك خطأ Firebase يُبتلع
+// الآن: رسائل خطأ واضحة + loading state
+// ============================================================
+async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+
+    if (!email || !pass) {
+        return alert('يرجى إدخال البريد الإلكتروني وكلمة المرور.');
     }
 
-    // --- 👤 إدارة الأدوار في التسجيل ---
-    let signupRole = 'driver';
-    function setRegRole(role) {
-        signupRole = role;
-        const isD = (role === 'driver');
-        document.getElementById('role-d').className = isD ? 'flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600' : 'flex-1 py-3 rounded-xl font-black text-slate-400';
-        document.getElementById('role-s').className = !isD ? 'flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600' : 'flex-1 py-3 rounded-xl font-black text-slate-400';
-        document.getElementById('extra-driver-fields').style.display = isD ? 'block' : 'none';
-    }
+    setLoading('login-btn', true, 'دخول آمن');
 
-    // --- 🔐 تسجيل الدخول ---
-    async function doLogin() {
-        const email = document.getElementById('login-email').value.trim();
-        const pass = document.getElementById('login-pass').value;
-        if (!email || !pass) return alert("يرجى إدخال البيانات");
-        try {
-            await auth.signInWithEmailAndPassword(email, pass);
-        } catch (e) {
-            alert("خطأ: تأكد من الإيميل وكلمة السر.");
+    try {
+        await auth.signInWithEmailAndPassword(email, pass);
+        // auth.onAuthStateChanged سيتولى التوجيه تلقائياً
+    } catch (e) {
+        let msg = 'حدث خطأ غير متوقع. حاول مرة أخرى.';
+        switch (e.code) {
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+            case 'auth/invalid-login-credentials':
+                msg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'; break;
+            case 'auth/too-many-requests':
+                msg = 'تم تجاوز عدد المحاولات. انتظر قليلاً ثم أعد المحاولة.'; break;
+            case 'auth/invalid-email':
+                msg = 'صيغة البريد الإلكتروني غير صحيحة.'; break;
+            case 'auth/network-request-failed':
+                msg = 'خطأ في الاتصال بالإنترنت. تحقق من الشبكة.'; break;
         }
+        alert(msg);
+        setLoading('login-btn', false, 'دخول آمن');
     }
+}
 
-    // --- 📝 إنشاء حساب ---
-    async function doSignup() {
-        const email = document.getElementById('reg-email').value.trim();
-        const pass = document.getElementById('reg-pass').value;
-        const name = document.getElementById('reg-name').value;
-        
-        try {
-            // التحقق من القائمة البيضاء (Allowed Users)
-            const allowed = await db.collection('allowed_users').doc(email).get();
-            if (!allowed.exists && email !== 'admin@royal.com') {
-                return alert("هذا الإيميل غير مصرح له بالتسجيل في النظام حالياً.");
-            }
+// ============================================================
+// 📝 إنشاء حساب
+// ============================================================
+async function doSignup() {
+    const email = document.getElementById('reg-email').value.trim();
+    const pass  = document.getElementById('reg-pass').value;
+    const name  = document.getElementById('reg-name').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
 
-            const res = await auth.createUserWithEmailAndPassword(email, pass);
-            await db.collection('users').doc(res.user.uid).set({
-                uid: res.user.uid,
-                name: name,
-                email: email,
-                role: signupRole,
-                status: 'active',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            alert("تم إنشاء حسابك بنجاح!");
-        } catch (e) {
-            alert("فشل التسجيل: " + e.message);
+    if (!name)  return alert('يرجى إدخال الاسم الكامل.');
+    if (!phone) return alert('يرجى إدخال رقم الهاتف.');
+    if (!email) return alert('يرجى إدخال البريد الإلكتروني.');
+    if (!pass || pass.length < 6) return alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل.');
+
+    setLoading('signup-btn', true, 'إتمام التسجيل');
+
+    try {
+        // التحقق من القائمة البيضاء
+        const allowed = await db.collection('allowed_users').doc(email).get();
+        if (!allowed.exists && email !== 'admin@royal.com') {
+            setLoading('signup-btn', false, 'إتمام التسجيل');
+            return alert('هذا البريد غير مصرح له بالتسجيل. يرجى التواصل مع المسؤول.');
         }
+
+        const res = await auth.createUserWithEmailAndPassword(email, pass);
+
+        const userData = {
+            uid: res.user.uid,
+            name, email, phone,
+            role: signupRole,
+            status: 'active',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        if (signupRole === 'driver') {
+            userData.nid     = document.getElementById('reg-nid').value.trim();
+            userData.carType = document.getElementById('reg-car').value.trim();
+        }
+
+        await db.collection('users').doc(res.user.uid).set(userData);
+        alert('تم إنشاء حسابك بنجاح! مرحباً بك في Royal Drive.');
+
+    } catch (e) {
+        let msg = 'فشل التسجيل. حاول مرة أخرى.';
+        switch (e.code) {
+            case 'auth/email-already-in-use':
+                msg = 'هذا البريد الإلكتروني مسجل مسبقاً. يمكنك تسجيل الدخول مباشرة.'; break;
+            case 'auth/weak-password':
+                msg = 'كلمة المرور ضعيفة جداً. استخدم 6 أحرف أو أكثر.'; break;
+            case 'auth/invalid-email':
+                msg = 'صيغة البريد الإلكتروني غير صحيحة.'; break;
+            case 'auth/network-request-failed':
+                msg = 'خطأ في الاتصال بالإنترنت. تحقق من الشبكة.'; break;
+        }
+        alert(msg);
     }
 
-    // --- 🛡️ حماية المسارات (Routing) ---
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            if (user.email === 'admin@royal.com') {
-                goToPage('owner-dashboard');
-                return;
-            }
+    setLoading('signup-btn', false, 'إتمام التسجيل');
+}
+
+// ============================================================
+// 🚪 تسجيل الخروج
+// ============================================================
+async function doLogout() {
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+        await auth.signOut();
+    }
+}
+
+// ============================================================
+// 🛡️ مراقبة حالة المصادقة والتوجيه
+// ============================================================
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        // المالك
+        if (user.email === 'admin@royal.com') {
+            goToPage('owner-dashboard');
+            return;
+        }
+
+        try {
             const doc = await db.collection('users').doc(user.uid).get();
+
             if (doc.exists) {
                 const data = doc.data();
+
                 if (data.status === 'frozen') {
-                    alert("عذراً، حسابك مجمد.");
-                    auth.signOut();
+                    alert('عذراً، حسابك مجمد. يرجى التواصل مع المسؤول.');
+                    await auth.signOut();
                     goToPage('welcome-page');
-                } else {
-                    goToPage(data.role === 'staff' ? 'staff-dashboard' : 'driver-dashboard');
+                    return;
                 }
+
+                if (data.role === 'staff') {
+                    const el = document.getElementById('staff-name');
+                    if (el) el.textContent = data.name || 'الموظف';
+                    goToPage('staff-dashboard');
+                } else {
+                    // سائق - تحديث البيانات في الداشبورد
+                    const nameEl  = document.getElementById('driver-name');
+                    const nameEl2 = document.getElementById('driver-name-info');
+                    const emailEl = document.getElementById('driver-email-info');
+                    const carEl   = document.getElementById('driver-car-info');
+                    if (nameEl)  nameEl.textContent  = data.name    || 'السائق';
+                    if (nameEl2) nameEl2.textContent = data.name    || '—';
+                    if (emailEl) emailEl.textContent = data.email   || '—';
+                    if (carEl)   carEl.textContent   = data.carType || '—';
+                    goToPage('driver-dashboard');
+                }
+            } else {
+                // يوجد في Auth لكن ليس في Firestore (حساب غير مكتمل)
+                alert('بيانات حسابك غير مكتملة. يرجى التواصل مع المسؤول.');
+                await auth.signOut();
+                goToPage('welcome-page');
             }
-        } else {
+        } catch (err) {
+            console.error('خطأ في جلب بيانات المستخدم:', err);
             goToPage('welcome-page');
         }
-    });
 
-    async function resetPass() {
-        const email = document.getElementById('login-email').value;
-        if (!email) return alert("اكتب إيميلك أولاً في خانة تسجيل الدخول.");
-        await auth.sendPasswordResetEmail(email);
-        alert("تم إرسال رابط إعادة تعيين كلمة السر لبريدك.");
+    } else {
+        // لا يوجد مستخدم - إعادة تعيين زر الدخول
+        setLoading('login-btn', false, 'دخول آمن');
+        goToPage('welcome-page');
     }
+});
+
+// ============================================================
+// BUG FIX #4: إصلاح أمان إعادة تعيين كلمة المرور
+// المشكلة: كان الرابط في الإيميل يكشف رابط GitHub للكود المصدري
+// الحل: استخدام continueUrl يشير لرابط التطبيق الحالي وليس GitHub
+// ملاحظة: تأكد أيضاً من إزالة أي continueUrl في إعدادات Firebase Console
+// ============================================================
+async function resetPass() {
+    const email = document.getElementById('login-email').value.trim();
+    if (!email) return alert('اكتب بريدك الإلكتروني أولاً في خانة البريد الإلكتروني.');
+
+    // استخدام رابط التطبيق الحالي كـ continueUrl وليس GitHub
+    const currentUrl = window.location.origin !== 'null'
+        ? window.location.origin + window.location.pathname
+        : undefined;
+
+    const actionCodeSettings = currentUrl ? {
+        url: currentUrl,
+        handleCodeInApp: false  // إعادة التعيين تتم عبر صفحة Firebase وليس في التطبيق مباشرة
+    } : undefined;
+
+    try {
+        if (actionCodeSettings) {
+            await auth.sendPasswordResetEmail(email, actionCodeSettings);
+        } else {
+            await auth.sendPasswordResetEmail(email);
+        }
+        alert('✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.\nتحقق من صندوق الوارد (أو Spam).');
+    } catch (e) {
+        let msg = 'حدث خطأ. حاول مرة أخرى.';
+        if (e.code === 'auth/user-not-found')
+            msg = 'لا يوجد حساب مرتبط بهذا البريد الإلكتروني.';
+        else if (e.code === 'auth/invalid-email')
+            msg = 'صيغة البريد الإلكتروني غير صحيحة.';
+        alert(msg);
+    }
+}
 </script>
 </body>
 </html>
