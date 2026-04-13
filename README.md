@@ -1,721 +1,214 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="description" content="نظام إدارة السائقين المحترف">
-  <meta name="theme-color" content="#667eea">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="مدير السائقين">
-  <title>نظام إدارة السائقين</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23667eea' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle'>👑</text></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23667eea' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle'>👑</text></svg>">
-  <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22نظام إدارة السائقين%22,%22short_name%22:%22مدير السائقين%22,%22description%22:%22إدارة احترافية للسائقين والسيارات%22,%22start_url%22:%22/%22,%22scope%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23667eea%22,%22orientation%22:%22portrait-primary%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23667eea' width='192' height='192'/><text x='50%' y='50%' font-size='100' fill='white' text-anchor='middle' dominant-baseline='middle'>👑</text></svg>%22,%22sizes%22:%22192x192%22,%22type%22:%22image/svg+xml%22},{%22src%22:%22data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23667eea' width='512' height='512'/><text x='50%' y='50%' font-size='250' fill='white' text-anchor='middle' dominant-baseline='middle'>👑</text></svg>%22,%22sizes%22:%22512x512%22,%22type%22:%22image/svg+xml%22}]}">
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { 
-      height: 100%; 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-    body { overflow: hidden; }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Royal Drive - Firebase Version</title>
     
-    .app-container { height: 100%; width: 100%; display: flex; flex-direction: column; }
-    
-    #auth-screen {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-      position: relative;
-    }
-    
-    #auth-screen::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
-      pointer-events: none;
-    }
-    
-    .crown-logo {
-      width: 70px;
-      height: 70px;
-      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 38px;
-      box-shadow: 0 12px 30px rgba(255, 215, 0, 0.5);
-      animation: crownBounce 3s ease-in-out infinite;
-      margin: 0 auto;
-    }
-    
-    @keyframes crownBounce {
-      0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-12px) scale(1.05); }
-    }
-    
-    @keyframes slideUp {
-      from { transform: translateY(100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    
-    .animate-slideUp { animation: slideUp 0.5s ease-out; }
-    
-    .form-container {
-      background: rgba(255, 255, 255, 0.98);
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.5);
-    }
-    
-    .input-field input,
-    .input-field textarea {
-      width: 100%;
-      padding: 14px 18px;
-      border: 2px solid #e0e7ff;
-      border-radius: 12px;
-      background: #f8faff;
-      color: #1f2937;
-      font-size: 15px;
-      direction: rtl;
-      text-align: right;
-      transition: all 0.3s ease;
-    }
-    
-    .input-field input:focus,
-    .input-field textarea:focus {
-      outline: none;
-      border-color: #667eea;
-      background: #ffffff;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-    }
-    
-    .input-field label {
-      display: block;
-      margin-bottom: 10px;
-      color: #374151;
-      font-weight: 600;
-      font-size: 14px;
-    }
-    
-    .btn-primary {
-      width: 100%;
-      padding: 14px 24px;
-      border: none;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    
-    .btn-primary:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    }
-    
-    .gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-    .gradient-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-    
-    .card-hover { transition: all 0.3s ease; }
-    .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-  </style>
-  <style>body { box-sizing: border-box; }</style>
- </head>
- <body class="bg-gray-50">
-  <div class="app-container">
-   <!-- شاشة التسجيل والدخول -->
-   <div id="auth-screen" class="w-full h-full flex items-center justify-center p-4 overflow-y-auto relative z-10">
-    <div class="w-full max-w-md">
-     <!-- الشعار -->
-     <div class="text-center mb-8">
-      <div class="crown-logo mb-6">
-       👑
-      </div>
-      <h1 class="text-4xl font-bold text-white mb-2">نظام إدارة السائقين</h1>
-      <p class="text-white/90 text-lg">إدارة احترافية للسائقين والسيارات</p>
-     </div><!-- النموذج -->
-     <div class="form-container">
-      <!-- التبويبات -->
-      <div class="flex gap-2 mb-6 bg-gray-100 p-1 rounded-lg">
-       <button id="login-tab" onclick="switchAuthTab('login')" class="flex-1 py-3 bg-white rounded-lg font-bold text-gray-800 shadow-sm">دخول</button> <button id="signup-tab" onclick="switchAuthTab('signup')" class="flex-1 py-3 text-gray-600 font-bold">تسجيل جديد</button>
-      </div><!-- نموذج الدخول -->
-      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
-       <div class="input-field">
-        <label>📧 البريد الإلكتروني</label> <input type="email" id="login-email" required placeholder="your@email.com">
-       </div>
-       <div class="input-field">
-        <label>🔐 كلمة المرور</label> <input type="password" id="login-password" required placeholder="••••••••">
-       </div>
-       <div id="login-error" class="hidden p-3 bg-red-100 border border-red-400 text-red-700 rounded"></div><button type="submit" class="btn-primary gradient-primary text-white">دخول الآن</button>
-      </form><!-- نموذج التسجيل -->
-      <form id="signup-form" onsubmit="handleSignup(event)" class="space-y-4 hidden">
-       <div class="input-field">
-        <label>👤 نوع الحساب</label> <select id="account-type" required class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-purple-600 focus:outline-none"> <option value="">اختر نوع الحساب</option> <option value="driver">🚗 سائق</option> <option value="manager">👨‍💼 موظف (مدير)</option> </select>
-       </div>
-       <div class="input-field">
-        <label>📝 الاسم الكامل</label> <input type="text" id="signup-name" required placeholder="أحمد محمد">
-       </div>
-       <div class="input-field">
-        <label>🏢 اسم الشركة</label> <input type="text" id="signup-company" required placeholder="اسم شركتك">
-       </div>
-       <div class="input-field">
-        <label>📧 البريد الإلكتروني</label> <input type="email" id="signup-email" required placeholder="your@email.com">
-       </div>
-       <div class="input-field">
-        <label>🔐 كلمة المرور</label> <input type="password" id="signup-password" required placeholder="••••••••">
-       </div>
-       <div id="signup-error" class="hidden p-3 bg-red-100 border border-red-400 text-red-700 rounded"></div><button type="submit" class="btn-primary gradient-success text-white">إنشاء حساب</button>
-      </form>
-     </div>
-    </div>
-   </div><!-- لوحة التحكم -->
-   <div id="dashboard" class="w-full h-full hidden flex-col overflow-y-auto bg-gray-50">
-    <!-- الرأس -->
-    <div class="gradient-primary text-white p-4 shadow-lg sticky top-0 z-50">
-     <div class="flex items-center justify-between">
-      <h1 id="welcome-title" class="text-2xl font-bold">مرحباً بك</h1><button onclick="logout()" class="p-2 hover:bg-white/20 rounded-lg transition"> <i data-lucide="log-out" style="width: 24px; height: 24px;"></i> </button>
-     </div>
-    </div><!-- المحتوى -->
-    <div class="flex-1 p-4 overflow-y-auto">
-     <!-- الإحصائيات -->
-     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <div class="bg-white rounded-lg shadow p-4 card-hover">
-       <div class="flex items-center justify-between">
-        <div>
-         <p class="text-gray-600 text-sm">السائقين</p>
-         <p id="drivers-count" class="text-xl font-bold text-blue-600 mt-1">0</p>
-        </div>
-        <div class="p-3 bg-blue-100 rounded-full">
-         <i data-lucide="users" style="width: 24px; height: 24px; color: #2563eb;"></i>
-        </div>
-       </div>
-      </div>
-      <div class="bg-white rounded-lg shadow p-4 card-hover">
-       <div class="flex items-center justify-between">
-        <div>
-         <p class="text-gray-600 text-sm">الرحلات</p>
-         <p id="trips-count" class="text-xl font-bold text-green-600 mt-1">0</p>
-        </div>
-        <div class="p-3 bg-green-100 rounded-full">
-         <i data-lucide="route" style="width: 24px; height: 24px; color: #16a34a;"></i>
-        </div>
-       </div>
-      </div>
-      <div class="bg-white rounded-lg shadow p-4 card-hover">
-       <div class="flex items-center justify-between">
-        <div>
-         <p class="text-gray-600 text-sm">الحالة</p>
-         <p id="status-display" class="text-xl font-bold text-purple-600 mt-1">نشط</p>
-        </div>
-        <div class="p-3 bg-purple-100 rounded-full">
-         <i data-lucide="check-circle" style="width: 24px; height: 24px; color: #9333ea;"></i>
-        </div>
-       </div>
-      </div>
-     </div><!-- الإجراءات السريعة -->
-     <div class="bg-white rounded-lg shadow p-4 mb-6">
-      <h2 class="text-xl font-bold text-gray-800 mb-4">الإجراءات السريعة</h2>
-      <div class="grid grid-cols-2 gap-3">
-       <button id="add-driver-btn" onclick="openAddDriverModal()" class="p-3 bg-gradient-success text-white rounded-lg font-bold hover:shadow-lg transition flex items-center justify-center gap-2"> <i data-lucide="plus" style="width: 20px; height: 20px;"></i> سائق جديد </button> <button id="new-trip-btn" onclick="openNewTripModal()" class="p-3 bg-gradient-primary text-white rounded-lg font-bold hover:shadow-lg transition flex items-center justify-center gap-2"> <i data-lucide="map-pin" style="width: 20px; height: 20px;"></i> رحلة جديدة </button>
-      </div>
-     </div><!-- قائمة السائقين -->
-     <div class="bg-white rounded-lg shadow p-4">
-      <h2 class="text-xl font-bold text-gray-800 mb-4">قائمة السائقين</h2>
-      <div id="drivers-list" class="space-y-2">
-       <p class="text-gray-500 text-center py-4">لا توجد سائقين حالياً</p>
-      </div>
-     </div>
-    </div><!-- التذييل -->
-    <footer class="bg-white border-t p-4 text-center text-gray-600 text-sm">
-     <p>© 2024 - نظام إدارة السائقين | جميع الحقوق محفوظة</p>
-    </footer>
-   </div>
-  </div>
-  <script>
-    // ===== متغيرات الحالة =====
-    let currentUser = null;
-    let allDrivers = [];
-    let allTrips = [];
-    let notificationContainer = null;
-    let config = {
-      app_title: "نظام إدارة السائقين",
-      welcome_text: "مرحباً بك في نظام إدارة السائقين"
-    };
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-    // ===== إعدادات المصادقة الآمنة =====
-    const AUTH_CONFIG = {
-      testAccount: {
-        email: 'admin@example.com',
-        password: 'password123'
-      }
-    };
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+        body { background: #f8fafc; margin: 0; }
+        .auth-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .input-group { position: relative; }
+        .eye-icon { position: absolute; left: 12px; top: 42px; cursor: pointer; color: #94a3b8; z-index: 10; }
+        .crown-anim { animation: bounce 2s infinite; display: inline-block; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    </style>
+</head>
+<body>
 
-    // ===== تهيئة التطبيق =====
-    async function initializeApp() {
-      // تهيئة Element SDK
-      if (window.elementSdk) {
-        window.elementSdk.init({
-          defaultConfig: config,
-          onConfigChange: onConfigChange,
-          mapToCapabilities: () => ({
-            recolorables: [],
-            borderables: [],
-            fontEditable: undefined,
-            fontSizeable: undefined
-          }),
-          mapToEditPanelValues: (cfg) => new Map([
-            ["app_title", cfg.app_title || config.app_title],
-            ["welcome_text", cfg.welcome_text || config.welcome_text]
-          ])
-        });
-      }
-
-      // تهيئة Data SDK
-      if (window.dataSdk) {
-        const initResult = await window.dataSdk.init({
-          onDataChanged(data) {
-            allDrivers = data || [];
-            updateStatsDisplay();
-            renderDriversList();
-          }
-        });
-        if (!initResult.isOk) {
-          console.error("فشل تهيئة Data SDK");
-        }
-      }
-
-      lucide.createIcons();
-      loadStoredData();
-      checkAuth();
-      registerServiceWorker();
-    }
-
-    // معالج تغيير الإعدادات
-    async function onConfigChange(newConfig) {
-      config = newConfig;
-      document.querySelector('h1')?.textContent = newConfig.app_title;
-    }
-
-    // تسجيل Service Worker
-    function registerServiceWorker() {
-      if ('serviceWorker' in navigator) {
-        const swCode = `
-          self.addEventListener('install', e => {
-            self.skipWaiting();
-            e.waitUntil(caches.open('v1').then(cache => {
-              return cache.addAll(['/']);
-            }).catch(() => null));
-          });
-          self.addEventListener('activate', e => e.waitUntil(clients.claim()));
-          self.addEventListener('fetch', e => {
-            e.respondWith(
-              caches.match(e.request).then(r => r || fetch(e.request)).catch(() => new Response('offline'))
-            );
-          });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl).catch(() => {});
-      }
-    }
-
-    // عرض إشعار تثبيت التطبيق
-    let deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      showInstallPrompt();
-    });
-
-    function showInstallPrompt() {
-      const installBanner = document.createElement('div');
-      installBanner.className = 'fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 shadow-2xl z-[9998] animate-slideUp';
-      installBanner.innerHTML = `
-        <div class="flex items-center justify-between max-w-full">
-          <div class="flex items-center gap-3">
-            <div class="text-2xl">📱</div>
-            <div>
-              <p class="font-bold">👑 ثبّت التطبيق</p>
-              <p class="text-sm text-white/90">استخدمه مباشرة من هاتفك!</p>
+<div id="app">
+    <div id="auth-screen" class="min-h-screen auth-gradient flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-[2rem] p-8 shadow-2xl">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-2 crown-anim">👑</div>
+                <h1 class="text-3xl font-bold text-gray-800">Royal Drive</h1>
+                <p class="text-gray-500">نظام الإدارة الآمن</p>
             </div>
-          </div>
-          <div class="flex gap-2">
-            <button id="install-btn" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-gray-100 transition">
-              تثبيت
-            </button>
-            <button id="dismiss-btn" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-bold transition">
-              لاحقاً
-            </button>
-          </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-5">
+                <div class="input-group">
+                    <label class="block text-sm font-bold mb-1 text-gray-700">البريد الإلكتروني</label>
+                    <input type="email" id="email" required class="w-full p-4 rounded-2xl border-2 border-gray-100 outline-none focus:border-purple-500 transition-all" placeholder="name@company.com">
+                </div>
+                <div class="input-group">
+                    <label class="block text-sm font-bold mb-1 text-gray-700">كلمة المرور</label>
+                    <input type="password" id="password" required class="w-full p-4 rounded-2xl border-2 border-gray-100 outline-none focus:border-purple-500 transition-all" placeholder="••••••••">
+                    <div class="eye-icon" onclick="togglePass('password')"><i data-lucide="eye" id="eye-icon-svg"></i></div>
+                </div>
+                <div id="error-msg" class="text-red-500 text-xs hidden text-center font-bold">❌ خطأ في الإيميل أو الباسورد</div>
+                <button type="submit" id="login-btn" class="w-full bg-purple-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-purple-700 transition-all active:scale-95">دخول آمن</button>
+            </form>
         </div>
-      `;
-      document.body.appendChild(installBanner);
+    </div>
 
-      document.getElementById('install-btn').onclick = () => {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-              showNotification('✅ تم تثبيت التطبيق بنجاح! 🎉', 'success');
-            }
-            deferredPrompt = null;
-          });
-        }
-        installBanner.remove();
-      };
+    <div id="dashboard" class="hidden min-h-screen flex flex-col">
+        <nav class="auth-gradient p-5 text-white flex justify-between items-center shadow-xl sticky top-0 z-50">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl">👑</span>
+                <div>
+                    <p class="text-[10px] opacity-80 leading-none">مرحباً بك يا مدير</p>
+                    <span id="user-display" class="font-bold">المسؤول</span>
+                </div>
+            </div>
+            <button onclick="logout()" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition"><i data-lucide="log-out"></i></button>
+        </nav>
 
-      document.getElementById('dismiss-btn').onclick = () => {
-        installBanner.remove();
-      };
+        <div class="p-4 space-y-6 flex-1 overflow-y-auto">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-5 rounded-3xl shadow-sm border-b-4 border-blue-500">
+                    <i data-lucide="users" class="text-blue-500 mb-2 w-5"></i>
+                    <p class="text-gray-400 text-[10px]">إجمالي السائقين</p>
+                    <p class="text-2xl font-bold" id="drivers-count">0</p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl shadow-sm border-b-4 border-green-500">
+                    <i data-lucide="trending-up" class="text-green-500 mb-2 w-5"></i>
+                    <p class="text-gray-400 text-[10px]">رحلات اليوم</p>
+                    <p class="text-2xl font-bold">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-50">
+                <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="shield-check" class="text-purple-600"></i> خيارات الأمان</h3>
+                <button onclick="resetPassword()" class="w-full text-right p-4 bg-orange-50 text-orange-700 rounded-2xl font-bold text-sm flex justify-between items-center transition active:bg-orange-100">
+                    تغيير كلمة المرور عبر الإيميل
+                    <i data-lucide="mail" class="w-4"></i>
+                </button>
+            </div>
+
+            <div class="bg-white rounded-[2rem] p-6 shadow-sm">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800">السائقين في Firestore</h3>
+                    <button onclick="addDriverPrompt()" class="bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold">+ إضافة</button>
+                </div>
+                <div id="drivers-list" class="space-y-3 py-4 text-center text-gray-400 text-sm">
+                    لا توجد بيانات حالياً في Firestore
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // الإعدادات التي أرسلتها أنت
+    const firebaseConfig = {
+      apiKey: "AIzaSyBhZdYXdISIPlcCbC4yiVdlUx0QDWfITdk",
+      authDomain: "royal-drive-38c15.firebaseapp.com",
+      projectId: "royal-drive-38c15",
+      storageBucket: "royal-drive-38c15.firebasestorage.app",
+      messagingSenderId: "94912656002",
+      appId: "1:94912656002:web:f461fdf7c3cd67b4a77a9b",
+      measurementId: "G-ZSFHLWPJKV"
+    };
+
+    // تهيئة Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    lucide.createIcons();
+
+    // تبديل العين للباسورد
+    function togglePass(id) {
+        const el = document.getElementById(id);
+        el.type = el.type === 'password' ? 'text' : 'password';
     }
 
-    // إخفاء الإشعار عند التثبيت الناجح
-    window.addEventListener('appinstalled', () => {
-      deferredPrompt = null;
-    });
+    // تسجيل الدخول
+    async function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        const btn = document.getElementById('login-btn');
+        const error = document.getElementById('error-msg');
 
-    // تحميل البيانات المحفوظة
-    function loadStoredData() {
-      const stored = localStorage.getItem('drivers_data');
-      if (stored) {
+        btn.innerText = "جاري التحقق...";
+        error.classList.add('hidden');
+
         try {
-          allDrivers = JSON.parse(stored);
-        } catch (e) {
-          allDrivers = [];
+            await auth.signInWithEmailAndPassword(email, pass);
+            showDashboard();
+        } catch (err) {
+            btn.innerText = "دخول آمن";
+            error.classList.remove('hidden');
         }
-      }
-    }
-
-    // حفظ البيانات
-    function saveDriversData() {
-      localStorage.setItem('drivers_data', JSON.stringify(allDrivers));
-      updateStatsDisplay();
-      renderDriversList();
-    }
-
-    // التحقق من المصادقة
-    function checkAuth() {
-      const auth = localStorage.getItem('user_auth');
-      if (auth) {
-        try {
-          currentUser = JSON.parse(auth);
-          showDashboard();
-        } catch {
-          logout();
-        }
-      } else {
-        showAuthScreen();
-      }
-    }
-
-    // عرض شاشة التسجيل
-    function showAuthScreen() {
-      document.getElementById('auth-screen').classList.remove('hidden');
-      document.getElementById('dashboard').classList.add('hidden');
     }
 
     // عرض لوحة التحكم
     function showDashboard() {
-      document.getElementById('auth-screen').classList.add('hidden');
-      document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('welcome-title').textContent = `مرحباً ${currentUser.name}`;
-      updateStatsDisplay();
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        document.getElementById('user-display').innerText = auth.currentUser.email.split('@')[0];
+        loadDrivers();
     }
 
-    // تبديل التبويبات
-    function switchAuthTab(tab) {
-      const loginForm = document.getElementById('login-form');
-      const signupForm = document.getElementById('signup-form');
-      const loginTab = document.getElementById('login-tab');
-      const signupTab = document.getElementById('signup-tab');
-
-      if (tab === 'login') {
-        loginForm.classList.remove('hidden');
-        signupForm.classList.add('hidden');
-        loginTab.classList.add('bg-white', 'shadow-sm');
-        signupTab.classList.remove('bg-white', 'shadow-sm');
-      } else {
-        loginForm.classList.add('hidden');
-        signupForm.classList.remove('hidden');
-        loginTab.classList.remove('bg-white', 'shadow-sm');
-        signupTab.classList.add('bg-white', 'shadow-sm');
-      }
-    }
-
-    // معالج الدخول
-    function handleLogin(e) {
-      e.preventDefault();
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      const errorEl = document.getElementById('login-error');
-
-      // تحقق من بيانات الحساب التجريبي
-      if (email === AUTH_CONFIG.testAccount.email && password === AUTH_CONFIG.testAccount.password) {
-        currentUser = { 
-          email, 
-          name: 'مدير النظام', 
-          role: 'admin',
-          lastLogin: new Date().toISOString()
-        };
-        localStorage.setItem('user_auth', JSON.stringify(currentUser));
-        errorEl.classList.add('hidden');
-        document.getElementById('login-form').reset();
-        showDashboard();
-      } else {
-        errorEl.classList.remove('hidden');
-        errorEl.textContent = 'بيانات دخول غير صحيحة ❌';
-      }
-    }
-
-    // معالج التسجيل
-    function handleSignup(e) {
-      e.preventDefault();
-      const name = document.getElementById('signup-name').value;
-      const email = document.getElementById('signup-email').value;
-      const company = document.getElementById('signup-company').value;
-      const role = document.getElementById('account-type').value;
-      const errorEl = document.getElementById('signup-error');
-
-      if (!name || !email || !company || !role) {
-        errorEl.classList.remove('hidden');
-        errorEl.textContent = 'الرجاء ملء جميع الحقول ⚠️';
-        return;
-      }
-
-      currentUser = { email, name, company, role };
-      localStorage.setItem('user_auth', JSON.stringify(currentUser));
-      errorEl.classList.add('hidden');
-      document.getElementById('signup-form').reset();
-      showDashboard();
-    }
-
-    // فتح نموذج إضافة سائق
-    async function openAddDriverModal() {
-      showCustomModal({
-        title: '➕ إضافة سائق جديد',
-        fields: [
-          { id: 'driver-name', label: '📝 اسم السائق', type: 'text', placeholder: 'أحمد محمد' },
-          { id: 'driver-email', label: '📧 البريد الإلكتروني', type: 'email', placeholder: 'your@email.com' },
-          { id: 'driver-vehicle', label: '🚗 نوع السيارة', type: 'text', placeholder: 'تويوتا كامري' }
-        ],
-        onSubmit: async (data) => {
-          const driver = {
-            id: Date.now().toString(),
-            name: data['driver-name'],
-            email: data['driver-email'],
-            vehicle: data['driver-vehicle'],
-            status: 'نشط',
-            company: currentUser.company || 'غير محدد',
-            role: 'driver',
-            trips: 0,
-            createdAt: new Date().toISOString()
-          };
-
-          if (window.dataSdk) {
-            const result = await window.dataSdk.create(driver);
-            if (result.isOk) {
-              showNotification('✅ تم إضافة السائق بنجاح!', 'success');
-            } else {
-              showNotification('❌ فشل إضافة السائق', 'error');
+    // جلب السائقين من Firestore
+    function loadDrivers() {
+        db.collection('drivers').onSnapshot(snapshot => {
+            const list = document.getElementById('drivers-list');
+            document.getElementById('drivers-count').innerText = snapshot.size;
+            
+            if (snapshot.empty) {
+                list.innerHTML = "قاعدة البيانات فارغة.. أضف أول سائق!";
+                return;
             }
-          } else {
-            allDrivers.push(driver);
-            saveDriversData();
-            showNotification('✅ تم إضافة السائق بنجاح!', 'success');
-          }
-        }
-      });
-    }
 
-    // فتح نموذج رحلة جديدة
-    function openNewTripModal() {
-      showCustomModal({
-        title: '🗺️ رحلة جديدة',
-        fields: [
-          { id: 'trip-destination', label: '📍 وجهة الرحلة', type: 'text', placeholder: 'الرياض' },
-          { id: 'trip-distance', label: '📏 المسافة (كم)', type: 'number', placeholder: '150' }
-        ],
-        onSubmit: (data) => {
-          const trip = {
-            id: Date.now().toString(),
-            destination: data['trip-destination'],
-            distance: parseFloat(data['trip-distance']),
-            status: 'جارية',
-            driver: currentUser.name,
-            createdAt: new Date().toISOString()
-          };
-
-          allTrips.push(trip);
-          localStorage.setItem('trips_data', JSON.stringify(allTrips));
-          showNotification('✅ تم إضافة الرحلة بنجاح!', 'success');
-          updateStatsDisplay();
-        }
-      });
-    }
-
-    // تحديث العرض الإحصائيات
-    function updateStatsDisplay() {
-      document.getElementById('drivers-count').textContent = allDrivers.length;
-      document.getElementById('trips-count').textContent = allTrips.length || '0';
-      renderDriversList();
-    }
-
-    // عرض قائمة السائقين
-    function renderDriversList() {
-      const list = document.getElementById('drivers-list');
-      if (!allDrivers || allDrivers.length === 0) {
-        list.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد سائقين حالياً 😔</p>';
-        return;
-      }
-
-      list.innerHTML = allDrivers.map(driver => `
-        <div class="p-3 bg-gray-50 rounded border-l-4 border-blue-500 flex items-center justify-between">
-          <div>
-            <p class="font-bold text-gray-800">${driver.name || 'بدون اسم'}</p>
-            <p class="text-sm text-gray-600">📧 ${driver.email || '-'}</p>
-            <p class="text-sm text-gray-600">🚗 ${driver.vehicle || '-'}</p>
-            <p class="text-xs text-green-600 mt-1">✓ ${driver.status || 'نشط'}</p>
-          </div>
-          <button onclick="deleteDriver('${driver.__backendId || driver.id}')" class="text-red-600 hover:text-red-800 p-2">
-            <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
-          </button>
-        </div>
-      `).join('');
-      lucide.createIcons();
-    }
-
-    // حذف سائق
-    async function deleteDriver(id) {
-      showCustomModal({
-        title: '🗑️ تأكيد حذف السائق',
-        fields: [],
-        onSubmit: async () => {
-          if (window.dataSdk) {
-            const driver = allDrivers.find(d => d.__backendId === id || d.id === id);
-            if (driver) {
-              const result = await window.dataSdk.delete(driver);
-              if (result.isOk) {
-                showNotification('✅ تم حذف السائق بنجاح!', 'success');
-              } else {
-                showNotification('❌ فشل حذف السائق', 'error');
-              }
-            }
-          } else {
-            allDrivers = allDrivers.filter(d => d.id !== id);
-            saveDriversData();
-            showNotification('✅ تم حذف السائق بنجاح!', 'success');
-          }
-        }
-      });
-    }
-
-    // عرض الإشعارات
-    function showNotification(message, type = 'info') {
-      const notification = document.createElement('div');
-      notification.className = `fixed top-4 right-4 p-3 rounded-lg text-white font-bold shadow-lg z-[9999] animate-slideIn ${
-        type === 'success' ? 'bg-green-500' :
-        type === 'error' ? 'bg-red-500' :
-        'bg-blue-500'
-      }`;
-      notification.textContent = message;
-      document.body.appendChild(notification);
-
-      setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => notification.remove(), 300);
-      }, 3000);
-    }
-
-    // نموذج مخصص بدلاً من prompt
-    function showCustomModal(config) {
-      const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4';
-      modal.innerHTML = `
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-slideIn">
-          <h2 class="text-xl font-bold text-gray-800 mb-4">${config.title}</h2>
-          <form onsubmit="event.preventDefault()" class="space-y-4">
-            ${config.fields.map(field => `
-              <div class="space-y-2">
-                <label class="block text-sm font-semibold text-gray-700">${field.label}</label>
-                <input 
-                  type="${field.type}" 
-                  id="${field.id}" 
-                  placeholder="${field.placeholder}" 
-                  class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-                  required
-                >
-              </div>
-            `).join('')}
-            <div class="flex gap-3 mt-6">
-              <button type="button" onclick="this.closest('.fixed').remove()" class="flex-1 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg font-semibold hover:bg-gray-400 transition">
-                إلغاء
-              </button>
-              <button type="button" onclick="confirmModalSubmit(this, '${config.title}')" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">
-                حفظ
-              </button>
-            </div>
-          </form>
-        </div>
-      `;
-
-      document.body.appendChild(modal);
-
-      window.confirmModalSubmit = function(btn, title) {
-        const form = btn.closest('form');
-        const fields = form.querySelectorAll('input');
-        const data = {};
-        let isValid = true;
-
-        fields.forEach(field => {
-          if (!field.value.trim()) {
-            isValid = false;
-            field.classList.add('border-red-500');
-          } else {
-            data[field.id] = field.value;
-          }
+            list.innerHTML = "";
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                list.innerHTML += `
+                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div class="text-right">
+                            <p class="font-bold text-gray-800">${d.name}</p>
+                            <p class="text-[10px] text-gray-500">${d.car || 'بدون سيارة'}</p>
+                        </div>
+                        <i data-lucide="car" class="text-purple-500 w-4"></i>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
         });
-
-        if (isValid) {
-          config.onSubmit(data);
-          modal.remove();
-        } else {
-          showNotification('⚠️ الرجاء ملء جميع الحقول', 'error');
-        }
-      };
     }
 
-    // تسجيل الخروج
+    // إضافة سائق (تجريبي)
+    async function addDriverPrompt() {
+        const name = prompt("اسم السائق الجديد:");
+        const car = prompt("نوع السيارة:");
+        if (name) {
+            await db.collection('drivers').add({
+                name: name,
+                car: car,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+    }
+
+    // رابط تعيين الباسورد
+    async function resetPassword() {
+        try {
+            await auth.sendPasswordResetEmail(auth.currentUser.email);
+            alert("تم إرسال رابط التغيير لإيميلك بنجاح!");
+        } catch (err) {
+            alert("حدث خطأ: " + err.message);
+        }
+    }
+
     function logout() {
-      showCustomModal({
-        title: '⚠️ تأكيد تسجيل الخروج',
-        fields: [],
-        onSubmit: () => {
-          localStorage.removeItem('user_auth');
-          currentUser = null;
-          document.getElementById('login-form').reset();
-          document.getElementById('signup-form').reset();
-          document.getElementById('login-error').classList.add('hidden');
-          document.getElementById('signup-error').classList.add('hidden');
-          switchAuthTab('login');
-          showAuthScreen();
-          showNotification('👋 تم تسجيل الخروج بنجاح', 'success');
-        }
-      });
+        auth.signOut().then(() => location.reload());
     }
 
-    // تهيئة عند تحميل الصفحة
-    document.addEventListener('DOMContentLoaded', initializeApp);
-  </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ebce9c670ab794b',t:'MTc3NjEwODkxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    // مراقبة حالة المستخدم
+    auth.onAuthStateChanged(user => {
+        if (user) showDashboard();
+    });
+</script>
+</body>
 </html>
