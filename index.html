@@ -1,756 +1,1864 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Royal Drive Pro</title>
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-
-        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; outline: none; margin: 0; padding: 0; }
-
-        body, html {
-            width: 100%; height: 100%; overflow: hidden;
-            background: #0a0f1e;
-        }
-
-        /* ===================================================
-         * BUG FIX #1: استخدام visibility بدلاً من display:none
-         * لأن display:block كان يلغي display:flex من Tailwind
-         * ويسبب كسر التصميم وعدم ظهور اللوجو + مشاكل الأزرار
-         * =================================================== */
-        .page {
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            overflow-y: auto; z-index: 10;
-            visibility: hidden;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.25s ease;
-        }
-        .page.active {
-            visibility: visible;
-            pointer-events: all;
-            opacity: 1;
-            z-index: 50;
-        }
-
-        /* ===================================================
-         * BUG FIX #2: اللوجو - عنصر مستقل بـ flex خاص به
-         * لا يعتمد على display الصفحة الأم
-         * =================================================== */
-        .app-logo {
-            width: 90px; height: 90px;
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 60%, #92400e 100%);
-            border-radius: 28px;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 0 8px rgba(245,158,11,0.15), 0 20px 50px rgba(245,158,11,0.3);
-            font-size: 42px;
-            flex-shrink: 0;
-            position: relative;
-            overflow: hidden;
-        }
-        .app-logo::before {
-            content: '';
-            position: absolute; inset: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%);
-            border-radius: inherit;
-        }
-        .app-logo-sm {
-            width: 56px; height: 56px;
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            border-radius: 18px;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            flex-shrink: 0;
-            box-shadow: 0 8px 20px rgba(245,158,11,0.3);
-        }
-
-        .royal-gradient { background: linear-gradient(160deg, #0a0f1e 0%, #111827 50%, #0f1629 100%); }
-
-        /* Loading Spinner */
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner {
-            display: inline-block; width: 20px; height: 20px;
-            border: 2.5px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            vertical-align: middle;
-        }
-
-        /* Input Focus */
-        input:focus { border-color: #2563eb !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
-
-        /* Pulse animation for welcome page dots */
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 0.8; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-
-        /* Shimmer for cards */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-up { animation: fadeUp 0.4s ease forwards; }
-        .fade-up-2 { animation: fadeUp 0.4s 0.1s ease both; }
-        .fade-up-3 { animation: fadeUp 0.4s 0.2s ease both; }
-
-        /* Stat card */
-        .stat-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 20px;
-            padding: 20px;
-            backdrop-filter: blur(8px);
-        }
-
-        /* Bottom nav */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: white;
-            border-top: 1px solid #f1f5f9;
-            padding: 10px 0 max(10px, env(safe-area-inset-bottom));
-            display: flex;
-            z-index: 100;
-            box-shadow: 0 -8px 30px rgba(0,0,0,0.08);
-        }
-        .nav-item {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; gap: 3px;
-            font-size: 10px; font-weight: 700;
-            color: #94a3b8; cursor: pointer;
-            transition: color 0.2s;
-            padding: 4px 0;
-        }
-        .nav-item.active-nav { color: #2563eb; }
-        .nav-item svg { width: 22px; height: 22px; stroke-width: 1.8; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<title>Royal Drive Pro</title>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--acc:#2563eb;--grn:#16a34a;--gld:#d97706;--rad:1.4rem}
+*,*::before,*::after{font-family:'Cairo',sans-serif;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0a0f1e}
+/* Page system */
+.page{position:fixed;inset:0;overflow-y:auto;visibility:hidden;pointer-events:none;opacity:0;transition:opacity .2s;z-index:10}
+.page.active{visibility:visible;pointer-events:all;opacity:1;z-index:50}
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);display:flex;align-items:flex-end;justify-content:center;z-index:200;visibility:hidden;opacity:0;transition:opacity .25s,visibility .25s}
+.modal.open{visibility:visible;opacity:1}
+.mbox{background:#fff;border-radius:2rem 2rem 0 0;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:20px 18px max(20px,env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.modal.open .mbox{transform:translateY(0)}
+.mhandle{width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:0 auto 16px}
+/* Gradients */
+.gd{background:linear-gradient(160deg,#0a0f1e 0%,#111827 100%)}
+.gd-drv{background:linear-gradient(145deg,#0d1b2a 0%,#1b3a5c 100%)}
+.gd-stf{background:linear-gradient(145deg,#052e16 0%,#14532d 100%)}
+.gd-own{background:linear-gradient(145deg,#1c1204 0%,#3d1a00 100%)}
+/* Logo */
+.logo{background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:22px;display:flex!important;align-items:center;justify-content:center;box-shadow:0 0 0 8px rgba(245,158,11,.12),0 16px 40px rgba(245,158,11,.25);flex-shrink:0;position:relative;overflow:hidden}
+.logo::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.22) 0%,transparent 55%)}
+/* Input */
+.inp{width:100%;padding:13px 15px;border-radius:14px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:.88rem;color:#0f172a;transition:all .15s;outline:none}
+.inp:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+textarea.inp{resize:none}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:900;border-radius:14px;border:none;cursor:pointer;transition:all .15s;outline:none}
+.btn:active{transform:scale(.96)}
+.btn:disabled{opacity:.6;pointer-events:none}
+.btn-blue{background:#2563eb;color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.3)}
+.btn-grn{background:#16a34a;color:#fff;box-shadow:0 6px 20px rgba(22,163,74,.3)}
+.btn-gld{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 6px 20px rgba(217,119,6,.3)}
+.btn-red{background:#dc2626;color:#fff;box-shadow:0 6px 20px rgba(220,38,38,.25)}
+.btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.15)}
+.btn-muted{background:#f1f5f9;color:#475569}
+.btn-sm{padding:8px 14px;font-size:.75rem;border-radius:11px}
+.btn-md{padding:12px 18px;font-size:.86rem}
+.btn-lg{padding:14px 18px;font-size:.9rem;width:100%}
+/* Card */
+.card{background:#fff;border-radius:var(--rad);border:1px solid #f1f5f9;box-shadow:0 2px 12px rgba(0,0,0,.05)}
+.card-d{background:rgba(255,255,255,.06);border-radius:var(--rad);border:1px solid rgba(255,255,255,.09)}
+/* Chip */
+.chip{display:inline-flex;align-items:center;gap:3px;font-weight:700;font-size:.67rem;padding:3px 9px;border-radius:99px}
+.cp-pend{background:#fef3c7;color:#92400e}
+.cp-acc{background:#d1fae5;color:#065f46}
+.cp-rej{background:#fee2e2;color:#991b1b}
+.cp-done{background:#dbeafe;color:#1e40af}
+/* Badge */
+.bdg{position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:900;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid rgba(0,0,0,.2)}
+/* Spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+/* Role toggle */
+.rtb{flex:1;padding:10px;border-radius:12px;font-weight:900;font-size:.82rem;transition:all .2s;color:#94a3b8;border:none;background:transparent;cursor:pointer}
+.rtb.on{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.1);color:#2563eb}
+/* Chat */
+.b-out{background:#2563eb;color:#fff;border-radius:18px 18px 4px 18px;max-width:75%}
+.b-in{background:#f1f5f9;color:#0f172a;border-radius:18px 18px 18px 4px;max-width:75%}
+/* Anim */
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fu .35s ease both}
+.fu2{animation:fu .35s .1s ease both}
+.fu3{animation:fu .35s .2s ease both}
+/* Toast */
+.toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:340px}
+/* Scrollbar */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+/* Print */
+@media print{
+  body{overflow:visible!important;background:#fff!important}
+  .no-print,.page{display:none!important}
+  #print-area{display:block!important}
+}
+#print-area{display:none}
+</style>
 </head>
 <body>
-<div id="app">
+<div id="toast-wrap" class="toast-wrap"></div>
+<div id="print-area"></div>
 
-    <!-- ==================== صفحة الترحيب ==================== -->
-    <div id="welcome-page" class="page active royal-gradient flex flex-col items-center justify-center p-8 text-white" style="min-height:100vh;">
-        <div class="fade-up text-center mb-10">
-            <div class="app-logo mx-auto mb-5">👑</div>
-            <h1 class="text-4xl font-black tracking-tight">ROYAL DRIVE</h1>
-            <p class="text-slate-400 text-sm mt-2 font-semibold tracking-widest uppercase">نظام إدارة المركبات</p>
-        </div>
+<!-- ═══════════════════════ 1. WELCOME ═══════════════════════ -->
+<div id="pg-welcome" class="page active gd flex flex-col items-center justify-center p-8 text-white" style="min-height:100vh">
+  <div class="fu text-center mb-10">
+    <div class="logo w-24 h-24 text-5xl mx-auto mb-5">👑</div>
+    <h1 id="app-title" class="text-4xl font-black tracking-tight">ROYAL DRIVE</h1>
+    <p id="app-sub" class="text-slate-400 text-sm mt-2 tracking-wide">نظام إدارة المركبات الذكي</p>
+  </div>
+  <div class="w-full max-w-xs space-y-4 fu2">
+    <button onclick="goTo('pg-login')" class="btn btn-lg" style="background:#fff;color:#0f172a;box-shadow:0 12px 40px rgba(0,0,0,.3)">
+      <i data-lucide="log-in" class="w-5 h-5"></i> تسجيل الدخول
+    </button>
+    <button onclick="goTo('pg-signup')" class="btn btn-lg btn-ghost">
+      <i data-lucide="user-plus" class="w-5 h-5"></i> إنشاء حساب جديد
+    </button>
+  </div>
+  <p class="text-slate-700 text-xs mt-14 fu3">© 2025 Royal Drive · جميع الحقوق محفوظة</p>
+</div>
 
-        <div class="w-full max-w-xs space-y-4 fade-up-2">
-            <button onclick="goToPage('login-page')"
-                class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-base shadow-2xl active:scale-95 transition-transform">
-                تسجيل الدخول
-            </button>
-            <button onclick="goToPage('signup-page')"
-                class="w-full border-2 border-white/20 bg-white/5 backdrop-blur-sm py-4 rounded-2xl font-bold text-base active:scale-95 transition-transform">
-                إنشاء حساب جديد
-            </button>
-        </div>
-
-        <p class="text-slate-600 text-xs mt-12 fade-up-3">© 2025 Royal Drive · جميع الحقوق محفوظة</p>
+<!-- ═══════════════════════ 2. LOGIN ═══════════════════════ -->
+<div id="pg-login" class="page bg-slate-50 flex items-center justify-center p-5">
+  <div class="card w-full max-w-md p-8">
+    <div class="flex justify-center mb-5"><div class="logo w-14 h-14 text-2xl">👑</div></div>
+    <h2 class="text-2xl font-black text-center text-slate-800 mb-1">دخول النظام</h2>
+    <p class="text-slate-400 text-sm text-center mb-7">أدخل بياناتك للمتابعة</p>
+    <div class="space-y-4">
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">البريد الإلكتروني</label>
+        <input type="email" id="l-email" class="inp" placeholder="example@mail.com" autocomplete="email"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">كلمة المرور</label>
+        <div class="relative">
+          <input type="password" id="l-pass" class="inp" placeholder="••••••••" style="padding-left:46px" autocomplete="current-password">
+          <button id="eye-l" onclick="toggleEye('l-pass','eye-l')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+            <i data-lucide="eye" class="w-4 h-4"></i></button></div></div>
+      <button id="btn-login" onclick="doLogin()" class="btn btn-blue btn-lg">دخول آمن</button>
+      <button onclick="goTo('pg-forgot')" class="w-full text-center text-sm font-bold text-blue-500 py-1">نسيت كلمة المرور؟</button>
     </div>
+    <button onclick="goTo('pg-welcome')" class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
+      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع</button>
+  </div>
+</div>
 
-    <!-- ==================== صفحة تسجيل الدخول ==================== -->
-    <div id="login-page" class="page bg-slate-50 flex items-center justify-center p-5">
-        <div class="w-full max-w-md bg-white p-8 rounded-[2rem] shadow-2xl border border-slate-100">
-            <!-- Logo داخل صفحة الدخول -->
-            <div class="flex justify-center mb-6">
-                <div class="app-logo-sm">👑</div>
-            </div>
-            <h2 class="text-2xl font-black mb-1 text-slate-800 text-center">دخول النظام</h2>
-            <p class="text-slate-400 text-sm text-center mb-7">أدخل بياناتك للمتابعة</p>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-slate-500 mb-1.5 block">البريد الإلكتروني</label>
-                    <input type="email" id="login-email" placeholder="example@email.com"
-                        class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 transition-all focus:bg-white"
-                        autocomplete="email">
-                </div>
-
-                <div>
-                    <label class="text-xs font-bold text-slate-500 mb-1.5 block">كلمة المرور</label>
-                    <div class="relative">
-                        <input type="password" id="login-pass" placeholder="••••••••"
-                            class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 text-slate-800 transition-all focus:bg-white"
-                            autocomplete="current-password">
-                        <!-- BUG FIX #3: id على الزرار نفسه وليس على الأيقونة -->
-                        <button id="btn-eye-login"
-                            onclick="toggleVisibility('login-pass', 'btn-eye-login')"
-                            class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1">
-                            <i data-lucide="eye" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button id="login-btn" onclick="doLogin()"
-                    class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-base shadow-lg shadow-blue-600/25 active:scale-95 transition-transform mt-2">
-                    دخول آمن
-                </button>
-
-                <!-- BUG FIX #4: نسيان كلمة السر - تم تأمينه -->
-                <button onclick="resetPass()"
-                    class="w-full text-sm text-blue-500 font-bold py-1 hover:text-blue-700 transition-colors">
-                    نسيت كلمة المرور؟
-                </button>
-            </div>
-
-            <button onclick="goToPage('welcome-page')"
-                class="mt-6 flex items-center gap-2 mx-auto text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg>
-                رجوع
-            </button>
-        </div>
+<!-- ═══════════════════════ 3. FORGOT PASSWORD ═══════════════════════ -->
+<div id="pg-forgot" class="page bg-slate-50 flex items-center justify-center p-5">
+  <div class="card w-full max-w-md p-8">
+    <div class="flex justify-center mb-5"><div class="logo w-14 h-14 text-2xl">👑</div></div>
+    <div id="fg-s1">
+      <h2 class="text-xl font-black text-center text-slate-800 mb-2">استعادة كلمة المرور</h2>
+      <p class="text-slate-400 text-sm text-center mb-7">سنرسل لك رابط إعادة التعيين على بريدك فوراً</p>
+      <div class="space-y-4">
+        <input type="email" id="fg-email" class="inp" placeholder="البريد الإلكتروني">
+        <button id="btn-fg" onclick="sendReset()" class="btn btn-blue btn-lg">
+          <i data-lucide="send" class="w-4 h-4"></i> إرسال الرابط</button>
+      </div>
     </div>
-
-    <!-- ==================== صفحة إنشاء حساب ==================== -->
-    <div id="signup-page" class="page bg-slate-50 flex items-start justify-center p-5 pt-8 pb-24">
-        <div class="w-full max-w-md bg-white p-8 rounded-[2rem] shadow-2xl border border-slate-100">
-            <div class="flex justify-center mb-4">
-                <div class="app-logo-sm">👑</div>
-            </div>
-            <h2 class="text-2xl font-black text-center mb-1 text-slate-800">حساب جديد</h2>
-            <p class="text-slate-400 text-sm text-center mb-6">اختر نوع حسابك وأكمل البيانات</p>
-
-            <!-- اختيار الدور -->
-            <div class="flex p-1.5 bg-slate-100 rounded-2xl mb-7 gap-1.5">
-                <button onclick="setRegRole('driver')" id="role-d"
-                    class="flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600 transition-all">
-                    🚗 سائق
-                </button>
-                <button onclick="setRegRole('staff')" id="role-s"
-                    class="flex-1 py-3 rounded-xl font-black text-slate-400 transition-all">
-                    💼 موظف
-                </button>
-            </div>
-
-            <div class="space-y-4">
-                <input type="text" id="reg-name" placeholder="الاسم الكامل"
-                    class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all">
-                <input type="tel" id="reg-phone" placeholder="رقم الهاتف"
-                    class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all">
-
-                <!-- حقول خاصة بالسائق -->
-                <div id="extra-driver-fields" class="space-y-4">
-                    <input type="text" id="reg-nid" placeholder="الرقم القومي"
-                        class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all">
-                    <input type="text" id="reg-car" placeholder="نوع السيارة"
-                        class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all">
-                </div>
-
-                <div class="flex items-center gap-3 my-1">
-                    <div class="flex-1 h-px bg-slate-100"></div>
-                    <span class="text-xs text-slate-400 font-bold">بيانات الدخول</span>
-                    <div class="flex-1 h-px bg-slate-100"></div>
-                </div>
-
-                <input type="email" id="reg-email" placeholder="البريد الإلكتروني"
-                    class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all"
-                    autocomplete="email">
-
-                <div class="relative">
-                    <input type="password" id="reg-pass" placeholder="كلمة سر جديدة (٦ أحرف على الأقل)"
-                        class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white transition-all"
-                        autocomplete="new-password">
-                    <!-- BUG FIX #3: نفس الإصلاح هنا -->
-                    <button id="btn-eye-signup"
-                        onclick="toggleVisibility('reg-pass', 'btn-eye-signup')"
-                        class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1">
-                        <i data-lucide="eye" class="w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <button id="signup-btn" onclick="doSignup()"
-                    class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-base shadow-lg shadow-emerald-600/25 active:scale-95 transition-transform">
-                    إتمام التسجيل
-                </button>
-            </div>
-
-            <button onclick="goToPage('welcome-page')"
-                class="mt-6 block mx-auto text-slate-400 font-bold text-sm hover:text-slate-600 transition-colors">
-                إلغاء
-            </button>
-        </div>
+    <div id="fg-s2" class="hidden text-center">
+      <div class="text-6xl mb-4">📧</div>
+      <h3 class="text-xl font-black text-slate-800 mb-3">تم الإرسال!</h3>
+      <p class="text-slate-500 text-sm leading-relaxed mb-5">تحقق من بريدك واضغط على الرابط. سيمكنك من إدخال كلمة مرور جديدة مباشرة.</p>
+      <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-right mb-5">
+        <p class="text-blue-700 text-xs font-bold">لم يصلك البريد؟</p>
+        <p class="text-blue-500 text-xs mt-1">تحقق من مجلد Spam أو أعد المحاولة</p>
+      </div>
+      <button onclick="goTo('pg-login')" class="btn btn-muted btn-lg">العودة لتسجيل الدخول</button>
     </div>
+    <button onclick="goTo('pg-login')" class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
+      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع</button>
+  </div>
+</div>
 
-    <!-- ==================== لوحة الموظف ==================== -->
-    <div id="staff-dashboard" class="page bg-slate-50 flex flex-col" style="padding-bottom:70px;">
-        <!-- Header -->
-        <div class="royal-gradient p-6 pb-8 text-white">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="app-logo-sm">👑</div>
-                    <div>
-                        <p class="text-yellow-400 text-xs font-bold tracking-widest uppercase">Royal Drive</p>
-                        <h2 id="staff-name" class="text-xl font-black">مرحباً</h2>
-                    </div>
-                </div>
-                <button onclick="doLogout()"
-                    class="bg-white/10 border border-white/15 text-white px-4 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform">
-                    خروج
-                </button>
-            </div>
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
-                <div class="w-9 h-9 bg-blue-500 rounded-full flex items-center justify-center text-sm">💼</div>
-                <div>
-                    <p class="text-white text-sm font-bold">لوحة الموظف</p>
-                    <p class="text-slate-400 text-xs">صلاحيات عمليات النظام</p>
-                </div>
-                <div class="mr-auto">
-                    <span class="bg-green-500/20 text-green-400 text-xs font-bold px-2 py-1 rounded-full">نشط</span>
-                </div>
-            </div>
-        </div>
-        <!-- Content -->
-        <div class="p-5 space-y-4">
-            <h3 class="font-black text-slate-700 text-base">الإجراءات السريعة</h3>
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
-                    <div class="text-3xl mb-2">📋</div>
-                    <p class="font-black text-sm text-slate-700">الطلبات</p>
-                    <p class="text-xs text-slate-400">قيد التطوير</p>
-                </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
-                    <div class="text-3xl mb-2">👥</div>
-                    <p class="font-black text-sm text-slate-700">السائقون</p>
-                    <p class="text-xs text-slate-400">قيد التطوير</p>
-                </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
-                    <div class="text-3xl mb-2">🚗</div>
-                    <p class="font-black text-sm text-slate-700">المركبات</p>
-                    <p class="text-xs text-slate-400">قيد التطوير</p>
-                </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
-                    <div class="text-3xl mb-2">📊</div>
-                    <p class="font-black text-sm text-slate-700">التقارير</p>
-                    <p class="text-xs text-slate-400">قيد التطوير</p>
-                </div>
-            </div>
-        </div>
+<!-- ═══════════════════════ 4. SIGNUP ═══════════════════════ -->
+<div id="pg-signup" class="page bg-slate-50">
+  <div class="flex items-start justify-center min-h-screen p-5 py-10 pb-20">
+    <div class="card w-full max-w-md p-7">
+      <div class="flex justify-center mb-4"><div class="logo w-12 h-12 text-xl">👑</div></div>
+      <h2 class="text-2xl font-black text-center mb-1 text-slate-800">حساب جديد</h2>
+      <p class="text-slate-400 text-sm text-center mb-5">حدد نوع حسابك أولاً</p>
+      <div class="flex p-1.5 bg-slate-100 rounded-2xl mb-5 gap-1.5">
+        <button onclick="setRole('driver')" id="rb-d" class="rtb on">🚗 سائق</button>
+        <button onclick="setRole('staff')"  id="rb-s" class="rtb">💼 موظف</button>
+      </div>
+      <!-- DRIVER fields -->
+      <div id="fld-d" class="space-y-3">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">البيانات الشخصية</p>
+        <input type="text" id="d-name"  class="inp" placeholder="الاسم الكامل">
+        <input type="tel"  id="d-phone" class="inp" placeholder="رقم الهاتف">
+        <input type="text" id="d-nid"   class="inp" placeholder="الرقم القومي">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest pt-1">بيانات السيارة</p>
+        <input type="text" id="d-car"   class="inp" placeholder="نوع السيارة (مثال: تويوتا 2022)">
+        <input type="text" id="d-plate" class="inp" placeholder="رقم اللوحة">
+        <div class="h-px bg-slate-100 my-1"></div>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">بيانات الدخول</p>
+        <input type="email" id="d-email" class="inp" placeholder="البريد الإلكتروني" autocomplete="email">
+        <div class="relative">
+          <input type="password" id="d-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)" style="padding-left:46px" autocomplete="new-password">
+          <button id="eye-d" onclick="toggleEye('d-pass','eye-d')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+            <i data-lucide="eye" class="w-4 h-4"></i></button></div>
+      </div>
+      <!-- STAFF fields -->
+      <div id="fld-s" class="space-y-3 hidden">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">البيانات الشخصية</p>
+        <input type="text"  id="s-name"  class="inp" placeholder="الاسم الكامل">
+        <input type="tel"   id="s-phone" class="inp" placeholder="رقم الهاتف">
+        <div class="h-px bg-slate-100 my-1"></div>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">بيانات الدخول</p>
+        <input type="email" id="s-email" class="inp" placeholder="البريد الإلكتروني" autocomplete="email">
+        <div class="relative">
+          <input type="password" id="s-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)" style="padding-left:46px" autocomplete="new-password">
+          <button id="eye-s" onclick="toggleEye('s-pass','eye-s')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+            <i data-lucide="eye" class="w-4 h-4"></i></button></div>
+      </div>
+      <button id="btn-signup" onclick="doSignup()" class="btn btn-grn btn-lg mt-5">إتمام التسجيل</button>
+      <button onclick="goTo('pg-welcome')" class="block mx-auto mt-4 text-slate-400 font-bold text-sm">إلغاء</button>
     </div>
+  </div>
+</div>
 
-    <!-- ==================== لوحة السائق ==================== -->
-    <div id="driver-dashboard" class="page bg-slate-50 flex flex-col" style="padding-bottom:70px;">
-        <!-- Header -->
-        <div class="royal-gradient p-6 pb-8 text-white">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="app-logo-sm">👑</div>
-                    <div>
-                        <p class="text-yellow-400 text-xs font-bold tracking-widest uppercase">Royal Drive</p>
-                        <h2 id="driver-name" class="text-xl font-black">مرحباً</h2>
-                    </div>
-                </div>
-                <button onclick="doLogout()"
-                    class="bg-white/10 border border-white/15 text-white px-4 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform">
-                    خروج
-                </button>
-            </div>
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
-                <div class="w-9 h-9 bg-amber-500 rounded-full flex items-center justify-center text-sm">🚗</div>
-                <div>
-                    <p class="text-white text-sm font-bold">لوحة السائق</p>
-                    <p class="text-slate-400 text-xs">متابعة الرحلات والمهام</p>
-                </div>
-                <div class="mr-auto">
-                    <span id="driver-status-badge" class="bg-green-500/20 text-green-400 text-xs font-bold px-2 py-1 rounded-full">نشط</span>
-                </div>
-            </div>
-        </div>
-        <!-- Content -->
-        <div class="p-5 space-y-4">
-            <h3 class="font-black text-slate-700 text-base">بياناتي</h3>
-            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 space-y-3">
-                <div class="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span class="text-slate-500 text-sm">الاسم</span>
-                    <span id="driver-name-info" class="font-bold text-slate-800 text-sm">—</span>
-                </div>
-                <div class="flex justify-between items-center py-2 border-b border-slate-50">
-                    <span class="text-slate-500 text-sm">البريد الإلكتروني</span>
-                    <span id="driver-email-info" class="font-bold text-slate-800 text-sm">—</span>
-                </div>
-                <div class="flex justify-between items-center py-2">
-                    <span class="text-slate-500 text-sm">نوع السيارة</span>
-                    <span id="driver-car-info" class="font-bold text-slate-800 text-sm">—</span>
-                </div>
-            </div>
-
-            <h3 class="font-black text-slate-700 text-base pt-1">الإجراءات</h3>
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
-                    <div class="text-3xl mb-2">🗺️</div>
-                    <p class="font-black text-sm text-slate-700">رحلاتي</p>
-                    <p class="text-xs text-slate-400">قيد التطوير</p>
-                </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
-                    <div class="text-3xl mb-2">💰</div>
-                    <p class="font-black text-sm text-slate-700">أرباحي</p>
-                    <p class="text-xs text-slate-400">قيد التطوير</p>
-                </div>
-            </div>
-        </div>
+<!-- ═══════════════════════ 5. DRIVER DASHBOARD ═══════════════════════ -->
+<div id="pg-driver" class="page bg-slate-50" style="padding-bottom:20px">
+  <div class="gd-drv p-5 text-white">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="logo w-10 h-10 text-lg">👑</div>
+        <div><p class="text-blue-300 text-xs font-bold uppercase tracking-wider">سائق</p>
+          <h2 id="d-uname" class="text-lg font-black">—</h2></div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="openMod('mod-notif')" class="relative p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="bell" class="w-5 h-5"></i><span id="bdg-dn" class="bdg hidden">0</span></button>
+        <button onclick="openMessages('driver')" class="relative p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="message-circle" class="w-5 h-5"></i><span id="bdg-dm" class="bdg hidden">0</span></button>
+        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+      </div>
     </div>
-
-    <!-- ==================== لوحة المالك ==================== -->
-    <div id="owner-dashboard" class="page royal-gradient flex flex-col text-white" style="padding-bottom:70px;">
-        <!-- Header -->
-        <div class="p-6 border-b border-white/10">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="app-logo-sm">👑</div>
-                    <div>
-                        <p class="text-yellow-400 text-xs font-bold tracking-widest uppercase">Owner Access</p>
-                        <h2 class="text-xl font-black">لوحة المالك</h2>
-                    </div>
-                </div>
-                <button onclick="doLogout()"
-                    class="bg-white/10 border border-white/15 text-white px-4 py-2 rounded-xl font-bold text-xs active:scale-95 transition-transform">
-                    خروج
-                </button>
-            </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="p-5 space-y-4">
-            <div class="grid grid-cols-2 gap-3">
-                <div class="stat-card">
-                    <p class="text-slate-400 text-xs mb-1">إجمالي السائقين</p>
-                    <p class="text-2xl font-black text-white">—</p>
-                    <p class="text-yellow-400 text-xs mt-1">قيد التطوير</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-slate-400 text-xs mb-1">الموظفون</p>
-                    <p class="text-2xl font-black text-white">—</p>
-                    <p class="text-yellow-400 text-xs mt-1">قيد التطوير</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-slate-400 text-xs mb-1">الرحلات اليوم</p>
-                    <p class="text-2xl font-black text-white">—</p>
-                    <p class="text-yellow-400 text-xs mt-1">قيد التطوير</p>
-                </div>
-                <div class="stat-card">
-                    <p class="text-slate-400 text-xs mb-1">الإيرادات</p>
-                    <p class="text-2xl font-black text-white">—</p>
-                    <p class="text-yellow-400 text-xs mt-1">قيد التطوير</p>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <p class="text-slate-400 text-xs mb-3 font-bold">إدارة سريعة</p>
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between py-2 border-b border-white/5">
-                        <span class="text-sm text-slate-300">إدارة المستخدمين</span>
-                        <span class="text-xs bg-white/10 px-2 py-1 rounded-lg">قيد التطوير</span>
-                    </div>
-                    <div class="flex items-center justify-between py-2 border-b border-white/5">
-                        <span class="text-sm text-slate-300">السماح بالتسجيل</span>
-                        <span class="text-xs bg-white/10 px-2 py-1 rounded-lg">قيد التطوير</span>
-                    </div>
-                    <div class="flex items-center justify-between py-2">
-                        <span class="text-sm text-slate-300">التقارير المالية</span>
-                        <span class="text-xs bg-white/10 px-2 py-1 rounded-lg">قيد التطوير</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="card-d p-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-green-400 block"></span>
+        <span id="d-carinfo" class="text-sm font-bold text-white/90">—</span>
+      </div>
+      <span id="d-platex" class="text-xs bg-white/15 px-3 py-1 rounded-lg font-bold">—</span>
     </div>
+  </div>
+  <!-- Tabs -->
+  <div class="flex bg-white border-b border-slate-100 sticky top-0 z-10">
+    <button onclick="drvTab('pending')"  id="dt-p" class="flex-1 py-3 text-sm font-black border-b-2 border-blue-600 text-blue-600 transition-all">🆕 جديدة</button>
+    <button onclick="drvTab('accepted')" id="dt-a" class="flex-1 py-3 text-sm font-black border-b-2 border-transparent text-slate-400 transition-all">✅ جارية</button>
+    <button onclick="drvTab('history')"  id="dt-h" class="flex-1 py-3 text-sm font-black border-b-2 border-transparent text-slate-400 transition-all">📋 السجل</button>
+  </div>
+  <div id="drv-list" class="p-4 space-y-3">
+    <div class="text-center py-14 text-slate-400"><div class="text-5xl mb-3">🗺️</div><p class="font-bold">لا توجد رحلات حالياً</p></div>
+  </div>
+</div>
 
-</div><!-- end #app -->
+<!-- ═══════════════════════ 6. STAFF DASHBOARD ═══════════════════════ -->
+<div id="pg-staff" class="page bg-slate-50" style="padding-bottom:20px">
+  <div class="gd-stf p-5 text-white">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="logo w-10 h-10 text-lg">👑</div>
+        <div><p class="text-green-300 text-xs font-bold uppercase tracking-wider">موظف</p>
+          <h2 id="s-uname" class="text-lg font-black">—</h2></div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="openMod('mod-notif')" class="relative p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="bell" class="w-5 h-5"></i><span id="bdg-sn" class="bdg hidden">0</span></button>
+        <button onclick="openMessages('staff')" class="relative p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="message-circle" class="w-5 h-5"></i><span id="bdg-sm" class="bdg hidden">0</span></button>
+        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+      </div>
+    </div>
+    <!-- Sub banner -->
+    <button onclick="openMod('mod-sub')" class="w-full card-d p-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span id="stf-sub-ico" class="text-xl">🆓</span>
+        <div class="text-right">
+          <p id="stf-sub-lbl" class="text-sm font-black text-white">الخطة المجانية</p>
+          <p id="stf-sub-det" class="text-xs text-white/50">٢ سائق · ٥ تقارير / شهر</p>
+        </div>
+      </div>
+      <span class="text-xs bg-yellow-500/20 text-yellow-300 font-bold px-3 py-1 rounded-lg">ترقية ⬆</span>
+    </button>
+  </div>
+  <!-- Actions Grid -->
+  <div class="p-4">
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">الإجراءات السريعة</p>
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <button onclick="openMod('mod-add-driver')" class="card p-4 text-right active:scale-95 transition-transform">
+        <div class="text-2xl mb-2">➕👤</div>
+        <p class="font-black text-sm text-slate-700">إضافة سائق</p>
+        <p id="stf-dleft" class="text-xs text-slate-400 mt-0.5">٠ سائق مضاف</p>
+      </button>
+      <button onclick="openMod('mod-add-trip')" class="card p-4 text-right active:scale-95 transition-transform">
+        <div class="text-2xl mb-2">🗺️</div>
+        <p class="font-black text-sm text-slate-700">إضافة رحلة</p>
+        <p class="text-xs text-slate-400 mt-0.5">عامة أو لسائق محدد</p>
+      </button>
+      <button onclick="openMod('mod-search')" class="card p-4 text-right active:scale-95 transition-transform">
+        <div class="text-2xl mb-2">🔍</div>
+        <p class="font-black text-sm text-slate-700">بحث عن سائق</p>
+        <p class="text-xs text-slate-400 mt-0.5">بالاسم أو الموبايل</p>
+      </button>
+      <button onclick="openReportModal()" class="card p-4 text-right active:scale-95 transition-transform">
+        <div class="text-2xl mb-2">📊</div>
+        <p class="font-black text-sm text-slate-700">تقرير تفصيلي</p>
+        <p id="stf-rleft" class="text-xs text-slate-400 mt-0.5">٠ / ٥ هذا الشهر</p>
+      </button>
+    </div>
+    <button onclick="openMod('mod-issue')" class="card w-full p-4 mb-3 flex items-center gap-3 text-right active:scale-95 transition-transform">
+      <span class="text-2xl">⚠️</span>
+      <div><p class="font-black text-sm text-slate-700">الإبلاغ عن مشكلة</p><p class="text-xs text-slate-400">إرسال بلاغ للمالك</p></div>
+    </button>
+    <!-- Recent trips -->
+    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">آخر الرحلات</p>
+    <div id="stf-trips" class="space-y-3">
+      <p class="text-center text-slate-400 text-sm py-4">لا توجد رحلات بعد</p>
+    </div>
+  </div>
+</div>
 
+<!-- ═══════════════════════ 7. OWNER DASHBOARD ═══════════════════════ -->
+<div id="pg-owner" class="page gd-own text-white" style="padding-bottom:20px">
+  <div class="p-5 border-b border-white/10">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="logo w-10 h-10 text-lg">👑</div>
+        <div><p class="text-yellow-400 text-xs font-bold uppercase tracking-wider">مالك التطبيق</p>
+          <h2 class="text-lg font-black">لوحة التحكم الكاملة</h2></div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="openSettings()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="settings" class="w-5 h-5"></i></button>
+        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+      </div>
+    </div>
+  </div>
+  <!-- Stats -->
+  <div class="p-4 grid grid-cols-2 gap-3">
+    <div class="card-d p-4"><div class="text-2xl mb-1">🚗</div><p id="ow-dc" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">سائق مسجل</p></div>
+    <div class="card-d p-4"><div class="text-2xl mb-1">💼</div><p id="ow-sc" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">موظف</p></div>
+    <div class="card-d p-4"><div class="text-2xl mb-1">🗺️</div><p id="ow-tc" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">رحلة منجزة</p></div>
+    <div class="card-d p-4 cursor-pointer" onclick="document.getElementById('ow-issues-sec').scrollIntoView({behavior:'smooth'})">
+      <div class="text-2xl mb-1">⚠️</div><p id="ow-ic" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">بلاغ مفتوح</p></div>
+  </div>
+  <!-- Staff Management -->
+  <div class="px-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm font-black">إدارة الموظفين</p>
+      <button onclick="openMod('mod-add-staff')" class="btn btn-gld btn-sm">+ إضافة موظف</button>
+    </div>
+    <div id="ow-staff" class="space-y-2"><p class="text-slate-500 text-sm text-center py-4">جاري التحميل...</p></div>
+  </div>
+  <!-- Issues -->
+  <div class="px-4 pb-4" id="ow-issues-sec">
+    <p class="text-sm font-black mb-3">البلاغات والمشاكل</p>
+    <div id="ow-issues" class="space-y-2"><p class="text-slate-500 text-sm text-center py-4">لا توجد بلاغات</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════ -->
+
+<!-- Notifications -->
+<div id="mod-notif" class="modal" onclick="closeMod('mod-notif')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">الإشعارات</h3>
+      <button onclick="markAllRead()" class="text-xs font-bold text-blue-500">تعليم الكل كمقروء</button>
+    </div>
+    <div id="notif-list" class="space-y-2 max-h-[55vh] overflow-y-auto">
+      <p class="text-center text-slate-400 py-8 text-sm">لا توجد إشعارات</p>
+    </div>
+  </div>
+</div>
+
+<!-- Messages -->
+<div id="mod-messages" class="modal" onclick="closeMod('mod-messages')">
+  <div class="mbox" style="height:82vh;display:flex;flex-direction:column;padding-bottom:max(16px,env(safe-area-inset-bottom))" onclick="event.stopPropagation()">
+    <div class="mhandle flex-shrink-0"></div>
+    <div class="flex items-center justify-between mb-3 flex-shrink-0">
+      <div class="flex items-center gap-2">
+        <button id="msg-back" onclick="showConvList()" class="text-slate-400 p-1 hidden"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+        <h3 id="msg-hdr" class="text-lg font-black text-slate-800">الرسائل</h3>
+      </div>
+      <button onclick="closeMod('mod-messages')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div id="conv-list" class="flex-1 overflow-y-auto"></div>
+    <div id="chat-view" class="hidden flex-1 flex flex-col min-h-0">
+      <div id="chat-msgs" class="flex-1 overflow-y-auto p-1 space-y-2 mb-2"></div>
+      <div class="flex gap-2 flex-shrink-0 pt-2 border-t border-slate-100">
+        <input id="chat-inp" type="text" class="inp flex-1 py-2.5 text-sm" placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button onclick="sendMsg()" class="btn btn-blue w-10 h-10 rounded-2xl p-0 flex-shrink-0"><i data-lucide="send" class="w-4 h-4"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Trip detail (driver) -->
+<div id="mod-trip" class="modal" onclick="closeMod('mod-trip')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">تفاصيل الرحلة</h3>
+      <button onclick="closeMod('mod-trip')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div id="trip-detail"></div>
+    <input type="hidden" id="trip-cur-id">
+  </div>
+</div>
+
+<!-- Add trip (staff) -->
+<div id="mod-add-trip" class="modal" onclick="closeMod('mod-add-trip')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">إضافة رحلة جديدة</h3>
+      <button onclick="closeMod('mod-add-trip')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="flex p-1 bg-slate-100 rounded-2xl mb-4 gap-1">
+      <button onclick="setTripType('general')"  id="tt-g" class="rtb on text-green-600">🌍 عامة للجميع</button>
+      <button onclick="setTripType('specific')" id="tt-s" class="rtb">👤 سائق محدد</button>
+    </div>
+    <div id="trip-drv-row" class="mb-3 hidden">
+      <label class="text-xs font-bold text-slate-500 block mb-1.5">اختر السائق</label>
+      <select id="trip-drv-sel" class="inp"><option value="">— اختر سائقاً —</option></select>
+    </div>
+    <div class="space-y-3">
+      <input type="text" id="t-dest"  class="inp" placeholder="الوجهة / وصف الرحلة">
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-bold text-slate-500 block mb-1">التاريخ والوقت</label>
+          <input type="datetime-local" id="t-date" class="inp"></div>
+        <div><label class="text-xs font-bold text-slate-500 block mb-1">السعر (جنيه)</label>
+          <input type="number" id="t-price" class="inp" placeholder="0"></div>
+      </div>
+      <textarea id="t-notes" class="inp" rows="2" placeholder="ملاحظات (اختياري)"></textarea>
+      <button id="btn-add-trip" onclick="submitTrip()" class="btn btn-grn btn-lg">
+        <i data-lucide="send" class="w-4 h-4"></i> إرسال الرحلة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add driver (staff) -->
+<div id="mod-add-driver" class="modal" onclick="closeMod('mod-add-driver')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">إضافة سائق جديد</h3>
+      <button onclick="closeMod('mod-add-driver')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="bg-blue-50 border border-blue-100 rounded-2xl p-3 mb-4 text-sm text-blue-700">
+      💡 أدخل البريد الإلكتروني للسائق لمنحه صلاحية التسجيل
+    </div>
+    <div id="drv-limit-warn" class="hidden bg-red-50 border border-red-200 rounded-2xl p-3 mb-4">
+      <p class="text-red-600 font-bold text-sm">⛔ وصلت للحد الأقصى للخطة المجانية</p>
+      <p class="text-red-500 text-xs mt-1">قم بترقية خطتك لإضافة سائقين غير محدودين</p>
+      <button onclick="closeMod('mod-add-driver');openMod('mod-sub')" class="btn btn-gld btn-sm mt-2">ترقية الآن</button>
+    </div>
+    <div id="drv-add-form" class="space-y-3">
+      <input type="email" id="nd-email" class="inp" placeholder="البريد الإلكتروني للسائق">
+      <button id="btn-add-drv" onclick="addDriver()" class="btn btn-grn btn-lg">
+        <i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية</button>
+    </div>
+  </div>
+</div>
+
+<!-- Search driver (staff) -->
+<div id="mod-search" class="modal" onclick="closeMod('mod-search')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">بحث عن سائق</h3>
+      <button onclick="closeMod('mod-search')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <input type="text" id="srch-q" class="inp mb-4" placeholder="الاسم أو رقم الموبايل أو رقم اللوحة..." oninput="searchDriver()">
+    <div id="srch-res" class="space-y-2 max-h-[50vh] overflow-y-auto">
+      <p class="text-center text-slate-400 text-sm py-6">ابدأ بالكتابة للبحث...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Report modal (staff) -->
+<div id="mod-report" class="modal" onclick="closeMod('mod-report')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">إنشاء تقرير تفصيلي</h3>
+      <button onclick="closeMod('mod-report')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div id="rpt-limit-warn" class="hidden bg-red-50 border border-red-200 rounded-2xl p-3 mb-4">
+      <p class="text-red-600 font-bold text-sm">⛔ استنفذت تقاريرك المجانية هذا الشهر</p>
+      <button onclick="closeMod('mod-report');openMod('mod-sub')" class="btn btn-gld btn-sm mt-2">ترقية للنسخة المميزة</button>
+    </div>
+    <div id="rpt-form" class="space-y-4">
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-2">نوع التقرير</label>
+        <div class="flex p-1 bg-slate-100 rounded-2xl gap-1">
+          <button onclick="setRptType('all')"    id="rt-a" class="rtb on text-blue-600">🚗 كل السيارات</button>
+          <button onclick="setRptType('single')" id="rt-s" class="rtb">🔍 سيارة واحدة</button>
+        </div>
+      </div>
+      <div id="rpt-car-row" class="hidden">
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">اختر السيارة / السائق</label>
+        <select id="rpt-car" class="inp"><option value="">— جاري التحميل —</option></select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-bold text-slate-500 block mb-1.5">من تاريخ</label>
+          <input type="date" id="rpt-from" class="inp"></div>
+        <div><label class="text-xs font-bold text-slate-500 block mb-1.5">إلى تاريخ</label>
+          <input type="date" id="rpt-to" class="inp"></div>
+      </div>
+      <button id="btn-gen-rpt" onclick="generateReport()" class="btn btn-blue btn-lg">
+        <i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report Result -->
+<div id="mod-rpt-result" class="modal" onclick="closeMod('mod-rpt-result')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">📊 التقرير جاهز</h3>
+      <button onclick="closeMod('mod-rpt-result')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div id="rpt-summary" class="bg-slate-50 rounded-2xl p-4 mb-4 max-h-[45vh] overflow-y-auto text-right"></div>
+    <div class="grid grid-cols-3 gap-2">
+      <button onclick="doPrint()"  class="btn btn-muted btn-md py-3 rounded-2xl text-sm flex-col gap-1">🖨️<br><span class="text-xs">طباعة</span></button>
+      <button onclick="doExcel()"  class="btn btn-grn btn-md py-3 rounded-2xl text-sm flex-col gap-1">📗<br><span class="text-xs">Excel</span></button>
+      <button onclick="doPDF()"    class="btn btn-blue btn-md py-3 rounded-2xl text-sm flex-col gap-1">📄<br><span class="text-xs">PDF</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Issue report (staff) -->
+<div id="mod-issue" class="modal" onclick="closeMod('mod-issue')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">الإبلاغ عن مشكلة</h3>
+      <button onclick="closeMod('mod-issue')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="space-y-3">
+      <input type="text" id="iss-title" class="inp" placeholder="عنوان المشكلة">
+      <textarea id="iss-desc" class="inp" rows="4" placeholder="وصف تفصيلي للمشكلة..."></textarea>
+      <button id="btn-iss" onclick="submitIssue()" class="btn btn-red btn-lg">
+        <i data-lucide="flag" class="w-4 h-4"></i> إرسال البلاغ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Subscription (staff) -->
+<div id="mod-sub" class="modal" onclick="closeMod('mod-sub')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">الاشتراك والترقية</h3>
+      <button onclick="closeMod('mod-sub')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div id="plan-cur" class="mb-4"></div>
+    <div class="rounded-2xl p-4 mb-4" style="background:linear-gradient(135deg,#fef3c7,#fffbeb);border:1.5px solid #fde68a">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="text-3xl">👑</span>
+        <div><p class="font-black text-amber-800">الخطة المميزة</p>
+          <p id="sub-price-lbl" class="text-amber-600 text-sm font-bold">99 جنيه / شهرياً</p></div>
+      </div>
+      <div class="space-y-1.5 text-sm text-amber-800">
+        <p>✅ سائقون غير محدودين</p>
+        <p>✅ تقارير غير محدودة يومياً</p>
+        <p>✅ تصدير PDF و Excel</p>
+        <p>✅ إشعارات فورية متقدمة</p>
+        <p>✅ بحث ذكي متقدم عن السائقين</p>
+        <p>✅ أرشيف كامل لجميع الرحلات</p>
+        <p>✅ دعم فني مباشر عبر واتساب</p>
+      </div>
+    </div>
+    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-3">
+      <p class="font-black text-slate-700 text-sm mb-2">📋 خطوات الاشتراك:</p>
+      <ol class="space-y-2 text-xs text-slate-600 list-decimal list-inside leading-relaxed">
+        <li>حوّل مبلغ الاشتراك على رقم فودافون كاش:<br>
+          <span class="font-black text-slate-800 text-sm" id="vf-show">01552610460</span></li>
+        <li>اضغط زر "تواصل للتفعيل" أدناه</li>
+        <li>أرسل صورة رسالة SMS التأكيدية من فودافون</li>
+        <li>سيتم تفعيل اشتراكك خلال ٢٤ ساعة</li>
+      </ol>
+    </div>
+    <button onclick="openWhatsApp()" class="btn btn-lg mb-2" style="background:#25D366;color:#fff;box-shadow:0 6px 20px rgba(37,211,102,.3)">
+      <span style="font-size:1.1rem">💬</span> تواصل للتفعيل عبر واتساب
+    </button>
+  </div>
+</div>
+
+<!-- Add staff (owner) -->
+<div id="mod-add-staff" class="modal" onclick="closeMod('mod-add-staff')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">إضافة موظف جديد</h3>
+      <button onclick="closeMod('mod-add-staff')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-3 mb-4 text-sm text-yellow-700">
+      👑 أدخل بريد الموظف لمنحه صلاحية التسجيل في النظام
+    </div>
+    <div class="space-y-3">
+      <input type="email" id="ns-email" class="inp" placeholder="البريد الإلكتروني للموظف">
+      <button id="btn-add-stf" onclick="addStaff()" class="btn btn-gld btn-lg">منح الصلاحية</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings (owner) -->
+<div id="mod-settings" class="modal" onclick="closeMod('mod-settings')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">⚙️ إعدادات التطبيق</h3>
+      <button onclick="closeMod('mod-settings')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <div class="space-y-4">
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">اسم التطبيق</label>
+        <input type="text" id="set-name" class="inp" placeholder="Royal Drive Pro"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">رسالة الترحيب في الصفحة الرئيسية</label>
+        <input type="text" id="set-sub" class="inp" placeholder="نظام إدارة المركبات الذكي"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">إيميل المالك (لتحديد صلاحية الدخول لهذه اللوحة)</label>
+        <input type="email" id="set-owner-email" class="inp" placeholder="admin@royaldrive.com">
+        <p class="text-xs text-red-500 mt-1 font-bold">⚠️ تغيير هذا يتطلب إعادة تسجيل الدخول</p></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">سعر الاشتراك المميز (جنيه/شهر)</label>
+        <input type="number" id="set-price" class="inp" placeholder="99"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">رقم فودافون كاش لاستقبال المدفوعات</label>
+        <input type="tel" id="set-vf" class="inp" placeholder="01552610460"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">حد السائقين – الخطة المجانية</label>
+        <input type="number" id="set-dlimit" class="inp" placeholder="2"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">حد التقارير الشهرية – الخطة المجانية</label>
+        <input type="number" id="set-rlimit" class="inp" placeholder="5"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">إشعار مخصص لجميع المستخدمين (اتركه فارغاً لإيقاف)</label>
+        <textarea id="set-announce" class="inp" rows="2" placeholder="مثال: سيتم الصيانة الجمعة من ٢-٤ ص"></textarea></div>
+      <button id="btn-save-set" onclick="saveSettings()" class="btn btn-gld btn-lg">
+        <i data-lucide="save" class="w-4 h-4"></i> حفظ الإعدادات</button>
+    </div>
+  </div>
+</div>
+
+</body>
 <script>
-// ============================================================
-// ⚙️ إعدادات Firebase
-// ============================================================
+// ═══════════════════════════════════════
+// FIREBASE INIT
+// ═══════════════════════════════════════
 const firebaseConfig = {
-    apiKey: "AIzaSyBhZdYXdISIPlcCbC4yiVdlUx0QDWfITdk",
-    authDomain: "royal-drive-38c15.firebaseapp.com",
-    projectId: "royal-drive-38c15",
-    storageBucket: "royal-drive-38c15.firebasestorage.app",
-    messagingSenderId: "94912656002",
-    appId: "1:94912656002:web:f461fdf7c3cd67b4a77a9b"
+  apiKey:"AIzaSyBhZdYXdISIPlcCbC4yiVdlUx0QDWfITdk",
+  authDomain:"royal-drive-38c15.firebaseapp.com",
+  projectId:"royal-drive-38c15",
+  storageBucket:"royal-drive-38c15.firebasestorage.app",
+  messagingSenderId:"94912656002",
+  appId:"1:94912656002:web:f461fdf7c3cd67b4a77a9b"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db = firebase.firestore();
+const db   = firebase.firestore();
 lucide.createIcons();
 
-// ============================================================
-// 🔄 التنقل بين الصفحات
-// ============================================================
-function goToPage(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById(id);
-    if (target) {
-        target.classList.add('active');
-        lucide.createIcons();
-    } else {
-        console.error('الصفحة غير موجودة:', id);
-    }
-}
-
-// ============================================================
-// BUG FIX #3: إصلاح toggleVisibility
-// المشكلة: lucide.createIcons() تحوّل <i> إلى SVG،
-// ثم setAttribute على SVG لا يعمل لأن createIcons تبحث عن <i>
-// الحل: استبدال innerHTML الزرار بـ <i> جديدة في كل مرة
-// ============================================================
-function toggleVisibility(inputId, btnId) {
-    const field = document.getElementById(inputId);
-    const btn = document.getElementById(btnId);
-    if (!field || !btn) return;
-
-    const isPassword = (field.type === 'password');
-    field.type = isPassword ? 'text' : 'password';
-
-    // استبدال محتوى الزرار بـ <i> جديدة حتى تشتغل createIcons
-    btn.innerHTML = isPassword
-        ? '<i data-lucide="eye-off" class="w-5 h-5"></i>'
-        : '<i data-lucide="eye" class="w-5 h-5"></i>';
-    lucide.createIcons();
-}
-
-// ============================================================
-// 👤 إدارة الأدوار في التسجيل
-// ============================================================
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let CU = null, CUD = null;
+let APP = {
+  name:'ROYAL DRIVE', sub:'نظام إدارة المركبات الذكي',
+  ownerEmail:'admin@royal.com', price:99,
+  vfNumber:'01552610460', dLimit:2, rLimit:5, announce:''
+};
 let signupRole = 'driver';
-function setRegRole(role) {
-    signupRole = role;
-    const isDriver = (role === 'driver');
-    document.getElementById('role-d').className = isDriver
-        ? 'flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600 transition-all'
-        : 'flex-1 py-3 rounded-xl font-black text-slate-400 transition-all';
-    document.getElementById('role-s').className = !isDriver
-        ? 'flex-1 py-3 rounded-xl font-black bg-white shadow text-blue-600 transition-all'
-        : 'flex-1 py-3 rounded-xl font-black text-slate-400 transition-all';
-    document.getElementById('extra-driver-fields').style.display = isDriver ? 'block' : 'none';
+let tripTypeNew = 'general';
+let rptType = 'all';
+let chatWith = null;
+let chatName_ = null;
+let chatUnsub = null;
+let notifUnsub = null;
+let msgUnsub = null;
+let drvFilter = 'pending';
+let reportExportData = [];
+let drvTripsAll = [];
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function goTo(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const t=document.getElementById(id);
+  if(t){t.classList.add('active');lucide.createIcons();}
+}
+function openMod(id){
+  const m=document.getElementById(id);
+  if(m){m.classList.add('open');lucide.createIcons();}
+}
+function closeMod(id){
+  const m=document.getElementById(id);
+  if(m) m.classList.remove('open');
+}
+function toggleEye(inp,btn){
+  const f=document.getElementById(inp),b=document.getElementById(btn);
+  if(!f||!b)return;
+  f.type=f.type==='password'?'text':'password';
+  b.innerHTML=f.type==='text'
+    ?'<i data-lucide="eye-off" class="w-4 h-4"></i>'
+    :'<i data-lucide="eye" class="w-4 h-4"></i>';
+  lucide.createIcons();
+}
+function setBtn(id,loading,label){
+  const b=document.getElementById(id);
+  if(!b)return;
+  b.disabled=loading;
+  b.style.opacity=loading?'.65':'1';
+  b.innerHTML=loading?'<span class="spin"></span>':label;
+}
+function toast(msg,type='info'){
+  const c={info:'#2563eb',success:'#16a34a',error:'#dc2626',warning:'#d97706'};
+  const w=document.getElementById('toast-wrap');
+  const el=document.createElement('div');
+  el.style.cssText=`background:${c[type]||c.info};color:#fff;padding:12px 20px;border-radius:16px;font-weight:700;font-size:.82rem;box-shadow:0 8px 30px rgba(0,0,0,.25);animation:fu .3s ease;text-align:center;pointer-events:auto`;
+  el.textContent=msg;
+  w.appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+function fmtDate(ts){
+  if(!ts)return'—';
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  return d.toLocaleDateString('ar-EG',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function fmtDateShort(ts){
+  if(!ts)return'—';
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  return d.toLocaleDateString('ar-EG',{month:'short',day:'numeric'});
+}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function getConvId(a,b){return[a,b].sort().join('_');}
+function statusAr(s){return{pending:'قيد الانتظار',accepted:'مقبولة',rejected:'مرفوضة',completed:'مكتملة'}[s]||s;}
+function statusChip(s){
+  const m={pending:'cp-pend',accepted:'cp-acc',rejected:'cp-rej',completed:'cp-done'};
+  return`<span class="chip ${m[s]||''}">${statusAr(s)}</span>`;
 }
 
-// ============================================================
-// ⏳ حالة تحميل الأزرار
-// ============================================================
-function setLoading(btnId, isLoading, label) {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    btn.disabled = isLoading;
-    btn.style.opacity = isLoading ? '0.7' : '1';
-    btn.innerHTML = isLoading ? '<span class="spinner"></span>' : label;
+// ═══════════════════════════════════════
+// LOAD APP SETTINGS
+// ═══════════════════════════════════════
+async function loadAppSettings(){
+  try{
+    const snap=await db.collection('settings').doc('app').get();
+    if(snap.exists) APP={...APP,...snap.data()};
+    applyAppUI();
+  }catch(e){console.warn('settings:',e);}
+}
+function applyAppUI(){
+  const t=document.getElementById('app-title');
+  const s=document.getElementById('app-sub');
+  const v=document.getElementById('vf-show');
+  const p=document.getElementById('sub-price-lbl');
+  if(t) t.textContent=APP.name||'ROYAL DRIVE';
+  if(s) s.textContent=APP.sub||'';
+  if(v) v.textContent=APP.vfNumber||'01552610460';
+  if(p) p.textContent=`${APP.price||99} جنيه / شهرياً`;
+  if(APP.announce){
+    let an=document.getElementById('announce-bar');
+    if(!an){
+      an=document.createElement('div');
+      an.id='announce-bar';
+      an.style.cssText='position:fixed;top:0;left:0;right:0;background:#d97706;color:#fff;text-align:center;font-size:.78rem;font-weight:700;padding:6px 12px;z-index:9990';
+      document.body.prepend(an);
+    }
+    an.textContent='📢 '+APP.announce;
+  }
 }
 
-// ============================================================
-// BUG FIX #1 (المتعلق بالزرار): تسجيل الدخول
-// الزرار كان "يعمل" لكن إذا كان هناك خطأ Firebase يُبتلع
-// الآن: رسائل خطأ واضحة + loading state
-// ============================================================
-async function doLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const pass  = document.getElementById('login-pass').value;
+// ═══════════════════════════════════════
+// ══ BUG FIX: AUTH STATE (Owner by ownerEmail from Firestore settings)
+// ══ السبب: كان يقارن بـ admin@royal.com ثابتة بدون أخذ الإعداد
+// ═══════════════════════════════════════
+auth.onAuthStateChanged(async(user)=>{
+  if(!user){
+    setBtn('btn-login',false,'دخول آمن');
+    goTo('pg-welcome');
+    return;
+  }
+  try{
+    await loadAppSettings();
 
-    if (!email || !pass) {
-        return alert('يرجى إدخال البريد الإلكتروني وكلمة المرور.');
+    // ✅ الإصلاح: قارن بإيميل المالك المخزن في الإعدادات
+    if(user.email===APP.ownerEmail){
+      // تأكد من وجود doc للمالك في Firestore وإلا أنشئه تلقائياً
+      const owDoc=await db.collection('users').doc(user.uid).get();
+      if(!owDoc.exists){
+        await db.collection('users').doc(user.uid).set({
+          uid:user.uid,email:user.email,name:'المالك',
+          role:'owner',status:'active',
+          createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      CU=user; CUD={role:'owner',email:user.email,name:'المالك',uid:user.uid};
+      listenNotifications(user.uid);
+      await loadOwnerDash();
+      goTo('pg-owner');
+      return;
     }
 
-    setLoading('login-btn', true, 'دخول آمن');
-
-    try {
-        await auth.signInWithEmailAndPassword(email, pass);
-        // auth.onAuthStateChanged سيتولى التوجيه تلقائياً
-    } catch (e) {
-        let msg = 'حدث خطأ غير متوقع. حاول مرة أخرى.';
-        switch (e.code) {
-            case 'auth/user-not-found':
-            case 'auth/wrong-password':
-            case 'auth/invalid-credential':
-            case 'auth/invalid-login-credentials':
-                msg = 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'; break;
-            case 'auth/too-many-requests':
-                msg = 'تم تجاوز عدد المحاولات. انتظر قليلاً ثم أعد المحاولة.'; break;
-            case 'auth/invalid-email':
-                msg = 'صيغة البريد الإلكتروني غير صحيحة.'; break;
-            case 'auth/network-request-failed':
-                msg = 'خطأ في الاتصال بالإنترنت. تحقق من الشبكة.'; break;
-        }
-        alert(msg);
-        setLoading('login-btn', false, 'دخول آمن');
+    const snap=await db.collection('users').doc(user.uid).get();
+    if(!snap.exists){
+      toast('بيانات حسابك غير مكتملة. تواصل مع المسؤول.','error');
+      await auth.signOut(); goTo('pg-welcome'); return;
     }
-}
+    CU=user; CUD=snap.data();
 
-// ============================================================
-// 📝 إنشاء حساب
-// ============================================================
-async function doSignup() {
-    const email = document.getElementById('reg-email').value.trim();
-    const pass  = document.getElementById('reg-pass').value;
-    const name  = document.getElementById('reg-name').value.trim();
-    const phone = document.getElementById('reg-phone').value.trim();
-
-    if (!name)  return alert('يرجى إدخال الاسم الكامل.');
-    if (!phone) return alert('يرجى إدخال رقم الهاتف.');
-    if (!email) return alert('يرجى إدخال البريد الإلكتروني.');
-    if (!pass || pass.length < 6) return alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل.');
-
-    setLoading('signup-btn', true, 'إتمام التسجيل');
-
-    try {
-        // التحقق من القائمة البيضاء
-        const allowed = await db.collection('allowed_users').doc(email).get();
-        if (!allowed.exists && email !== 'admin@royal.com') {
-            setLoading('signup-btn', false, 'إتمام التسجيل');
-            return alert('هذا البريد غير مصرح له بالتسجيل. يرجى التواصل مع المسؤول.');
-        }
-
-        const res = await auth.createUserWithEmailAndPassword(email, pass);
-
-        const userData = {
-            uid: res.user.uid,
-            name, email, phone,
-            role: signupRole,
-            status: 'active',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        };
-
-        if (signupRole === 'driver') {
-            userData.nid     = document.getElementById('reg-nid').value.trim();
-            userData.carType = document.getElementById('reg-car').value.trim();
-        }
-
-        await db.collection('users').doc(res.user.uid).set(userData);
-        alert('تم إنشاء حسابك بنجاح! مرحباً بك في Royal Drive.');
-
-    } catch (e) {
-        let msg = 'فشل التسجيل. حاول مرة أخرى.';
-        switch (e.code) {
-            case 'auth/email-already-in-use':
-                msg = 'هذا البريد الإلكتروني مسجل مسبقاً. يمكنك تسجيل الدخول مباشرة.'; break;
-            case 'auth/weak-password':
-                msg = 'كلمة المرور ضعيفة جداً. استخدم 6 أحرف أو أكثر.'; break;
-            case 'auth/invalid-email':
-                msg = 'صيغة البريد الإلكتروني غير صحيحة.'; break;
-            case 'auth/network-request-failed':
-                msg = 'خطأ في الاتصال بالإنترنت. تحقق من الشبكة.'; break;
-        }
-        alert(msg);
+    // حماية: تحقق من role='owner' في Firestore أيضاً كطريق بديل
+    if(CUD.role==='owner'){
+      await loadOwnerDash(); goTo('pg-owner'); return;
+    }
+    if(CUD.status==='frozen'){
+      toast('حسابك مجمد. تواصل مع المسؤول.','error');
+      await auth.signOut(); goTo('pg-welcome'); return;
     }
 
-    setLoading('signup-btn', false, 'إتمام التسجيل');
-}
+    listenNotifications(user.uid);
+    listenMessages(user.uid);
 
-// ============================================================
-// 🚪 تسجيل الخروج
-// ============================================================
-async function doLogout() {
-    if (confirm('هل تريد تسجيل الخروج؟')) {
-        await auth.signOut();
-    }
-}
-
-// ============================================================
-// 🛡️ مراقبة حالة المصادقة والتوجيه
-// ============================================================
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        // المالك
-        if (user.email === 'admin@royal.com') {
-            goToPage('owner-dashboard');
-            return;
-        }
-
-        try {
-            const doc = await db.collection('users').doc(user.uid).get();
-
-            if (doc.exists) {
-                const data = doc.data();
-
-                if (data.status === 'frozen') {
-                    alert('عذراً، حسابك مجمد. يرجى التواصل مع المسؤول.');
-                    await auth.signOut();
-                    goToPage('welcome-page');
-                    return;
-                }
-
-                if (data.role === 'staff') {
-                    const el = document.getElementById('staff-name');
-                    if (el) el.textContent = data.name || 'الموظف';
-                    goToPage('staff-dashboard');
-                } else {
-                    // سائق - تحديث البيانات في الداشبورد
-                    const nameEl  = document.getElementById('driver-name');
-                    const nameEl2 = document.getElementById('driver-name-info');
-                    const emailEl = document.getElementById('driver-email-info');
-                    const carEl   = document.getElementById('driver-car-info');
-                    if (nameEl)  nameEl.textContent  = data.name    || 'السائق';
-                    if (nameEl2) nameEl2.textContent = data.name    || '—';
-                    if (emailEl) emailEl.textContent = data.email   || '—';
-                    if (carEl)   carEl.textContent   = data.carType || '—';
-                    goToPage('driver-dashboard');
-                }
-            } else {
-                // يوجد في Auth لكن ليس في Firestore (حساب غير مكتمل)
-                alert('بيانات حسابك غير مكتملة. يرجى التواصل مع المسؤول.');
-                await auth.signOut();
-                goToPage('welcome-page');
-            }
-        } catch (err) {
-            console.error('خطأ في جلب بيانات المستخدم:', err);
-            goToPage('welcome-page');
-        }
-
+    if(CUD.role==='staff'){
+      await loadStaffDash(); goTo('pg-staff');
     } else {
-        // لا يوجد مستخدم - إعادة تعيين زر الدخول
-        setLoading('login-btn', false, 'دخول آمن');
-        goToPage('welcome-page');
+      await loadDriverDash(); goTo('pg-driver');
     }
+  }catch(e){
+    console.error('auth:',e);
+    goTo('pg-welcome');
+  }
 });
 
-// ============================================================
-// BUG FIX #4: إصلاح أمان إعادة تعيين كلمة المرور
-// المشكلة: كان الرابط في الإيميل يكشف رابط GitHub للكود المصدري
-// الحل: استخدام continueUrl يشير لرابط التطبيق الحالي وليس GitHub
-// ملاحظة: تأكد أيضاً من إزالة أي continueUrl في إعدادات Firebase Console
-// ============================================================
-async function resetPass() {
-    const email = document.getElementById('login-email').value.trim();
-    if (!email) return alert('اكتب بريدك الإلكتروني أولاً في خانة البريد الإلكتروني.');
-
-    // استخدام رابط التطبيق الحالي كـ continueUrl وليس GitHub
-    const currentUrl = window.location.origin !== 'null'
-        ? window.location.origin + window.location.pathname
-        : undefined;
-
-    const actionCodeSettings = currentUrl ? {
-        url: currentUrl,
-        handleCodeInApp: false  // إعادة التعيين تتم عبر صفحة Firebase وليس في التطبيق مباشرة
-    } : undefined;
-
-    try {
-        if (actionCodeSettings) {
-            await auth.sendPasswordResetEmail(email, actionCodeSettings);
-        } else {
-            await auth.sendPasswordResetEmail(email);
-        }
-        alert('✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.\nتحقق من صندوق الوارد (أو Spam).');
-    } catch (e) {
-        let msg = 'حدث خطأ. حاول مرة أخرى.';
-        if (e.code === 'auth/user-not-found')
-            msg = 'لا يوجد حساب مرتبط بهذا البريد الإلكتروني.';
-        else if (e.code === 'auth/invalid-email')
-            msg = 'صيغة البريد الإلكتروني غير صحيحة.';
-        alert(msg);
-    }
+// ═══════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════
+async function doLogin(){
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  if(!email||!pass) return toast('أدخل البريد وكلمة المرور','warning');
+  setBtn('btn-login',true,'');
+  try{
+    await auth.signInWithEmailAndPassword(email,pass);
+    // onAuthStateChanged will handle routing
+  }catch(e){
+    const m={
+      'auth/user-not-found':'البريد غير مسجل في النظام',
+      'auth/wrong-password':'كلمة المرور غير صحيحة',
+      'auth/invalid-credential':'البيانات غير صحيحة',
+      'auth/invalid-login-credentials':'البيانات غير صحيحة',
+      'auth/too-many-requests':'تم تجاوز عدد المحاولات. انتظر قليلاً',
+      'auth/invalid-email':'صيغة البريد غير صحيحة',
+      'auth/network-request-failed':'تحقق من اتصالك بالإنترنت'
+    };
+    toast(m[e.code]||'حدث خطأ، حاول مجدداً','error');
+    setBtn('btn-login',false,'دخول آمن');
+  }
 }
+
+// ═══════════════════════════════════════
+// FORGOT PASSWORD
+// ═══════════════════════════════════════
+async function sendReset(){
+  const email=document.getElementById('fg-email').value.trim();
+  if(!email) return toast('أدخل بريدك الإلكتروني','warning');
+  setBtn('btn-fg',true,'');
+  try{
+    const currentUrl=window.location.href.split('?')[0];
+    await auth.sendPasswordResetEmail(email,{url:currentUrl,handleCodeInApp:false});
+    document.getElementById('fg-s1').classList.add('hidden');
+    document.getElementById('fg-s2').classList.remove('hidden');
+  }catch(e){
+    const m={'auth/user-not-found':'لا يوجد حساب بهذا البريد','auth/invalid-email':'صيغة البريد غير صحيحة'};
+    toast(m[e.code]||'حدث خطأ','error');
+    setBtn('btn-fg',false,'<i data-lucide="send" class="w-4 h-4"></i> إرسال الرابط');
+    lucide.createIcons();
+  }
+}
+
+// ═══════════════════════════════════════
+// SIGNUP
+// ═══════════════════════════════════════
+function setRole(r){
+  signupRole=r;
+  document.getElementById('rb-d').className=`rtb${r==='driver'?' on':''}`;
+  document.getElementById('rb-s').className=`rtb${r==='staff'?' on':''}`;
+  document.getElementById('fld-d').classList.toggle('hidden',r!=='driver');
+  document.getElementById('fld-s').classList.toggle('hidden',r!=='staff');
+}
+
+async function doSignup(){
+  const isD=signupRole==='driver';
+  const email=(document.getElementById(isD?'d-email':'s-email').value||'').trim();
+  const pass=document.getElementById(isD?'d-pass':'s-pass').value;
+  const name=(document.getElementById(isD?'d-name':'s-name').value||'').trim();
+  const phone=(document.getElementById(isD?'d-phone':'s-phone').value||'').trim();
+
+  if(!name)  return toast('أدخل الاسم الكامل','warning');
+  if(!phone) return toast('أدخل رقم الهاتف','warning');
+  if(!email) return toast('أدخل البريد الإلكتروني','warning');
+  if(!pass||pass.length<6) return toast('كلمة المرور ٦ أحرف على الأقل','warning');
+  if(isD){
+    if(!document.getElementById('d-nid').value.trim()) return toast('أدخل الرقم القومي','warning');
+    if(!document.getElementById('d-car').value.trim()) return toast('أدخل نوع السيارة','warning');
+    if(!document.getElementById('d-plate').value.trim()) return toast('أدخل رقم اللوحة','warning');
+  }
+
+  setBtn('btn-signup',true,'');
+  try{
+    // Whitelist check
+    const allowed=await db.collection('allowed_users').doc(email).get();
+    if(!allowed.exists){
+      const msg=isD
+        ?'بريدك غير مضاف بعد.\n\nراجع الموظف المختص لإضافة بريدك أولاً ثم عد للتسجيل.'
+        :'بريدك غير مضاف في النظام.\n\nراجع مالك التطبيق لإضافتك كموظف أولاً.';
+      toast(msg,'error');
+      setBtn('btn-signup',false,'إتمام التسجيل');
+      return;
+    }
+    // Check role matches what was whitelist-assigned
+    const allowedData=allowed.data();
+    if(allowedData.role && allowedData.role!==signupRole){
+      toast(`هذا البريد مسجل كـ "${allowedData.role==='driver'?'سائق':'موظف'}" وليس "${isD?'سائق':'موظف'}"`, 'error');
+      setBtn('btn-signup',false,'إتمام التسجيل');
+      return;
+    }
+
+    const res=await auth.createUserWithEmailAndPassword(email,pass);
+    const userData={
+      uid:res.user.uid,name,email,phone,
+      role:signupRole,status:'active',isPremium:false,
+      driversAdded:0,reportsUsed:0,reportsMonth:'',
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if(isD){
+      userData.nid=document.getElementById('d-nid').value.trim();
+      userData.carType=document.getElementById('d-car').value.trim();
+      userData.plate=document.getElementById('d-plate').value.trim().toUpperCase();
+    }
+    await db.collection('users').doc(res.user.uid).set(userData);
+    // Update addedBy driversAdded count
+    if(isD && allowedData.addedBy){
+      await db.collection('users').doc(allowedData.addedBy).update({
+        driversAdded:firebase.firestore.FieldValue.increment(1)
+      });
+    }
+    toast('تم إنشاء حسابك بنجاح! مرحباً بك 👋','success');
+  }catch(e){
+    const m={
+      'auth/email-already-in-use':'هذا البريد مسجل مسبقاً. جرب تسجيل الدخول.',
+      'auth/weak-password':'كلمة المرور ضعيفة جداً',
+      'auth/invalid-email':'صيغة البريد غير صحيحة',
+      'auth/network-request-failed':'تحقق من اتصالك بالإنترنت'
+    };
+    toast(m[e.code]||'فشل التسجيل: '+e.message,'error');
+    setBtn('btn-signup',false,'إتمام التسجيل');
+  }
+}
+
+// ═══════════════════════════════════════
+// LOGOUT
+// ═══════════════════════════════════════
+async function doLogout(){
+  if(!confirm('هل تريد تسجيل الخروج؟'))return;
+  if(chatUnsub){chatUnsub();chatUnsub=null;}
+  if(notifUnsub){notifUnsub();notifUnsub=null;}
+  if(msgUnsub){msgUnsub();msgUnsub=null;}
+  CU=null; CUD=null;
+  await auth.signOut();
+}
+
+// ═══════════════════════════════════════
+// ══════ DRIVER DASHBOARD ══════
+// ═══════════════════════════════════════
+async function loadDriverDash(){
+  document.getElementById('d-uname').textContent=CUD.name||'السائق';
+  document.getElementById('d-carinfo').textContent=CUD.carType||'—';
+  document.getElementById('d-platex').textContent=CUD.plate||'—';
+  drvTab('pending');
+}
+function drvTab(tab){
+  drvFilter=tab;
+  ['pending','accepted','history'].forEach(t=>{
+    const btn=document.getElementById('dt-'+t[0]+(t==='history'?'h':t==='accepted'?'a':'p'));
+    if(btn){
+      const active=t===tab;
+      btn.className=`flex-1 py-3 text-sm font-black border-b-2 transition-all ${active?'border-blue-600 text-blue-600':'border-transparent text-slate-400'}`;
+    }
+  });
+  loadDriverTrips();
+}
+async function loadDriverTrips(){
+  const el=document.getElementById('drv-list');
+  el.innerHTML='<p class="text-center py-8 text-slate-400 text-sm">جاري التحميل...</p>';
+  try{
+    let q=db.collection('trips').orderBy('createdAt','desc');
+    const filter=drvFilter==='history'?['rejected','completed']:
+                 drvFilter==='accepted'?['accepted']:['pending'];
+
+    const snap=await q.get();
+    const trips=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(t=>{
+        const forMe=t.assignedTo==='all'||t.assignedTo===CU.uid;
+        const statusOk=filter.includes(t.status);
+        return forMe&&statusOk;
+      });
+
+    drvTripsAll=trips;
+    if(!trips.length){
+      el.innerHTML='<div class="text-center py-14 text-slate-400"><div class="text-5xl mb-3">🗺️</div><p class="font-bold">لا توجد رحلات</p></div>';
+      return;
+    }
+    el.innerHTML=trips.map(t=>`
+      <div class="card p-4 cursor-pointer active:scale-98 transition-transform" onclick="openTripDetail('${t.id}')">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex-1">
+            <p class="font-black text-slate-800 text-sm leading-snug">${t.destination||'—'}</p>
+            <p class="text-slate-400 text-xs mt-0.5">${fmtDate(t.tripDate||t.createdAt)}</p>
+          </div>
+          <div class="flex flex-col items-end gap-1">
+            ${statusChip(t.status)}
+            <span class="text-blue-600 font-black text-sm">${t.price?t.price+' جنيه':'—'}</span>
+          </div>
+        </div>
+        ${t.notes?`<p class="text-slate-500 text-xs bg-slate-50 rounded-xl p-2">${t.notes}</p>`:''}
+        ${t.status==='pending'?`
+        <div class="flex gap-2 mt-3">
+          <button onclick="event.stopPropagation();respondTrip('${t.id}','accepted')" class="btn btn-grn btn-sm flex-1">✅ قبول</button>
+          <button onclick="event.stopPropagation();respondTrip('${t.id}','rejected')" class="btn btn-red btn-sm flex-1">❌ رفض</button>
+        </div>`:''}
+      </div>
+    `).join('');
+  }catch(e){
+    el.innerHTML='<p class="text-center text-red-400 py-8">خطأ في التحميل</p>';
+    console.error(e);
+  }
+}
+async function openTripDetail(id){
+  const trip=drvTripsAll.find(t=>t.id===id);
+  if(!trip)return;
+  document.getElementById('trip-cur-id').value=id;
+  document.getElementById('trip-detail').innerHTML=`
+    <div class="space-y-3 mb-5">
+      <div class="bg-slate-50 rounded-2xl p-4 space-y-2.5">
+        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">الوجهة</span><span class="font-black text-slate-800 text-sm">${trip.destination||'—'}</span></div>
+        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">التاريخ</span><span class="font-bold text-slate-700 text-sm">${fmtDate(trip.tripDate||trip.createdAt)}</span></div>
+        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">السعر</span><span class="font-black text-blue-600 text-base">${trip.price?trip.price+' جنيه':'—'}</span></div>
+        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">الحالة</span>${statusChip(trip.status)}</div>
+        ${trip.addedByName?`<div class="flex justify-between items-center"><span class="text-slate-500 text-sm">أضيفت بواسطة</span><span class="font-bold text-slate-700 text-sm">${trip.addedByName}</span></div>`:''}
+        ${trip.notes?`<div class="pt-1 border-t border-slate-100"><p class="text-slate-500 text-xs mb-1">ملاحظات:</p><p class="text-slate-700 text-sm">${trip.notes}</p></div>`:''}
+      </div>
+      ${trip.status==='pending'?`
+      <div class="flex gap-3">
+        <button onclick="respondTrip('${trip.id}','accepted');closeMod('mod-trip')" class="btn btn-grn btn-md flex-1">✅ قبول الرحلة</button>
+        <button onclick="respondTrip('${trip.id}','rejected');closeMod('mod-trip')" class="btn btn-red btn-md flex-1">❌ رفض</button>
+      </div>`:''}
+      ${trip.status==='accepted'?`
+      <button onclick="completeTrip('${trip.id}');closeMod('mod-trip')" class="btn btn-blue btn-lg">🏁 تم إنجاز الرحلة</button>
+      `:''}
+    </div>
+  `;
+  openMod('mod-trip');
+}
+async function respondTrip(id,response){
+  try{
+    const upd={status:response};
+    if(response==='accepted') upd.acceptedAt=firebase.firestore.FieldValue.serverTimestamp();
+    if(response==='rejected') upd.rejectedAt=firebase.firestore.FieldValue.serverTimestamp();
+    upd.driverId=CU.uid;
+    upd.driverName=CUD.name;
+    upd.plate=CUD.plate;
+    await db.collection('trips').doc(id).update(upd);
+    // Notify staff
+    const trip=drvTripsAll.find(t=>t.id===id);
+    if(trip&&trip.addedBy){
+      await db.collection('notifications').add({
+        uid:trip.addedBy,
+        title:response==='accepted'?'✅ تم قبول الرحلة':'❌ تم رفض الرحلة',
+        body:`${CUD.name||'السائق'} ${response==='accepted'?'قبل':'رفض'} رحلة: ${trip.destination}`,
+        read:false,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    toast(response==='accepted'?'تم قبول الرحلة ✅':'تم رفض الرحلة','success');
+    loadDriverTrips();
+  }catch(e){toast('حدث خطأ','error');console.error(e);}
+}
+async function completeTrip(id){
+  try{
+    await db.collection('trips').doc(id).update({
+      status:'completed',
+      completedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('تم تأكيد إنجاز الرحلة 🏁','success');
+    loadDriverTrips();
+  }catch(e){toast('حدث خطأ','error');}
+}
+
+// ═══════════════════════════════════════
+// ══════ STAFF DASHBOARD ══════
+// ═══════════════════════════════════════
+async function loadStaffDash(){
+  document.getElementById('s-uname').textContent=CUD.name||'الموظف';
+  updateSubBanner();
+  loadStaffTrips();
+  loadDriversDropdown();
+  // Update quota labels
+  const isPremium=CUD.isPremium;
+  const dLimit=isPremium?'∞':(APP.dLimit||2);
+  const rLimit=isPremium?'∞':(APP.rLimit||5);
+  const dAdded=CUD.driversAdded||0;
+  const rUsed=reportsThisMonth();
+  document.getElementById('stf-dleft').textContent=`${dAdded} / ${dLimit} سائق مضاف`;
+  document.getElementById('stf-rleft').textContent=`${rUsed} / ${rLimit} هذا الشهر`;
+}
+function reportsThisMonth(){
+  if(!CUD)return 0;
+  const m=new Date().toISOString().substring(0,7);
+  return CUD.reportsMonth===m?(CUD.reportsUsed||0):0;
+}
+function updateSubBanner(){
+  if(!CUD)return;
+  const isPremium=CUD.isPremium;
+  const ico=document.getElementById('stf-sub-ico');
+  const lbl=document.getElementById('stf-sub-lbl');
+  const det=document.getElementById('stf-sub-det');
+  if(ico) ico.textContent=isPremium?'👑':'🆓';
+  if(lbl) lbl.textContent=isPremium?'الخطة المميزة':'الخطة المجانية';
+  if(det) det.textContent=isPremium?'سائقون وتقارير غير محدودة ✅':`${APP.dLimit||2} سائق · ${APP.rLimit||5} تقارير / شهر`;
+  // Sub plan modal
+  const planCur=document.getElementById('plan-cur');
+  if(planCur){
+    planCur.innerHTML=isPremium
+      ?`<div class="bg-green-50 border border-green-200 rounded-2xl p-3 text-center"><p class="text-green-700 font-black">✅ أنت على الخطة المميزة</p><p class="text-green-600 text-xs mt-1">تستمتع بجميع المميزات بدون قيود</p></div>`
+      :`<div class="bg-slate-100 rounded-2xl p-3 text-center"><p class="text-slate-600 font-bold text-sm">الخطة الحالية: المجانية</p></div>`;
+  }
+}
+async function loadStaffTrips(){
+  const el=document.getElementById('stf-trips');
+  if(!el||!CU)return;
+  try{
+    const snap=await db.collection('trips')
+      .where('addedBy','==',CU.uid)
+      .orderBy('createdAt','desc')
+      .limit(15)
+      .get();
+    if(snap.empty){el.innerHTML='<p class="text-center text-slate-400 text-sm py-4">لا توجد رحلات بعد</p>';return;}
+    el.innerHTML=snap.docs.map(d=>{
+      const t={id:d.id,...d.data()};
+      return`<div class="card p-4">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <p class="font-black text-slate-800 text-sm">${t.destination||'—'}</p>
+            <p class="text-slate-400 text-xs mt-0.5">${t.driverName?'🚗 '+t.driverName:'🌍 عامة'} · ${fmtDate(t.createdAt)}</p>
+          </div>
+          <div class="flex flex-col items-end gap-1">
+            ${statusChip(t.status)}
+            ${t.price?`<span class="text-blue-600 font-black text-xs">${t.price} جنيه</span>`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ في التحميل</p>';console.error(e);}
+}
+async function loadDriversDropdown(){
+  try{
+    const snap=await db.collection('users').where('role','==','driver').where('status','==','active').get();
+    const sel=document.getElementById('trip-drv-sel');
+    const rptCar=document.getElementById('rpt-car');
+    if(!sel&&!rptCar)return;
+    const opts=snap.docs.map(d=>{const u=d.data();return`<option value="${d.id}">${u.name} – ${u.plate||'—'}</option>`;}).join('');
+    if(sel) sel.innerHTML='<option value="">— اختر سائقاً —</option>'+opts;
+    if(rptCar) rptCar.innerHTML='<option value="">— اختر السيارة —</option>'+opts;
+  }catch(e){console.error(e);}
+}
+
+// Add Trip (staff)
+function setTripType(t){
+  tripTypeNew=t;
+  document.getElementById('tt-g').className=`rtb${t==='general'?' on text-green-600':''}`;
+  document.getElementById('tt-s').className=`rtb${t==='specific'?' on':''}`;
+  document.getElementById('trip-drv-row').classList.toggle('hidden',t!=='specific');
+}
+async function submitTrip(){
+  const dest=(document.getElementById('t-dest').value||'').trim();
+  const date=document.getElementById('t-date').value;
+  const price=document.getElementById('t-price').value;
+  const notes=(document.getElementById('t-notes').value||'').trim();
+  if(!dest) return toast('أدخل وصف أو وجهة الرحلة','warning');
+  if(!date) return toast('حدد تاريخ الرحلة','warning');
+  let assignedTo='all', driverName='', driverUid='';
+  if(tripTypeNew==='specific'){
+    const sel=document.getElementById('trip-drv-sel');
+    if(!sel.value) return toast('اختر سائقاً','warning');
+    driverUid=sel.value;
+    driverName=sel.options[sel.selectedIndex].text.split('–')[0].trim();
+    assignedTo=driverUid;
+  }
+  setBtn('btn-add-trip',true,'');
+  try{
+    const tripData={
+      destination:dest,
+      tripDate:firebase.firestore.Timestamp.fromDate(new Date(date)),
+      price:parseFloat(price)||0,
+      notes,
+      assignedTo,
+      driverName:driverName||'',
+      driverId:driverUid||'',
+      status:'pending',
+      addedBy:CU.uid,
+      addedByName:CUD.name,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('trips').add(tripData);
+    // Notify assigned driver(s)
+    if(tripTypeNew==='specific'&&driverUid){
+      await db.collection('notifications').add({
+        uid:driverUid,
+        title:'🚗 رحلة جديدة بانتظارك!',
+        body:`${dest} – ${price} جنيه`,
+        read:false,
+        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      // Notify all active drivers
+      const allDrv=await db.collection('users').where('role','==','driver').where('status','==','active').get();
+      const batch=db.batch();
+      allDrv.docs.forEach(d=>{
+        const ref=db.collection('notifications').doc();
+        batch.set(ref,{uid:d.id,title:'🚗 رحلة جديدة عامة!',body:`${dest} – ${price} جنيه`,read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      });
+      await batch.commit();
+    }
+    toast('تم إرسال الرحلة بنجاح ✅','success');
+    ['t-dest','t-price','t-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('t-date').value='';
+    closeMod('mod-add-trip');
+    loadStaffTrips();
+  }catch(e){toast('فشل الإرسال: '+e.message,'error');console.error(e);}
+  setBtn('btn-add-trip',false,'<i data-lucide="send" class="w-4 h-4"></i> إرسال الرحلة');
+  lucide.createIcons();
+}
+
+// Add Driver (staff - whitelist)
+async function addDriver(){
+  if(!CUD)return;
+  const isPremium=CUD.isPremium;
+  const dLimit=parseInt(APP.dLimit)||2;
+  const dAdded=CUD.driversAdded||0;
+  if(!isPremium&&dAdded>=dLimit){
+    document.getElementById('drv-limit-warn').classList.remove('hidden');
+    document.getElementById('drv-add-form').classList.add('hidden');
+    return;
+  }
+  const email=(document.getElementById('nd-email').value||'').trim().toLowerCase();
+  if(!email||!email.includes('@')) return toast('أدخل بريداً إلكترونياً صحيحاً','warning');
+  setBtn('btn-add-drv',true,'');
+  try{
+    const exists=await db.collection('allowed_users').doc(email).get();
+    if(exists.exists) return toast('هذا البريد مضاف مسبقاً','warning');
+    await db.collection('allowed_users').doc(email).set({
+      email,role:'driver',addedBy:CU.uid,addedByName:CUD.name,
+      addedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('تم منح الصلاحية للسائق ✅','success');
+    document.getElementById('nd-email').value='';
+    closeMod('mod-add-driver');
+  }catch(e){toast('فشل الإضافة','error');console.error(e);}
+  setBtn('btn-add-drv',false,'<i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية');
+  lucide.createIcons();
+}
+
+// Search Drivers (staff)
+async function searchDriver(){
+  const q=(document.getElementById('srch-q').value||'').trim().toLowerCase();
+  const el=document.getElementById('srch-res');
+  if(!q){el.innerHTML='<p class="text-center text-slate-400 text-sm py-6">ابدأ بالكتابة للبحث...</p>';return;}
+  el.innerHTML='<p class="text-center text-slate-400 text-sm py-4">جاري البحث...</p>';
+  try{
+    const snap=await db.collection('users').where('role','==','driver').get();
+    const results=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(u=>
+        (u.name||'').toLowerCase().includes(q)||
+        (u.phone||'').includes(q)||
+        (u.plate||'').toLowerCase().includes(q)
+      );
+    if(!results.length){el.innerHTML='<p class="text-center text-slate-400 text-sm py-6">لا نتائج</p>';return;}
+    el.innerHTML=results.map(u=>`
+      <div class="card p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-black text-slate-800 text-sm">${u.name}</p>
+            <p class="text-slate-400 text-xs">📱 ${u.phone||'—'} · 🚗 ${u.plate||'—'}</p>
+            <p class="text-slate-400 text-xs">${u.carType||'—'}</p>
+          </div>
+          <span class="chip ${u.status==='frozen'?'cp-rej':'cp-acc'}">${u.status==='frozen'?'مجمد':'نشط'}</span>
+        </div>
+      </div>
+    `).join('');
+  }catch(e){el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ في البحث</p>';console.error(e);}
+}
+
+// Report modal opener
+async function openReportModal(){
+  const isPremium=CUD&&CUD.isPremium;
+  const rLimit=parseInt(APP.rLimit)||5;
+  const rUsed=reportsThisMonth();
+  const limitWarn=document.getElementById('rpt-limit-warn');
+  const rptForm=document.getElementById('rpt-form');
+  if(!isPremium&&rUsed>=rLimit){
+    if(limitWarn) limitWarn.classList.remove('hidden');
+    if(rptForm) rptForm.classList.add('hidden');
+  } else {
+    if(limitWarn) limitWarn.classList.add('hidden');
+    if(rptForm) rptForm.classList.remove('hidden');
+  }
+  // Prefill dates
+  const to=new Date();
+  const from=new Date(); from.setDate(from.getDate()-30);
+  const rFrom=document.getElementById('rpt-from');
+  const rTo=document.getElementById('rpt-to');
+  if(rFrom&&!rFrom.value) rFrom.value=from.toISOString().split('T')[0];
+  if(rTo&&!rTo.value) rTo.value=to.toISOString().split('T')[0];
+  await loadDriversDropdown();
+  openMod('mod-report');
+}
+function setRptType(t){
+  rptType=t;
+  document.getElementById('rt-a').className=`rtb${t==='all'?' on text-blue-600':''}`;
+  document.getElementById('rt-s').className=`rtb${t==='single'?' on':''}`;
+  document.getElementById('rpt-car-row').classList.toggle('hidden',t!=='single');
+}
+async function generateReport(){
+  const from=document.getElementById('rpt-from').value;
+  const to=document.getElementById('rpt-to').value;
+  if(!from||!to) return toast('حدد نطاق التاريخ','warning');
+  if(new Date(from)>new Date(to)) return toast('تاريخ البداية بعد النهاية!','warning');
+  setBtn('btn-gen-rpt',true,'');
+  try{
+    let q=db.collection('trips')
+      .where('tripDate','>=',firebase.firestore.Timestamp.fromDate(new Date(from)))
+      .where('tripDate','<=',firebase.firestore.Timestamp.fromDate(new Date(to+'T23:59:59')));
+    if(rptType==='single'){
+      const carVal=document.getElementById('rpt-car').value;
+      if(!carVal){toast('اختر سيارة','warning');setBtn('btn-gen-rpt',false,'<i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير');lucide.createIcons();return;}
+      q=q.where('driverId','==',carVal);
+    }
+    const snap=await q.get();
+    reportExportData=snap.docs.map(d=>({id:d.id,...d.data()}));
+
+    // Update reports quota
+    const m=new Date().toISOString().substring(0,7);
+    const newUsed=CUD.reportsMonth===m?(CUD.reportsUsed||0)+1:1;
+    await db.collection('users').doc(CU.uid).update({reportsUsed:newUsed,reportsMonth:m});
+    CUD.reportsUsed=newUsed; CUD.reportsMonth=m;
+    document.getElementById('stf-rleft').textContent=`${reportsThisMonth()} / ${CUD.isPremium?'∞':(APP.rLimit||5)} هذا الشهر`;
+
+    renderReportSummary(from,to);
+    closeMod('mod-report');
+    openMod('mod-rpt-result');
+  }catch(e){toast('فشل إنشاء التقرير: '+e.message,'error');console.error(e);}
+  setBtn('btn-gen-rpt',false,'<i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير');
+  lucide.createIcons();
+}
+function renderReportSummary(from,to){
+  const el=document.getElementById('rpt-summary');
+  if(!reportExportData.length){
+    el.innerHTML='<p class="text-slate-400 text-center py-6">لا توجد رحلات في هذه الفترة</p>';
+    return;
+  }
+  // Group by driver/car
+  const grouped={};
+  reportExportData.forEach(t=>{
+    const key=t.driverName||'غير محدد';
+    if(!grouped[key]) grouped[key]={trips:[],total:0,plate:t.plate||'—'};
+    grouped[key].trips.push(t);
+    grouped[key].total+=parseFloat(t.price)||0;
+  });
+  const grandTotal=reportExportData.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
+  let html=`
+    <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200">
+      <div class="text-right">
+        <p class="font-black text-slate-800 text-sm">تقرير Royal Drive</p>
+        <p class="text-slate-400 text-xs">${from} → ${to}</p>
+      </div>
+      <div class="text-right">
+        <p class="text-blue-600 font-black text-lg">${grandTotal.toFixed(2)} ج</p>
+        <p class="text-slate-400 text-xs">${reportExportData.length} رحلة</p>
+      </div>
+    </div>`;
+  Object.entries(grouped).forEach(([name,data])=>{
+    html+=`
+      <div class="mb-4 last:mb-0">
+        <div class="flex justify-between items-center mb-2 bg-slate-100 rounded-xl px-3 py-2">
+          <span class="font-black text-slate-700 text-sm">🚗 ${name}</span>
+          <span class="text-xs text-slate-500 font-bold">لوحة: ${data.plate}</span>
+          <span class="font-black text-blue-600 text-sm">${data.total.toFixed(2)} ج</span>
+        </div>
+        ${data.trips.map(t=>`
+          <div class="flex justify-between items-center py-1.5 px-2 border-b border-slate-50 text-xs">
+            <span class="text-slate-600">${fmtDate(t.tripDate||t.createdAt)}</span>
+            <span class="text-slate-700 font-bold flex-1 mx-2 truncate">${t.destination||'—'}</span>
+            <div class="flex items-center gap-1">
+              ${statusChip(t.status)}
+              <span class="font-black text-slate-700">${t.price||0} ج</span>
+            </div>
+          </div>
+        `).join('')}
+        <div class="text-left py-1.5 px-2 text-xs font-black text-green-700">الإجمالي: ${data.total.toFixed(2)} جنيه</div>
+      </div>`;
+  });
+  el.innerHTML=html;
+}
+function buildPrintHTML(){
+  const from=document.getElementById('rpt-from')?.value||'—';
+  const to=document.getElementById('rpt-to')?.value||'—';
+  if(!reportExportData.length)return'<p>لا توجد بيانات</p>';
+  const grouped={};
+  reportExportData.forEach(t=>{
+    const key=t.driverName||'غير محدد';
+    if(!grouped[key])grouped[key]={trips:[],total:0,plate:t.plate||'—'};
+    grouped[key].trips.push(t);
+    grouped[key].total+=parseFloat(t.price)||0;
+  });
+  const grandTotal=reportExportData.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
+  let html=`
+  <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير Royal Drive</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    *{font-family:'Cairo',sans-serif;box-sizing:border-box}
+    body{padding:30px;color:#1e293b;background:#fff}
+    h1{font-size:1.6rem;font-weight:900;margin-bottom:4px}
+    .sub{color:#64748b;font-size:.85rem;margin-bottom:20px}
+    table{width:100%;border-collapse:collapse;margin-bottom:20px}
+    th{background:#1e293b;color:#fff;padding:8px 12px;font-size:.8rem;text-align:right}
+    td{padding:8px 12px;font-size:.78rem;border-bottom:1px solid #f1f5f9;text-align:right}
+    tr:nth-child(even)td{background:#f8fafc}
+    .section-hdr{background:#eff6ff;font-weight:900;padding:10px 12px;font-size:.85rem;color:#1e40af;margin-top:20px;border-right:4px solid #2563eb}
+    .total-row td{font-weight:900;background:#f0fdf4;color:#166534}
+    .grand-total{background:#1e293b;color:#fff;padding:12px 20px;text-align:left;font-weight:900;font-size:1rem;margin-top:10px}
+    @page{margin:1.5cm}
+  </style></head><body>
+  <h1>تقرير Royal Drive</h1>
+  <p class="sub">الفترة: ${from} إلى ${to} · إجمالي الرحلات: ${reportExportData.length}</p>`;
+  Object.entries(grouped).forEach(([name,data])=>{
+    html+=`<div class="section-hdr">🚗 السائق: ${name} &nbsp;|&nbsp; رقم اللوحة: ${data.plate}</div>
+    <table><thead><tr><th>التاريخ</th><th>الوجهة</th><th>الحالة</th><th>السعر (جنيه)</th><th>ملاحظات</th></tr></thead><tbody>`;
+    data.trips.forEach(t=>{
+      html+=`<tr><td>${fmtDate(t.tripDate||t.createdAt)}</td><td>${t.destination||'—'}</td><td>${statusAr(t.status)}</td><td>${t.price||0}</td><td>${t.notes||'—'}</td></tr>`;
+    });
+    html+=`<tr class="total-row"><td colspan="3">إجمالي السائق</td><td>${data.total.toFixed(2)} جنيه</td><td></td></tr></tbody></table>`;
+  });
+  html+=`<div class="grand-total">الإجمالي الكلي لجميع السيارات: ${grandTotal.toFixed(2)} جنيه</div></body></html>`;
+  return html;
+}
+function doPrint(){
+  const win=window.open('','_blank','width=900,height=700');
+  win.document.write(buildPrintHTML());
+  win.document.close();
+  win.onload=()=>win.print();
+}
+function doPDF(){
+  const win=window.open('','_blank','width=900,height=700');
+  win.document.write(buildPrintHTML()+'<script>window.onload=()=>{window.print();}<\/script>');
+  win.document.close();
+}
+function doExcel(){
+  if(!reportExportData.length)return toast('لا توجد بيانات للتصدير','warning');
+  const wb=XLSX.utils.book_new();
+  const grouped={};
+  reportExportData.forEach(t=>{
+    const key=(t.driverName||'غير محدد').substring(0,28);
+    if(!grouped[key])grouped[key]=[];
+    grouped[key].push(t);
+  });
+  Object.entries(grouped).forEach(([name,trips])=>{
+    const rows=trips.map(t=>({
+      'التاريخ':fmtDate(t.tripDate||t.createdAt),
+      'الوجهة':t.destination||'—',
+      'رقم اللوحة':t.plate||'—',
+      'الحالة':statusAr(t.status),
+      'السعر (جنيه)':parseFloat(t.price)||0,
+      'ملاحظات':t.notes||'—'
+    }));
+    const total=trips.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
+    rows.push({'التاريخ':'','الوجهة':'الإجمالي','رقم اللوحة':'','الحالة':'','السعر (جنيه)':total,'ملاحظات':''});
+    const ws=XLSX.utils.json_to_sheet(rows);
+    ws['!cols']=[{wch:22},{wch:28},{wch:14},{wch:14},{wch:14},{wch:22}];
+    XLSX.utils.book_append_sheet(wb,ws,name);
+  });
+  XLSX.writeFile(wb,`تقرير-رويال-درايف-${todayStr()}.xlsx`);
+}
+
+// Submit Issue
+async function submitIssue(){
+  const title=(document.getElementById('iss-title').value||'').trim();
+  const desc=(document.getElementById('iss-desc').value||'').trim();
+  if(!title) return toast('أدخل عنوان المشكلة','warning');
+  if(!desc)  return toast('أدخل وصف المشكلة','warning');
+  setBtn('btn-iss',true,'');
+  try{
+    await db.collection('issues').add({
+      title,description:desc,
+      reportedBy:CU.uid,reportedByName:CUD.name,
+      status:'open',
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('تم إرسال البلاغ للمالك ✅','success');
+    document.getElementById('iss-title').value='';
+    document.getElementById('iss-desc').value='';
+    closeMod('mod-issue');
+  }catch(e){toast('فشل الإرسال','error');}
+  setBtn('btn-iss',false,'<i data-lucide="flag" class="w-4 h-4"></i> إرسال البلاغ');
+  lucide.createIcons();
+}
+function openWhatsApp(){
+  const vf=APP.vfNumber||'01552610460';
+  const num='2'+vf.replace(/^0/,'');
+  const msg=encodeURIComponent(`مرحباً، قمت بتحويل مبلغ الاشتراك على رقم ${vf}. يرجى تفعيل اشتراك حسابي: ${CU?CU.email:''}. مرفق صورة رسالة التأكيد من فودافون.`);
+  window.open(`https://wa.me/${num}?text=${msg}`,'_blank');
+}
+
+// ═══════════════════════════════════════
+// ══════ OWNER DASHBOARD ══════
+// ═══════════════════════════════════════
+async function loadOwnerDash(){
+  try{
+    // Load stats
+    const [drv,stf,trps,iss]=await Promise.all([
+      db.collection('users').where('role','==','driver').get(),
+      db.collection('users').where('role','==','staff').get(),
+      db.collection('trips').where('status','==','completed').get(),
+      db.collection('issues').where('status','==','open').get()
+    ]);
+    const dEl=document.getElementById('ow-dc');
+    const sEl=document.getElementById('ow-sc');
+    const tEl=document.getElementById('ow-tc');
+    const iEl=document.getElementById('ow-ic');
+    if(dEl)dEl.textContent=drv.size;
+    if(sEl)sEl.textContent=stf.size;
+    if(tEl)tEl.textContent=trps.size;
+    if(iEl)iEl.textContent=iss.size;
+    // Load staff list
+    renderOwnerStaff(stf.docs);
+    // Load issues
+    renderOwnerIssues(iss.docs);
+  }catch(e){console.error('owner dash:',e);}
+}
+function renderOwnerStaff(docs){
+  const el=document.getElementById('ow-staff');
+  if(!el)return;
+  if(!docs.length){el.innerHTML='<p class="text-slate-500 text-sm text-center py-4">لا يوجد موظفون</p>';return;}
+  el.innerHTML=docs.map(d=>{
+    const u=d.data();
+    return`<div class="card-d p-3 rounded-2xl">
+      <div class="flex items-center justify-between mb-2">
+        <div>
+          <p class="font-black text-white text-sm">${u.name||'—'}</p>
+          <p class="text-slate-400 text-xs">${u.email}</p>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="chip ${u.isPremium?'cp-acc':'cp-pend'}">${u.isPremium?'👑 مميز':'مجاني'}</span>
+          <span class="chip ${u.status==='active'?'cp-acc':'cp-rej'}">${u.status==='active'?'نشط':'مجمد'}</span>
+        </div>
+      </div>
+      <div class="flex gap-1.5 flex-wrap">
+        <button onclick="toggleFreeze('${d.id}','${u.status}')" class="btn btn-sm ${u.status==='active'?'btn-muted text-red-500':'btn-muted text-green-600'}">
+          ${u.status==='active'?'🔒 تجميد':'🔓 تفعيل'}</button>
+        ${!u.isPremium?`<button onclick="activatePremium('${d.id}')" class="btn btn-gld btn-sm">👑 تفعيل مميز</button>`:''}
+        <button onclick="deleteUser('${d.id}')" class="btn btn-red btn-sm">🗑️ حذف</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderOwnerIssues(docs){
+  const el=document.getElementById('ow-issues');
+  if(!el)return;
+  if(!docs.length){el.innerHTML='<p class="text-slate-500 text-sm text-center py-4">لا توجد بلاغات</p>';return;}
+  el.innerHTML=docs.map(d=>{
+    const i=d.data();
+    return`<div class="card-d p-3 rounded-2xl">
+      <div class="flex items-start justify-between mb-1">
+        <p class="font-black text-white text-sm">${i.title}</p>
+        <button onclick="closeIssue('${d.id}')" class="text-green-400 text-xs font-bold">✓ حل</button>
+      </div>
+      <p class="text-slate-400 text-xs mb-1">${i.description}</p>
+      <p class="text-slate-500 text-xs">بواسطة: ${i.reportedByName||'—'} · ${fmtDateShort(i.createdAt)}</p>
+    </div>`;
+  }).join('');
+}
+async function toggleFreeze(uid,currentStatus){
+  if(!confirm(currentStatus==='active'?'تجميد هذا الموظف؟':'تفعيل هذا الموظف؟'))return;
+  try{
+    await db.collection('users').doc(uid).update({status:currentStatus==='active'?'frozen':'active'});
+    toast('تم التحديث ✅','success');
+    loadOwnerDash();
+  }catch(e){toast('فشل التحديث','error');}
+}
+async function activatePremium(uid){
+  if(!confirm('تفعيل الخطة المميزة لهذا الموظف؟'))return;
+  try{
+    await db.collection('users').doc(uid).update({isPremium:true});
+    toast('تم تفعيل الخطة المميزة ✅','success');
+    loadOwnerDash();
+  }catch(e){toast('فشل التفعيل','error');}
+}
+async function deleteUser(uid){
+  if(!confirm('حذف هذا المستخدم نهائياً؟ لا يمكن التراجع!'))return;
+  try{
+    await db.collection('users').doc(uid).delete();
+    toast('تم الحذف','success');
+    loadOwnerDash();
+  }catch(e){toast('فشل الحذف','error');}
+}
+async function closeIssue(id){
+  try{
+    await db.collection('issues').doc(id).update({status:'closed'});
+    toast('تم وضع البلاغ كمحلول ✅','success');
+    loadOwnerDash();
+  }catch(e){toast('فشل التحديث','error');}
+}
+async function addStaff(){
+  const email=(document.getElementById('ns-email').value||'').trim().toLowerCase();
+  if(!email||!email.includes('@')) return toast('أدخل بريداً إلكترونياً صحيحاً','warning');
+  setBtn('btn-add-stf',true,'');
+  try{
+    await db.collection('allowed_users').doc(email).set({
+      email,role:'staff',addedBy:'owner',
+      addedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast('تم منح الصلاحية للموظف ✅','success');
+    document.getElementById('ns-email').value='';
+    closeMod('mod-add-staff');
+  }catch(e){toast('فشل الإضافة','error');}
+  setBtn('btn-add-stf',false,'منح الصلاحية');
+}
+function openSettings(){
+  // Pre-fill current settings
+  const set={
+    'set-name':APP.name,'set-sub':APP.sub,
+    'set-owner-email':APP.ownerEmail,
+    'set-price':APP.price,'set-vf':APP.vfNumber,
+    'set-dlimit':APP.dLimit,'set-rlimit':APP.rLimit,
+    'set-announce':APP.announce||''
+  };
+  Object.entries(set).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val;});
+  openMod('mod-settings');
+}
+async function saveSettings(){
+  const newSettings={
+    name:document.getElementById('set-name').value.trim()||'ROYAL DRIVE',
+    sub:document.getElementById('set-sub').value.trim()||'',
+    ownerEmail:(document.getElementById('set-owner-email').value.trim()||APP.ownerEmail).toLowerCase(),
+    price:parseInt(document.getElementById('set-price').value)||99,
+    vfNumber:document.getElementById('set-vf').value.trim()||'01552610460',
+    dLimit:parseInt(document.getElementById('set-dlimit').value)||2,
+    rLimit:parseInt(document.getElementById('set-rlimit').value)||5,
+    announce:document.getElementById('set-announce').value.trim()||''
+  };
+  setBtn('btn-save-set',true,'');
+  try{
+    await db.collection('settings').doc('app').set(newSettings,{merge:true});
+    APP={...APP,...newSettings};
+    applyAppUI();
+    toast('تم حفظ الإعدادات ✅','success');
+    closeMod('mod-settings');
+  }catch(e){toast('فشل الحفظ','error');console.error(e);}
+  setBtn('btn-save-set',false,'<i data-lucide="save" class="w-4 h-4"></i> حفظ الإعدادات');
+  lucide.createIcons();
+}
+
+// ═══════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════
+function listenNotifications(uid){
+  if(notifUnsub) notifUnsub();
+  notifUnsub=db.collection('notifications')
+    .where('uid','==',uid)
+    .orderBy('createdAt','desc')
+    .limit(50)
+    .onSnapshot(snap=>{
+      const unread=snap.docs.filter(d=>!d.data().read);
+      const cnt=unread.length;
+      ['bdg-dn','bdg-sn'].forEach(id=>{
+        const b=document.getElementById(id);
+        if(b){b.textContent=cnt;b.classList.toggle('hidden',cnt===0);}
+      });
+      renderNotifList(snap.docs.map(d=>({id:d.id,...d.data()})));
+    },e=>console.warn('notif:',e));
+}
+function renderNotifList(items){
+  const el=document.getElementById('notif-list');
+  if(!el)return;
+  if(!items.length){el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">لا توجد إشعارات</p>';return;}
+  el.innerHTML=items.map(n=>`
+    <div class="flex items-start gap-3 p-3 rounded-2xl ${n.read?'bg-slate-50':'bg-blue-50 border border-blue-100'}">
+      <div class="text-xl flex-shrink-0">${n.read?'🔔':'🔵'}</div>
+      <div class="flex-1">
+        <p class="font-black text-slate-800 text-sm">${n.title||'إشعار'}</p>
+        <p class="text-slate-500 text-xs mt-0.5">${n.body||''}</p>
+        <p class="text-slate-400 text-xs mt-1">${fmtDateShort(n.createdAt)}</p>
+      </div>
+    </div>
+  `).join('');
+}
+async function markAllRead(){
+  if(!CU)return;
+  try{
+    const snap=await db.collection('notifications').where('uid','==',CU.uid).where('read','==',false).get();
+    const batch=db.batch();
+    snap.docs.forEach(d=>batch.update(d.ref,{read:true}));
+    await batch.commit();
+  }catch(e){console.warn(e);}
+}
+
+// ═══════════════════════════════════════
+// MESSAGING
+// ═══════════════════════════════════════
+let allUsers=[];
+function listenMessages(uid){
+  if(msgUnsub) msgUnsub();
+  msgUnsub=db.collection('chats')
+    .where('participants','array-contains',uid)
+    .onSnapshot(snap=>{
+      let unread=0;
+      snap.docs.forEach(d=>{const data=d.data();if(data.unread&&data.unread[uid]) unread+=data.unread[uid];});
+      ['bdg-dm','bdg-sm'].forEach(id=>{
+        const b=document.getElementById(id);
+        if(b){b.textContent=unread;b.classList.toggle('hidden',unread===0);}
+      });
+    },e=>console.warn('msg:',e));
+}
+async function openMessages(role){
+  openMod('mod-messages');
+  await showConvList(role);
+}
+async function showConvList(){
+  document.getElementById('msg-back').classList.add('hidden');
+  document.getElementById('msg-hdr').textContent='الرسائل';
+  document.getElementById('conv-list').classList.remove('hidden');
+  document.getElementById('chat-view').classList.add('hidden');
+  if(chatUnsub){chatUnsub();chatUnsub=null;}
+  const el=document.getElementById('conv-list');
+  el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">جاري التحميل...</p>';
+  try{
+    const snap=await db.collection('chats').where('participants','array-contains',CU.uid).orderBy('lastTime','desc').get();
+    if(snap.empty){
+      el.innerHTML='';
+      if(CUD.role==='staff') renderNewChatBtn(el);
+      else el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">لا توجد محادثات بعد</p>';
+      return;
+    }
+    el.innerHTML='';
+    for(const doc of snap.docs){
+      const data=doc.data();
+      const otherUid=data.participants.find(p=>p!==CU.uid);
+      const otherSnap=await db.collection('users').doc(otherUid).get();
+      const other=otherSnap.exists?otherSnap.data():{name:'مستخدم',role:'—'};
+      const unreadCount=data.unread&&data.unread[CU.uid]?data.unread[CU.uid]:0;
+      const btn=document.createElement('button');
+      btn.className='w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition-colors text-right';
+      btn.innerHTML=`
+        <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0" style="background:${other.role==='driver'?'#dbeafe':'#dcfce7'};color:${other.role==='driver'?'#1e40af':'#166534'}">
+          ${(other.name||'?').charAt(0)}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-slate-800 text-sm">${other.name}</p>
+          <p class="text-slate-400 text-xs truncate">${data.lastMsg||'...'}</p>
+        </div>
+        <div class="flex flex-col items-end gap-1">
+          <span class="text-slate-400 text-xs">${data.lastTime?fmtDateShort(data.lastTime):''}</span>
+          ${unreadCount>0?`<span class="bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">${unreadCount}</span>`:''}
+        </div>`;
+      btn.onclick=()=>openChat(otherUid,other.name,doc.id);
+      el.appendChild(btn);
+    }
+    if(CUD.role==='staff') renderNewChatBtn(el);
+  }catch(e){el.innerHTML='<p class="text-center text-red-400 py-8 text-sm">خطأ في التحميل</p>';console.error(e);}
+}
+function renderNewChatBtn(el){
+  const btn=document.createElement('button');
+  btn.className='w-full flex items-center justify-center gap-2 p-3 mt-2 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-sm hover:border-blue-300 hover:text-blue-500 transition-colors';
+  btn.innerHTML='<i data-lucide="plus" class="w-4 h-4"></i> محادثة جديدة';
+  btn.onclick=showDriverPicker;
+  el.appendChild(btn);
+  lucide.createIcons();
+}
+async function showDriverPicker(){
+  const el=document.getElementById('conv-list');
+  el.innerHTML='<p class="text-xs font-bold text-slate-400 mb-2 px-1">اختر سائقاً للتواصل:</p>';
+  try{
+    const snap=await db.collection('users').where('role','==','driver').where('status','==','active').get();
+    if(snap.empty){el.innerHTML+='<p class="text-slate-400 text-sm text-center py-4">لا يوجد سائقون</p>';return;}
+    snap.docs.forEach(d=>{
+      const u=d.data();
+      const btn=document.createElement('button');
+      btn.className='w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition-colors text-right';
+      btn.innerHTML=`<div class="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center font-black text-sm text-blue-700">${(u.name||'?').charAt(0)}</div>
+        <div><p class="font-bold text-slate-800 text-sm">${u.name}</p><p class="text-slate-400 text-xs">${u.carType||'—'} · ${u.plate||'—'}</p></div>`;
+      btn.onclick=()=>openChat(d.id,u.name,getConvId(CU.uid,d.id));
+      el.appendChild(btn);
+    });
+  }catch(e){console.error(e);}
+}
+async function openChat(otherUid,name,convId){
+  chatWith=otherUid; chatName_=name;
+  const convIdFinal=convId||getConvId(CU.uid,otherUid);
+  document.getElementById('msg-back').classList.remove('hidden');
+  document.getElementById('msg-hdr').textContent=name;
+  document.getElementById('conv-list').classList.add('hidden');
+  document.getElementById('chat-view').classList.remove('hidden');
+  const el=document.getElementById('chat-msgs');
+  el.innerHTML='<p class="text-center text-slate-400 text-xs py-4">جاري التحميل...</p>';
+  // Reset unread for this conversation
+  try{
+    const unreadUpdate={};
+    unreadUpdate[`unread.${CU.uid}`]=0;
+    await db.collection('chats').doc(convIdFinal).set(unreadUpdate,{merge:true});
+  }catch(e){}
+  if(chatUnsub){chatUnsub();chatUnsub=null;}
+  chatUnsub=db.collection('chats').doc(convIdFinal).collection('msgs')
+    .orderBy('createdAt','asc').limit(80)
+    .onSnapshot(snap=>{
+      el.innerHTML='';
+      snap.docs.forEach(d=>{
+        const m=d.data();
+        const mine=m.from===CU.uid;
+        const div=document.createElement('div');
+        div.className=`flex ${mine?'justify-start':'justify-end'}`;
+        div.innerHTML=`<div class="${mine?'b-out':'b-in'} px-4 py-2.5 text-sm mb-0.5">
+          <p>${m.text}</p>
+          <p class="text-xs mt-1 opacity-60">${fmtDateShort(m.createdAt)}</p>
+        </div>`;
+        el.appendChild(div);
+      });
+      el.scrollTop=el.scrollHeight;
+    },e=>console.warn('chat:',e));
+}
+async function sendMsg(){
+  const inp=document.getElementById('chat-inp');
+  const text=(inp.value||'').trim();
+  if(!text||!chatWith||!CU)return;
+  inp.value='';
+  const convId=getConvId(CU.uid,chatWith);
+  try{
+    const msgData={from:CU.uid,fromName:CUD.name,to:chatWith,text,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    await db.collection('chats').doc(convId).collection('msgs').add(msgData);
+    const unreadUpdate={};
+    unreadUpdate[`unread.${chatWith}`]=firebase.firestore.FieldValue.increment(1);
+    await db.collection('chats').doc(convId).set({
+      participants:[CU.uid,chatWith],
+      lastMsg:text,
+      lastTime:firebase.firestore.FieldValue.serverTimestamp(),
+      ...unreadUpdate
+    },{merge:true});
+    // Notify the other person
+    await db.collection('notifications').add({
+      uid:chatWith,
+      title:`💬 رسالة من ${CUD.name}`,
+      body:text.substring(0,60),
+      read:false,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){console.error('sendMsg:',e);toast('فشل الإرسال','error');}
+}
+
+// ═══════════════════════════════════════
+// STARTUP
+// ═══════════════════════════════════════
+loadAppSettings();
 </script>
-</body>
 </html>
