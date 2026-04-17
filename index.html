@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0f1e">
 <title>Royal Drive Pro</title>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -15,28 +19,37 @@
 :root{--acc:#2563eb;--grn:#16a34a;--gld:#d97706;--rad:1.4rem}
 *,*::before,*::after{font-family:'Cairo',sans-serif;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0a0f1e}
-/* Page system */
+
+/* ─── صفحات ─── */
 .page{position:fixed;inset:0;overflow-y:auto;visibility:hidden;pointer-events:none;opacity:0;transition:opacity .2s;z-index:10}
 .page.active{visibility:visible;pointer-events:all;opacity:1;z-index:50}
-/* Modal */
+
+/* ─── BUG FIX #8,#9,#18: شاشة تحميل تمنع وميض صفحة Welcome عند الـ refresh ─── */
+#pg-loading{background:#0a0f1e;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* ─── مودال ─── */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);display:flex;align-items:flex-end;justify-content:center;z-index:200;visibility:hidden;opacity:0;transition:opacity .25s,visibility .25s}
 .modal.open{visibility:visible;opacity:1}
 .mbox{background:#fff;border-radius:2rem 2rem 0 0;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:20px 18px max(20px,env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
 .modal.open .mbox{transform:translateY(0)}
 .mhandle{width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:0 auto 16px}
-/* Gradients */
+
+/* ─── تدرجات ─── */
 .gd{background:linear-gradient(160deg,#0a0f1e 0%,#111827 100%)}
 .gd-drv{background:linear-gradient(145deg,#0d1b2a 0%,#1b3a5c 100%)}
 .gd-stf{background:linear-gradient(145deg,#052e16 0%,#14532d 100%)}
 .gd-own{background:linear-gradient(145deg,#1c1204 0%,#3d1a00 100%)}
-/* Logo */
+
+/* ─── لوجو ─── */
 .logo{background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:22px;display:flex!important;align-items:center;justify-content:center;box-shadow:0 0 0 8px rgba(245,158,11,.12),0 16px 40px rgba(245,158,11,.25);flex-shrink:0;position:relative;overflow:hidden}
 .logo::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.22) 0%,transparent 55%)}
-/* Input */
+
+/* ─── مدخلات ─── */
 .inp{width:100%;padding:13px 15px;border-radius:14px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:.88rem;color:#0f172a;transition:all .15s;outline:none}
 .inp:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
 textarea.inp{resize:none}
-/* Buttons */
+
+/* ─── أزرار ─── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:900;border-radius:14px;border:none;cursor:pointer;transition:all .15s;outline:none}
 .btn:active{transform:scale(.96)}
 .btn:disabled{opacity:.6;pointer-events:none}
@@ -49,37 +62,49 @@ textarea.inp{resize:none}
 .btn-sm{padding:8px 14px;font-size:.75rem;border-radius:11px}
 .btn-md{padding:12px 18px;font-size:.86rem}
 .btn-lg{padding:14px 18px;font-size:.9rem;width:100%}
-/* Card */
+
+/* ─── كروت ─── */
 .card{background:#fff;border-radius:var(--rad);border:1px solid #f1f5f9;box-shadow:0 2px 12px rgba(0,0,0,.05)}
 .card-d{background:rgba(255,255,255,.06);border-radius:var(--rad);border:1px solid rgba(255,255,255,.09)}
-/* Chip */
+
+/* ─── تشيبات ─── */
 .chip{display:inline-flex;align-items:center;gap:3px;font-weight:700;font-size:.67rem;padding:3px 9px;border-radius:99px}
 .cp-pend{background:#fef3c7;color:#92400e}
 .cp-acc{background:#d1fae5;color:#065f46}
 .cp-rej{background:#fee2e2;color:#991b1b}
 .cp-done{background:#dbeafe;color:#1e40af}
-/* Badge */
+
+/* ─── بادج ─── */
 .bdg{position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:900;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid rgba(0,0,0,.2)}
-/* Spinner */
+
+/* ─── سبينر ─── */
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
-/* Role toggle */
+
+/* ─── تبديل الدور ─── */
 .rtb{flex:1;padding:10px;border-radius:12px;font-weight:900;font-size:.82rem;transition:all .2s;color:#94a3b8;border:none;background:transparent;cursor:pointer}
 .rtb.on{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.1);color:#2563eb}
-/* Chat */
-.b-out{background:#2563eb;color:#fff;border-radius:18px 18px 4px 18px;max-width:75%}
-.b-in{background:#f1f5f9;color:#0f172a;border-radius:18px 18px 18px 4px;max-width:75%}
-/* Anim */
+
+/* ─── BUG FIX #1: فقاعات الدردشة بالاتجاه الصحيح لـ RTL ─── */
+/* في RTL: رسائلي على اليمين (justify-start) ، رسائلهم على اليسار (justify-end) */
+/* الزاوية الحادة تشير نحو الأسفل-يمين لرسائلي، الأسفل-يسار لرسائلهم */
+.b-out{background:#2563eb;color:#fff;border-radius:18px 18px 4px 18px;max-width:78%}
+.b-in{background:#f1f5f9;color:#0f172a;border-radius:18px 18px 18px 4px;max-width:78%}
+
+/* ─── أنيميشن ─── */
 @keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .fu{animation:fu .35s ease both}
 .fu2{animation:fu .35s .1s ease both}
 .fu3{animation:fu .35s .2s ease both}
-/* Toast */
+
+/* ─── توست ─── */
 .toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:340px}
-/* Scrollbar */
+
+/* ─── سكرول ─── */
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
-/* Print */
+
+/* ─── طباعة ─── */
 @media print{
   body{overflow:visible!important;background:#fff!important}
   .no-print,.page{display:none!important}
@@ -92,11 +117,19 @@ textarea.inp{resize:none}
 <div id="toast-wrap" class="toast-wrap"></div>
 <div id="print-area"></div>
 
-<!-- ═══════════════════════ 1. WELCOME ═══════════════════════ -->
-<div id="pg-welcome" class="page active gd flex flex-col items-center justify-center p-8 text-white" style="min-height:100vh">
+<!-- ════════ BUG FIX #8,#9,#18: شاشة التحميل ════════ -->
+<!-- تمنع وميض صفحة Welcome أثناء تحقق Firebase من الجلسة -->
+<div id="pg-loading" class="page active gd">
+  <div class="logo w-20 h-20 text-4xl mb-6">👑</div>
+  <div class="spin" style="border-top-color:#f59e0b;border-color:rgba(245,158,11,.25);width:24px;height:24px;border-width:3px"></div>
+  <p class="text-slate-500 text-sm mt-4 font-bold tracking-widest">ROYAL DRIVE</p>
+</div>
+
+<!-- ════════ 1. WELCOME ════════ -->
+<div id="pg-welcome" class="page gd flex flex-col items-center justify-center p-8 text-white" style="min-height:100vh">
   <div class="fu text-center mb-10">
     <div class="logo w-24 h-24 text-5xl mx-auto mb-5">👑</div>
-    <h1 id="app-title" class="text-4xl font-black tracking-tight">ROYAL DRIVE</h1>
+    <h1 class="text-4xl font-black tracking-tight">ROYAL DRIVE</h1>
     <p id="app-sub" class="text-slate-400 text-sm mt-2 tracking-wide">نظام إدارة المركبات الذكي</p>
   </div>
   <div class="w-full max-w-xs space-y-4 fu2">
@@ -110,29 +143,48 @@ textarea.inp{resize:none}
   <p class="text-slate-700 text-xs mt-14 fu3">© 2025 Royal Drive · جميع الحقوق محفوظة</p>
 </div>
 
-<!-- ═══════════════════════ 2. LOGIN ═══════════════════════ -->
+<!-- ════════ 2. LOGIN ════════ -->
 <div id="pg-login" class="page bg-slate-50 flex items-center justify-center p-5">
   <div class="card w-full max-w-md p-8">
     <div class="flex justify-center mb-5"><div class="logo w-14 h-14 text-2xl">👑</div></div>
     <h2 class="text-2xl font-black text-center text-slate-800 mb-1">دخول النظام</h2>
     <p class="text-slate-400 text-sm text-center mb-7">أدخل بياناتك للمتابعة</p>
     <div class="space-y-4">
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">البريد الإلكتروني</label>
-        <input type="email" id="l-email" class="inp" placeholder="example@mail.com" autocomplete="email"></div>
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">كلمة المرور</label>
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">البريد الإلكتروني</label>
+        <!-- BUG FIX #6: list="email-dl" يعرض الإيميلات المستخدمة مؤخراً -->
+        <input type="email" id="l-email" class="inp" placeholder="example@mail.com"
+          autocomplete="email" list="email-dl">
+        <datalist id="email-dl"></datalist>
+      </div>
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">كلمة المرور</label>
         <div class="relative">
-          <input type="password" id="l-pass" class="inp" placeholder="••••••••" style="padding-left:46px" autocomplete="current-password">
-          <button id="eye-l" onclick="toggleEye('l-pass','eye-l')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
-            <i data-lucide="eye" class="w-4 h-4"></i></button></div></div>
+          <input type="password" id="l-pass" class="inp" placeholder="••••••••"
+            style="padding-left:46px" autocomplete="current-password">
+          <button id="eye-l" onclick="toggleEye('l-pass','eye-l')"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <!-- BUG FIX #7: تذكرني -->
+      <label class="flex items-center gap-2 cursor-pointer select-none py-0.5">
+        <input type="checkbox" id="l-rem" class="w-4 h-4 accent-blue-600">
+        <span class="text-sm font-bold text-slate-600">تذكرني على هذا الجهاز</span>
+      </label>
       <button id="btn-login" onclick="doLogin()" class="btn btn-blue btn-lg">دخول آمن</button>
-      <button onclick="goTo('pg-forgot')" class="w-full text-center text-sm font-bold text-blue-500 py-1">نسيت كلمة المرور؟</button>
+      <button onclick="goTo('pg-forgot')"
+        class="w-full text-center text-sm font-bold text-blue-500 py-1">نسيت كلمة المرور؟</button>
     </div>
-    <button onclick="goTo('pg-welcome')" class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
-      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع</button>
+    <button onclick="goTo('pg-welcome')"
+      class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
+      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع
+    </button>
   </div>
 </div>
 
-<!-- ═══════════════════════ 3. FORGOT PASSWORD ═══════════════════════ -->
+<!-- ════════ 3. FORGOT PASSWORD ════════ -->
 <div id="pg-forgot" class="page bg-slate-50 flex items-center justify-center p-5">
   <div class="card w-full max-w-md p-8">
     <div class="flex justify-center mb-5"><div class="logo w-14 h-14 text-2xl">👑</div></div>
@@ -142,25 +194,30 @@ textarea.inp{resize:none}
       <div class="space-y-4">
         <input type="email" id="fg-email" class="inp" placeholder="البريد الإلكتروني">
         <button id="btn-fg" onclick="sendReset()" class="btn btn-blue btn-lg">
-          <i data-lucide="send" class="w-4 h-4"></i> إرسال الرابط</button>
+          <i data-lucide="send" class="w-4 h-4"></i> إرسال الرابط
+        </button>
       </div>
     </div>
     <div id="fg-s2" class="hidden text-center">
       <div class="text-6xl mb-4">📧</div>
       <h3 class="text-xl font-black text-slate-800 mb-3">تم الإرسال!</h3>
-      <p class="text-slate-500 text-sm leading-relaxed mb-5">تحقق من بريدك واضغط على الرابط. سيمكنك من إدخال كلمة مرور جديدة مباشرة.</p>
+      <p class="text-slate-500 text-sm leading-relaxed mb-5">
+        تحقق من بريدك واضغط على الرابط. سيمكنك من إدخال كلمة مرور جديدة مباشرة.
+      </p>
       <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-right mb-5">
         <p class="text-blue-700 text-xs font-bold">لم يصلك البريد؟</p>
         <p class="text-blue-500 text-xs mt-1">تحقق من مجلد Spam أو أعد المحاولة</p>
       </div>
       <button onclick="goTo('pg-login')" class="btn btn-muted btn-lg">العودة لتسجيل الدخول</button>
     </div>
-    <button onclick="goTo('pg-login')" class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
-      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع</button>
+    <button onclick="goTo('pg-login')"
+      class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
+      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع
+    </button>
   </div>
 </div>
 
-<!-- ═══════════════════════ 4. SIGNUP ═══════════════════════ -->
+<!-- ════════ 4. SIGNUP ════════ -->
 <div id="pg-signup" class="page bg-slate-50">
   <div class="flex items-start justify-center min-h-screen p-5 py-10 pb-20">
     <div class="card w-full max-w-md p-7">
@@ -171,7 +228,7 @@ textarea.inp{resize:none}
         <button onclick="setRole('driver')" id="rb-d" class="rtb on">🚗 سائق</button>
         <button onclick="setRole('staff')"  id="rb-s" class="rtb">💼 موظف</button>
       </div>
-      <!-- DRIVER fields -->
+      <!-- حقول السائق -->
       <div id="fld-d" class="space-y-3">
         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">البيانات الشخصية</p>
         <input type="text" id="d-name"  class="inp" placeholder="الاسم الكامل">
@@ -184,11 +241,15 @@ textarea.inp{resize:none}
         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">بيانات الدخول</p>
         <input type="email" id="d-email" class="inp" placeholder="البريد الإلكتروني" autocomplete="email">
         <div class="relative">
-          <input type="password" id="d-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)" style="padding-left:46px" autocomplete="new-password">
-          <button id="eye-d" onclick="toggleEye('d-pass','eye-d')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
-            <i data-lucide="eye" class="w-4 h-4"></i></button></div>
+          <input type="password" id="d-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)"
+            style="padding-left:46px" autocomplete="new-password">
+          <button id="eye-d" onclick="toggleEye('d-pass','eye-d')"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
       </div>
-      <!-- STAFF fields -->
+      <!-- حقول الموظف -->
       <div id="fld-s" class="space-y-3 hidden">
         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">البيانات الشخصية</p>
         <input type="text"  id="s-name"  class="inp" placeholder="الاسم الكامل">
@@ -197,9 +258,13 @@ textarea.inp{resize:none}
         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">بيانات الدخول</p>
         <input type="email" id="s-email" class="inp" placeholder="البريد الإلكتروني" autocomplete="email">
         <div class="relative">
-          <input type="password" id="s-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)" style="padding-left:46px" autocomplete="new-password">
-          <button id="eye-s" onclick="toggleEye('s-pass','eye-s')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
-            <i data-lucide="eye" class="w-4 h-4"></i></button></div>
+          <input type="password" id="s-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)"
+            style="padding-left:46px" autocomplete="new-password">
+          <button id="eye-s" onclick="toggleEye('s-pass','eye-s')"
+            class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
       </div>
       <button id="btn-signup" onclick="doSignup()" class="btn btn-grn btn-lg mt-5">إتمام التسجيل</button>
       <button onclick="goTo('pg-welcome')" class="block mx-auto mt-4 text-slate-400 font-bold text-sm">إلغاء</button>
@@ -207,21 +272,29 @@ textarea.inp{resize:none}
   </div>
 </div>
 
-<!-- ═══════════════════════ 5. DRIVER DASHBOARD ═══════════════════════ -->
+<!-- ════════ 5. لوحة السائق ════════ -->
 <div id="pg-driver" class="page bg-slate-50" style="padding-bottom:20px">
   <div class="gd-drv p-5 text-white">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <div class="logo w-10 h-10 text-lg">👑</div>
-        <div><p class="text-blue-300 text-xs font-bold uppercase tracking-wider">سائق</p>
-          <h2 id="d-uname" class="text-lg font-black">—</h2></div>
+        <div>
+          <p class="text-blue-300 text-xs font-bold uppercase tracking-wider">سائق</p>
+          <h2 id="d-uname" class="text-lg font-black">—</h2>
+        </div>
       </div>
       <div class="flex gap-2">
         <button onclick="openMod('mod-notif')" class="relative p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="bell" class="w-5 h-5"></i><span id="bdg-dn" class="bdg hidden">0</span></button>
-        <button onclick="openMessages('driver')" class="relative p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="message-circle" class="w-5 h-5"></i><span id="bdg-dm" class="bdg hidden">0</span></button>
-        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+          <i data-lucide="bell" class="w-5 h-5"></i>
+          <span id="bdg-dn" class="bdg hidden">0</span>
+        </button>
+        <button onclick="openMessages()" class="relative p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="message-circle" class="w-5 h-5"></i>
+          <span id="bdg-dm" class="bdg hidden">0</span>
+        </button>
+        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="log-out" class="w-5 h-5"></i>
+        </button>
       </div>
     </div>
     <div class="card-d p-3 flex items-center justify-between">
@@ -232,35 +305,44 @@ textarea.inp{resize:none}
       <span id="d-platex" class="text-xs bg-white/15 px-3 py-1 rounded-lg font-bold">—</span>
     </div>
   </div>
-  <!-- Tabs -->
   <div class="flex bg-white border-b border-slate-100 sticky top-0 z-10">
     <button onclick="drvTab('pending')"  id="dt-p" class="flex-1 py-3 text-sm font-black border-b-2 border-blue-600 text-blue-600 transition-all">🆕 جديدة</button>
     <button onclick="drvTab('accepted')" id="dt-a" class="flex-1 py-3 text-sm font-black border-b-2 border-transparent text-slate-400 transition-all">✅ جارية</button>
     <button onclick="drvTab('history')"  id="dt-h" class="flex-1 py-3 text-sm font-black border-b-2 border-transparent text-slate-400 transition-all">📋 السجل</button>
   </div>
   <div id="drv-list" class="p-4 space-y-3">
-    <div class="text-center py-14 text-slate-400"><div class="text-5xl mb-3">🗺️</div><p class="font-bold">لا توجد رحلات حالياً</p></div>
+    <div class="text-center py-14 text-slate-400">
+      <div class="text-5xl mb-3">🗺️</div>
+      <p class="font-bold">لا توجد رحلات حالياً</p>
+    </div>
   </div>
 </div>
 
-<!-- ═══════════════════════ 6. STAFF DASHBOARD ═══════════════════════ -->
+<!-- ════════ 6. لوحة الموظف ════════ -->
 <div id="pg-staff" class="page bg-slate-50" style="padding-bottom:20px">
   <div class="gd-stf p-5 text-white">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <div class="logo w-10 h-10 text-lg">👑</div>
-        <div><p class="text-green-300 text-xs font-bold uppercase tracking-wider">موظف</p>
-          <h2 id="s-uname" class="text-lg font-black">—</h2></div>
+        <div>
+          <p class="text-green-300 text-xs font-bold uppercase tracking-wider">موظف</p>
+          <h2 id="s-uname" class="text-lg font-black">—</h2>
+        </div>
       </div>
       <div class="flex gap-2">
         <button onclick="openMod('mod-notif')" class="relative p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="bell" class="w-5 h-5"></i><span id="bdg-sn" class="bdg hidden">0</span></button>
-        <button onclick="openMessages('staff')" class="relative p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="message-circle" class="w-5 h-5"></i><span id="bdg-sm" class="bdg hidden">0</span></button>
-        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+          <i data-lucide="bell" class="w-5 h-5"></i>
+          <span id="bdg-sn" class="bdg hidden">0</span>
+        </button>
+        <button onclick="openMessages()" class="relative p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="message-circle" class="w-5 h-5"></i>
+          <span id="bdg-sm" class="bdg hidden">0</span>
+        </button>
+        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="log-out" class="w-5 h-5"></i>
+        </button>
       </div>
     </div>
-    <!-- Sub banner -->
     <button onclick="openMod('mod-sub')" class="w-full card-d p-3 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span id="stf-sub-ico" class="text-xl">🆓</span>
@@ -272,7 +354,6 @@ textarea.inp{resize:none}
       <span class="text-xs bg-yellow-500/20 text-yellow-300 font-bold px-3 py-1 rounded-lg">ترقية ⬆</span>
     </button>
   </div>
-  <!-- Actions Grid -->
   <div class="p-4">
     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">الإجراءات السريعة</p>
     <div class="grid grid-cols-2 gap-3 mb-3">
@@ -299,9 +380,11 @@ textarea.inp{resize:none}
     </div>
     <button onclick="openMod('mod-issue')" class="card w-full p-4 mb-3 flex items-center gap-3 text-right active:scale-95 transition-transform">
       <span class="text-2xl">⚠️</span>
-      <div><p class="font-black text-sm text-slate-700">الإبلاغ عن مشكلة</p><p class="text-xs text-slate-400">إرسال بلاغ للمالك</p></div>
+      <div>
+        <p class="font-black text-sm text-slate-700">الإبلاغ عن مشكلة</p>
+        <p class="text-xs text-slate-400">إرسال بلاغ للمالك</p>
+      </div>
     </button>
-    <!-- Recent trips -->
     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">آخر الرحلات</p>
     <div id="stf-trips" class="space-y-3">
       <p class="text-center text-slate-400 text-sm py-4">لا توجد رحلات بعد</p>
@@ -309,30 +392,35 @@ textarea.inp{resize:none}
   </div>
 </div>
 
-<!-- ═══════════════════════ 7. OWNER DASHBOARD ═══════════════════════ -->
+<!-- ════════ 7. لوحة المالك ════════ -->
 <div id="pg-owner" class="page gd-own text-white" style="padding-bottom:20px">
   <div class="p-5 border-b border-white/10">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="logo w-10 h-10 text-lg">👑</div>
-        <div><p class="text-yellow-400 text-xs font-bold uppercase tracking-wider">مالك التطبيق</p>
-          <h2 class="text-lg font-black">لوحة التحكم الكاملة</h2></div>
+        <div>
+          <p class="text-yellow-400 text-xs font-bold uppercase tracking-wider">مالك التطبيق</p>
+          <h2 class="text-lg font-black">لوحة التحكم الكاملة</h2>
+        </div>
       </div>
       <div class="flex gap-2">
-        <button onclick="openSettings()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="settings" class="w-5 h-5"></i></button>
-        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></button>
+        <button onclick="openSettings()" class="p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+        </button>
+        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl">
+          <i data-lucide="log-out" class="w-5 h-5"></i>
+        </button>
       </div>
     </div>
   </div>
-  <!-- Stats -->
   <div class="p-4 grid grid-cols-2 gap-3">
     <div class="card-d p-4"><div class="text-2xl mb-1">🚗</div><p id="ow-dc" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">سائق مسجل</p></div>
     <div class="card-d p-4"><div class="text-2xl mb-1">💼</div><p id="ow-sc" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">موظف</p></div>
     <div class="card-d p-4"><div class="text-2xl mb-1">🗺️</div><p id="ow-tc" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">رحلة منجزة</p></div>
     <div class="card-d p-4 cursor-pointer" onclick="document.getElementById('ow-issues-sec').scrollIntoView({behavior:'smooth'})">
-      <div class="text-2xl mb-1">⚠️</div><p id="ow-ic" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">بلاغ مفتوح</p></div>
+      <div class="text-2xl mb-1">⚠️</div><p id="ow-ic" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">بلاغ مفتوح</p>
+    </div>
   </div>
-  <!-- Staff Management -->
   <div class="px-4 mb-4">
     <div class="flex items-center justify-between mb-3">
       <p class="text-sm font-black">إدارة الموظفين</p>
@@ -340,18 +428,15 @@ textarea.inp{resize:none}
     </div>
     <div id="ow-staff" class="space-y-2"><p class="text-slate-500 text-sm text-center py-4">جاري التحميل...</p></div>
   </div>
-  <!-- Issues -->
   <div class="px-4 pb-4" id="ow-issues-sec">
     <p class="text-sm font-black mb-3">البلاغات والمشاكل</p>
     <div id="ow-issues" class="space-y-2"><p class="text-slate-500 text-sm text-center py-4">لا توجد بلاغات</p></div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════
-     MODALS
-══════════════════════════════════════════════ -->
+<!-- ════════════════════ المودالات ════════════════════ -->
 
-<!-- Notifications -->
+<!-- إشعارات -->
 <div id="mod-notif" class="modal" onclick="closeMod('mod-notif')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
@@ -365,48 +450,61 @@ textarea.inp{resize:none}
   </div>
 </div>
 
-<!-- Messages -->
+<!-- مراسلات -->
 <div id="mod-messages" class="modal" onclick="closeMod('mod-messages')">
-  <div class="mbox" style="height:82vh;display:flex;flex-direction:column;padding-bottom:max(16px,env(safe-area-inset-bottom))" onclick="event.stopPropagation()">
+  <div class="mbox" style="height:82vh;display:flex;flex-direction:column;padding-bottom:max(16px,env(safe-area-inset-bottom))"
+       onclick="event.stopPropagation()">
     <div class="mhandle flex-shrink-0"></div>
     <div class="flex items-center justify-between mb-3 flex-shrink-0">
       <div class="flex items-center gap-2">
-        <button id="msg-back" onclick="showConvList()" class="text-slate-400 p-1 hidden"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
+        <button id="msg-back" onclick="showConvList()" class="text-slate-400 p-1 hidden">
+          <i data-lucide="chevron-right" class="w-5 h-5"></i>
+        </button>
         <h3 id="msg-hdr" class="text-lg font-black text-slate-800">الرسائل</h3>
       </div>
-      <button onclick="closeMod('mod-messages')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-messages')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div id="conv-list" class="flex-1 overflow-y-auto"></div>
     <div id="chat-view" class="hidden flex-1 flex flex-col min-h-0">
-      <div id="chat-msgs" class="flex-1 overflow-y-auto p-1 space-y-2 mb-2"></div>
+      <div id="chat-msgs" class="flex-1 overflow-y-auto p-1 space-y-1 mb-2"></div>
       <div class="flex gap-2 flex-shrink-0 pt-2 border-t border-slate-100">
-        <input id="chat-inp" type="text" class="inp flex-1 py-2.5 text-sm" placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter')sendMsg()">
-        <button onclick="sendMsg()" class="btn btn-blue w-10 h-10 rounded-2xl p-0 flex-shrink-0"><i data-lucide="send" class="w-4 h-4"></i></button>
+        <input id="chat-inp" type="text" class="inp flex-1 py-2.5 text-sm"
+          placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button onclick="sendMsg()"
+          class="btn btn-blue w-10 h-10 rounded-2xl p-0 flex-shrink-0">
+          <i data-lucide="send" class="w-4 h-4"></i>
+        </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Trip detail (driver) -->
+<!-- تفاصيل رحلة (سائق) -->
 <div id="mod-trip" class="modal" onclick="closeMod('mod-trip')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">تفاصيل الرحلة</h3>
-      <button onclick="closeMod('mod-trip')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-trip')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div id="trip-detail"></div>
     <input type="hidden" id="trip-cur-id">
   </div>
 </div>
 
-<!-- Add trip (staff) -->
+<!-- إضافة رحلة (موظف) -->
 <div id="mod-add-trip" class="modal" onclick="closeMod('mod-add-trip')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">إضافة رحلة جديدة</h3>
-      <button onclick="closeMod('mod-add-trip')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-add-trip')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div class="flex p-1 bg-slate-100 rounded-2xl mb-4 gap-1">
       <button onclick="setTripType('general')"  id="tt-g" class="rtb on text-green-600">🌍 عامة للجميع</button>
@@ -417,27 +515,35 @@ textarea.inp{resize:none}
       <select id="trip-drv-sel" class="inp"><option value="">— اختر سائقاً —</option></select>
     </div>
     <div class="space-y-3">
+      <input type="text" id="t-orig"  class="inp" placeholder="مكان التحرك / الانطلاق">
       <input type="text" id="t-dest"  class="inp" placeholder="الوجهة / وصف الرحلة">
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="text-xs font-bold text-slate-500 block mb-1">التاريخ والوقت</label>
-          <input type="datetime-local" id="t-date" class="inp"></div>
-        <div><label class="text-xs font-bold text-slate-500 block mb-1">السعر (جنيه)</label>
-          <input type="number" id="t-price" class="inp" placeholder="0"></div>
+        <div>
+          <label class="text-xs font-bold text-slate-500 block mb-1">التاريخ والوقت</label>
+          <input type="datetime-local" id="t-date" class="inp">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-500 block mb-1">السعر (جنيه)</label>
+          <input type="number" id="t-price" class="inp" placeholder="0">
+        </div>
       </div>
       <textarea id="t-notes" class="inp" rows="2" placeholder="ملاحظات (اختياري)"></textarea>
       <button id="btn-add-trip" onclick="submitTrip()" class="btn btn-grn btn-lg">
-        <i data-lucide="send" class="w-4 h-4"></i> إرسال الرحلة</button>
+        <i data-lucide="send" class="w-4 h-4"></i> إرسال الرحلة
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Add driver (staff) -->
+<!-- إضافة سائق (موظف) -->
 <div id="mod-add-driver" class="modal" onclick="closeMod('mod-add-driver')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">إضافة سائق جديد</h3>
-      <button onclick="closeMod('mod-add-driver')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-add-driver')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div class="bg-blue-50 border border-blue-100 rounded-2xl p-3 mb-4 text-sm text-blue-700">
       💡 أدخل البريد الإلكتروني للسائق لمنحه صلاحية التسجيل
@@ -450,33 +556,39 @@ textarea.inp{resize:none}
     <div id="drv-add-form" class="space-y-3">
       <input type="email" id="nd-email" class="inp" placeholder="البريد الإلكتروني للسائق">
       <button id="btn-add-drv" onclick="addDriver()" class="btn btn-grn btn-lg">
-        <i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية</button>
+        <i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Search driver (staff) -->
+<!-- بحث سائق (موظف) -->
 <div id="mod-search" class="modal" onclick="closeMod('mod-search')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">بحث عن سائق</h3>
-      <button onclick="closeMod('mod-search')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-search')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
-    <input type="text" id="srch-q" class="inp mb-4" placeholder="الاسم أو رقم الموبايل أو رقم اللوحة..." oninput="searchDriver()">
+    <input type="text" id="srch-q" class="inp mb-4"
+      placeholder="الاسم أو رقم الموبايل أو رقم اللوحة..." oninput="searchDriver()">
     <div id="srch-res" class="space-y-2 max-h-[50vh] overflow-y-auto">
       <p class="text-center text-slate-400 text-sm py-6">ابدأ بالكتابة للبحث...</p>
     </div>
   </div>
 </div>
 
-<!-- Report modal (staff) -->
+<!-- تقرير (موظف) -->
 <div id="mod-report" class="modal" onclick="closeMod('mod-report')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">إنشاء تقرير تفصيلي</h3>
-      <button onclick="closeMod('mod-report')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-report')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div id="rpt-limit-warn" class="hidden bg-red-50 border border-red-200 rounded-2xl p-3 mb-4">
       <p class="text-red-600 font-bold text-sm">⛔ استنفذت تقاريرك المجانية هذا الشهر</p>
@@ -495,65 +607,79 @@ textarea.inp{resize:none}
         <select id="rpt-car" class="inp"><option value="">— جاري التحميل —</option></select>
       </div>
       <div class="grid grid-cols-2 gap-3">
-        <div><label class="text-xs font-bold text-slate-500 block mb-1.5">من تاريخ</label>
-          <input type="date" id="rpt-from" class="inp"></div>
-        <div><label class="text-xs font-bold text-slate-500 block mb-1.5">إلى تاريخ</label>
-          <input type="date" id="rpt-to" class="inp"></div>
+        <div>
+          <label class="text-xs font-bold text-slate-500 block mb-1.5">من تاريخ</label>
+          <input type="date" id="rpt-from" class="inp">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-slate-500 block mb-1.5">إلى تاريخ</label>
+          <input type="date" id="rpt-to" class="inp">
+        </div>
       </div>
       <button id="btn-gen-rpt" onclick="generateReport()" class="btn btn-blue btn-lg">
-        <i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير</button>
+        <i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Report Result -->
+<!-- نتيجة التقرير -->
 <div id="mod-rpt-result" class="modal" onclick="closeMod('mod-rpt-result')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">📊 التقرير جاهز</h3>
-      <button onclick="closeMod('mod-rpt-result')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-rpt-result')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div id="rpt-summary" class="bg-slate-50 rounded-2xl p-4 mb-4 max-h-[45vh] overflow-y-auto text-right"></div>
     <div class="grid grid-cols-3 gap-2">
-      <button onclick="doPrint()"  class="btn btn-muted btn-md py-3 rounded-2xl text-sm flex-col gap-1">🖨️<br><span class="text-xs">طباعة</span></button>
-      <button onclick="doExcel()"  class="btn btn-grn btn-md py-3 rounded-2xl text-sm flex-col gap-1">📗<br><span class="text-xs">Excel</span></button>
-      <button onclick="doPDF()"    class="btn btn-blue btn-md py-3 rounded-2xl text-sm flex-col gap-1">📄<br><span class="text-xs">PDF</span></button>
+      <button onclick="doPrint()"  class="btn btn-muted btn-md py-3 rounded-2xl flex-col gap-1" style="font-size:.8rem">🖨️<br>طباعة</button>
+      <button onclick="doExcel()"  class="btn btn-grn btn-md py-3 rounded-2xl flex-col gap-1"  style="font-size:.8rem">📗<br>Excel</button>
+      <button onclick="doPDF()"    class="btn btn-blue btn-md py-3 rounded-2xl flex-col gap-1" style="font-size:.8rem">📄<br>PDF</button>
     </div>
   </div>
 </div>
 
-<!-- Issue report (staff) -->
+<!-- بلاغ مشكلة (موظف) -->
 <div id="mod-issue" class="modal" onclick="closeMod('mod-issue')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">الإبلاغ عن مشكلة</h3>
-      <button onclick="closeMod('mod-issue')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-issue')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div class="space-y-3">
       <input type="text" id="iss-title" class="inp" placeholder="عنوان المشكلة">
       <textarea id="iss-desc" class="inp" rows="4" placeholder="وصف تفصيلي للمشكلة..."></textarea>
       <button id="btn-iss" onclick="submitIssue()" class="btn btn-red btn-lg">
-        <i data-lucide="flag" class="w-4 h-4"></i> إرسال البلاغ</button>
+        <i data-lucide="flag" class="w-4 h-4"></i> إرسال البلاغ
+      </button>
     </div>
   </div>
 </div>
 
-<!-- Subscription (staff) -->
+<!-- اشتراك (موظف) -->
 <div id="mod-sub" class="modal" onclick="closeMod('mod-sub')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">الاشتراك والترقية</h3>
-      <button onclick="closeMod('mod-sub')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-sub')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div id="plan-cur" class="mb-4"></div>
     <div class="rounded-2xl p-4 mb-4" style="background:linear-gradient(135deg,#fef3c7,#fffbeb);border:1.5px solid #fde68a">
       <div class="flex items-center gap-3 mb-3">
         <span class="text-3xl">👑</span>
-        <div><p class="font-black text-amber-800">الخطة المميزة</p>
-          <p id="sub-price-lbl" class="text-amber-600 text-sm font-bold">99 جنيه / شهرياً</p></div>
+        <div>
+          <p class="font-black text-amber-800">الخطة المميزة</p>
+          <p id="sub-price-lbl" class="text-amber-600 text-sm font-bold">99 جنيه / شهرياً</p>
+        </div>
       </div>
       <div class="space-y-1.5 text-sm text-amber-800">
         <p>✅ سائقون غير محدودين</p>
@@ -575,19 +701,22 @@ textarea.inp{resize:none}
         <li>سيتم تفعيل اشتراكك خلال ٢٤ ساعة</li>
       </ol>
     </div>
-    <button onclick="openWhatsApp()" class="btn btn-lg mb-2" style="background:#25D366;color:#fff;box-shadow:0 6px 20px rgba(37,211,102,.3)">
+    <button onclick="openWhatsApp()" class="btn btn-lg mb-2"
+      style="background:#25D366;color:#fff;box-shadow:0 6px 20px rgba(37,211,102,.3)">
       <span style="font-size:1.1rem">💬</span> تواصل للتفعيل عبر واتساب
     </button>
   </div>
 </div>
 
-<!-- Add staff (owner) -->
+<!-- إضافة موظف (مالك) -->
 <div id="mod-add-staff" class="modal" onclick="closeMod('mod-add-staff')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">إضافة موظف جديد</h3>
-      <button onclick="closeMod('mod-add-staff')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-add-staff')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-3 mb-4 text-sm text-yellow-700">
       👑 أدخل بريد الموظف لمنحه صلاحية التسجيل في النظام
@@ -599,44 +728,59 @@ textarea.inp{resize:none}
   </div>
 </div>
 
-<!-- Settings (owner) -->
+<!-- إعدادات (مالك) -->
 <div id="mod-settings" class="modal" onclick="closeMod('mod-settings')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">⚙️ إعدادات التطبيق</h3>
-      <button onclick="closeMod('mod-settings')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+      <button onclick="closeMod('mod-settings')" class="text-slate-400 p-1">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
     </div>
     <div class="space-y-4">
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">اسم التطبيق</label>
-        <input type="text" id="set-name" class="inp" placeholder="Royal Drive Pro"></div>
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">رسالة الترحيب في الصفحة الرئيسية</label>
-        <input type="text" id="set-sub" class="inp" placeholder="نظام إدارة المركبات الذكي"></div>
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">إيميل المالك (لتحديد صلاحية الدخول لهذه اللوحة)</label>
+      <!-- BUG FIX #11: تم إزالة حقل اسم التطبيق — الاسم ثابت لا يتغير -->
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">رسالة الترحيب</label>
+        <input type="text" id="set-sub" class="inp" placeholder="نظام إدارة المركبات الذكي">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">إيميل المالك (صلاحية لوحة التحكم)</label>
         <input type="email" id="set-owner-email" class="inp" placeholder="admin@royaldrive.com">
-        <p class="text-xs text-red-500 mt-1 font-bold">⚠️ تغيير هذا يتطلب إعادة تسجيل الدخول</p></div>
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">سعر الاشتراك المميز (جنيه/شهر)</label>
-        <input type="number" id="set-price" class="inp" placeholder="99"></div>
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">رقم فودافون كاش لاستقبال المدفوعات</label>
-        <input type="tel" id="set-vf" class="inp" placeholder="01552610460"></div>
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">حد السائقين – الخطة المجانية</label>
-        <input type="number" id="set-dlimit" class="inp" placeholder="2"></div>
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">حد التقارير الشهرية – الخطة المجانية</label>
-        <input type="number" id="set-rlimit" class="inp" placeholder="5"></div>
-      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">إشعار مخصص لجميع المستخدمين (اتركه فارغاً لإيقاف)</label>
-        <textarea id="set-announce" class="inp" rows="2" placeholder="مثال: سيتم الصيانة الجمعة من ٢-٤ ص"></textarea></div>
+        <p class="text-xs text-red-500 mt-1 font-bold">⚠️ تغيير هذا يتطلب إعادة تسجيل الدخول</p>
+      </div>
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">سعر الاشتراك المميز (جنيه/شهر)</label>
+        <input type="number" id="set-price" class="inp" placeholder="99">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">رقم فودافون كاش لاستقبال المدفوعات</label>
+        <input type="tel" id="set-vf" class="inp" placeholder="01552610460">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">حد السائقين – الخطة المجانية</label>
+        <input type="number" id="set-dlimit" class="inp" placeholder="2">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">حد التقارير الشهرية – الخطة المجانية</label>
+        <input type="number" id="set-rlimit" class="inp" placeholder="5">
+      </div>
+      <div>
+        <label class="text-xs font-bold text-slate-500 block mb-1.5">إشعار مخصص لجميع المستخدمين (فارغ=إيقاف)</label>
+        <textarea id="set-announce" class="inp" rows="2" placeholder="مثال: سيتم الصيانة الجمعة من ٢-٤ ص"></textarea>
+      </div>
       <button id="btn-save-set" onclick="saveSettings()" class="btn btn-gld btn-lg">
-        <i data-lucide="save" class="w-4 h-4"></i> حفظ الإعدادات</button>
+        <i data-lucide="save" class="w-4 h-4"></i> حفظ الإعدادات
+      </button>
     </div>
   </div>
 </div>
 
-</body>
 <script>
-// ═══════════════════════════════════════
-// FIREBASE INIT
-// ═══════════════════════════════════════
-const firebaseConfig = {
+// ════════════════════════════════════════════════
+// FIREBASE
+// ════════════════════════════════════════════════
+const firebaseConfig={
   apiKey:"AIzaSyBhZdYXdISIPlcCbC4yiVdlUx0QDWfITdk",
   authDomain:"royal-drive-38c15.firebaseapp.com",
   projectId:"royal-drive-38c15",
@@ -645,47 +789,42 @@ const firebaseConfig = {
   appId:"1:94912656002:web:f461fdf7c3cd67b4a77a9b"
 };
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db   = firebase.firestore();
+const auth=firebase.auth();
+const db=firebase.firestore();
 lucide.createIcons();
 
-// ═══════════════════════════════════════
+// ════════════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════
-let CU = null, CUD = null;
-let APP = {
-  name:'ROYAL DRIVE', sub:'نظام إدارة المركبات الذكي',
-  ownerEmail:'admin@royal.com', price:99,
-  vfNumber:'01552610460', dLimit:2, rLimit:5, announce:''
+// ════════════════════════════════════════════════
+let CU=null, CUD=null;
+let APP={
+  sub:'نظام إدارة المركبات الذكي',
+  ownerEmail:'admin@royal.com',
+  price:99, vfNumber:'01552610460', dLimit:2, rLimit:5, announce:''
 };
-let signupRole = 'driver';
-let tripTypeNew = 'general';
-let rptType = 'all';
-let chatWith = null;
-let chatName_ = null;
-let chatUnsub = null;
-let notifUnsub = null;
-let msgUnsub = null;
-let drvFilter = 'pending';
-let reportExportData = [];
-let drvTripsAll = [];
+let signupRole='driver';
+let tripTypeNew='general';
+let rptType='all';
+let chatWith=null;
+let currentConvId=null; // BUG FIX #3: نحتفظ بـ convId الحالي هنا بدلاً من إعادة حسابه
+let chatUnsub=null;
+let notifUnsub=null;
+let msgUnsub=null;
+let drvFilter='pending';
+let reportExportData=[];
+let drvTripsAll=[];
+let authInitialized=false; // BUG FIX #8,#9: علامة لمعرفة هل Firebase جاهز
 
-// ═══════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════
+// ════════════════════════════════════════════════
+// تنقل
+// ════════════════════════════════════════════════
 function goTo(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const t=document.getElementById(id);
   if(t){t.classList.add('active');lucide.createIcons();}
 }
-function openMod(id){
-  const m=document.getElementById(id);
-  if(m){m.classList.add('open');lucide.createIcons();}
-}
-function closeMod(id){
-  const m=document.getElementById(id);
-  if(m) m.classList.remove('open');
-}
+function openMod(id){const m=document.getElementById(id);if(m){m.classList.add('open');lucide.createIcons();}}
+function closeMod(id){const m=document.getElementById(id);if(m)m.classList.remove('open');}
 function toggleEye(inp,btn){
   const f=document.getElementById(inp),b=document.getElementById(btn);
   if(!f||!b)return;
@@ -729,25 +868,43 @@ function statusChip(s){
   return`<span class="chip ${m[s]||''}">${statusAr(s)}</span>`;
 }
 
-// ═══════════════════════════════════════
-// LOAD APP SETTINGS
-// ═══════════════════════════════════════
+// BUG FIX #6: حفظ وتحميل الإيميلات المستخدمة
+function saveEmailHistory(email){
+  if(!email)return;
+  try{
+    const hist=JSON.parse(localStorage.getItem('rdp_emails')||'[]');
+    if(!hist.includes(email)){hist.unshift(email);if(hist.length>8)hist.pop();}
+    localStorage.setItem('rdp_emails',JSON.stringify(hist));
+    const dl=document.getElementById('email-dl');
+    if(dl)dl.innerHTML=hist.map(e=>`<option value="${e}">`).join('');
+  }catch(e){}
+}
+function loadEmailHistory(){
+  try{
+    const hist=JSON.parse(localStorage.getItem('rdp_emails')||'[]');
+    const dl=document.getElementById('email-dl');
+    if(dl)dl.innerHTML=hist.map(e=>`<option value="${e}">`).join('');
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════════
+// إعدادات التطبيق
+// ════════════════════════════════════════════════
 async function loadAppSettings(){
   try{
     const snap=await db.collection('settings').doc('app').get();
-    if(snap.exists) APP={...APP,...snap.data()};
+    if(snap.exists)APP={...APP,...snap.data()};
     applyAppUI();
   }catch(e){console.warn('settings:',e);}
 }
 function applyAppUI(){
-  const t=document.getElementById('app-title');
+  // BUG FIX #11: اسم التطبيق ثابت — لا نعدّله من الإعدادات
   const s=document.getElementById('app-sub');
   const v=document.getElementById('vf-show');
   const p=document.getElementById('sub-price-lbl');
-  if(t) t.textContent=APP.name||'ROYAL DRIVE';
-  if(s) s.textContent=APP.sub||'';
-  if(v) v.textContent=APP.vfNumber||'01552610460';
-  if(p) p.textContent=`${APP.price||99} جنيه / شهرياً`;
+  if(s)s.textContent=APP.sub||'نظام إدارة المركبات الذكي';
+  if(v)v.textContent=APP.vfNumber||'01552610460';
+  if(p)p.textContent=`${APP.price||99} جنيه / شهرياً`;
   if(APP.announce){
     let an=document.getElementById('announce-bar');
     if(!an){
@@ -757,25 +914,33 @@ function applyAppUI(){
       document.body.prepend(an);
     }
     an.textContent='📢 '+APP.announce;
+  } else {
+    const an=document.getElementById('announce-bar');
+    if(an)an.remove();
   }
 }
 
-// ═══════════════════════════════════════
-// ══ BUG FIX: AUTH STATE (Owner by ownerEmail from Firestore settings)
-// ══ السبب: كان يقارن بـ admin@royal.com ثابتة بدون أخذ الإعداد
-// ═══════════════════════════════════════
+// ════════════════════════════════════════════════
+// BUG FIX #8,#9,#18 — AUTH STATE مع شاشة تحميل
+// ════════════════════════════════════════════════
 auth.onAuthStateChanged(async(user)=>{
+  // أخفي شاشة التحميل مرة واحدة فقط عند أول استجابة من Firebase
+  if(!authInitialized){
+    authInitialized=true;
+    document.getElementById('pg-loading').classList.remove('active');
+  }
+
   if(!user){
+    // BUG FIX #7: بعد تسجيل الخروج — العودة للترحيب
     setBtn('btn-login',false,'دخول آمن');
     goTo('pg-welcome');
     return;
   }
+
   try{
     await loadAppSettings();
 
-    // ✅ الإصلاح: قارن بإيميل المالك المخزن في الإعدادات
     if(user.email===APP.ownerEmail){
-      // تأكد من وجود doc للمالك في Firestore وإلا أنشئه تلقائياً
       const owDoc=await db.collection('users').doc(user.uid).get();
       if(!owDoc.exists){
         await db.collection('users').doc(user.uid).set({
@@ -784,7 +949,7 @@ auth.onAuthStateChanged(async(user)=>{
           createdAt:firebase.firestore.FieldValue.serverTimestamp()
         });
       }
-      CU=user; CUD={role:'owner',email:user.email,name:'المالك',uid:user.uid};
+      CU=user;CUD={role:'owner',email:user.email,name:'المالك',uid:user.uid};
       listenNotifications(user.uid);
       await loadOwnerDash();
       goTo('pg-owner');
@@ -794,44 +959,59 @@ auth.onAuthStateChanged(async(user)=>{
     const snap=await db.collection('users').doc(user.uid).get();
     if(!snap.exists){
       toast('بيانات حسابك غير مكتملة. تواصل مع المسؤول.','error');
-      await auth.signOut(); goTo('pg-welcome'); return;
+      await auth.signOut();
+      return;
     }
-    CU=user; CUD=snap.data();
+    CU=user;CUD=snap.data();
 
-    // حماية: تحقق من role='owner' في Firestore أيضاً كطريق بديل
     if(CUD.role==='owner'){
-      await loadOwnerDash(); goTo('pg-owner'); return;
+      listenNotifications(user.uid);
+      await loadOwnerDash();
+      goTo('pg-owner');
+      return;
     }
     if(CUD.status==='frozen'){
       toast('حسابك مجمد. تواصل مع المسؤول.','error');
-      await auth.signOut(); goTo('pg-welcome'); return;
+      await auth.signOut();
+      return;
     }
 
     listenNotifications(user.uid);
     listenMessages(user.uid);
 
     if(CUD.role==='staff'){
-      await loadStaffDash(); goTo('pg-staff');
+      await loadStaffDash();
+      goTo('pg-staff');
     } else {
-      await loadDriverDash(); goTo('pg-driver');
+      await loadDriverDash();
+      goTo('pg-driver');
     }
   }catch(e){
-    console.error('auth:',e);
+    console.error('auth error:',e);
+    document.getElementById('pg-loading').classList.remove('active');
     goTo('pg-welcome');
   }
 });
 
-// ═══════════════════════════════════════
-// LOGIN
-// ═══════════════════════════════════════
+// ════════════════════════════════════════════════
+// BUG FIX #7 — تسجيل الدخول مع "تذكرني"
+// ════════════════════════════════════════════════
 async function doLogin(){
   const email=document.getElementById('l-email').value.trim();
   const pass=document.getElementById('l-pass').value;
-  if(!email||!pass) return toast('أدخل البريد وكلمة المرور','warning');
+  const rem=document.getElementById('l-rem').checked;
+  if(!email||!pass)return toast('أدخل البريد وكلمة المرور','warning');
   setBtn('btn-login',true,'');
   try{
+    // BUG FIX #7: LOCAL = يبقى مسجلاً حتى بعد إغلاق المتصفح
+    //             SESSION = يبقى مسجلاً فقط في نفس الجلسة
+    await auth.setPersistence(
+      rem
+        ? firebase.auth.Auth.Persistence.LOCAL
+        : firebase.auth.Auth.Persistence.SESSION
+    );
     await auth.signInWithEmailAndPassword(email,pass);
-    // onAuthStateChanged will handle routing
+    saveEmailHistory(email); // BUG FIX #6
   }catch(e){
     const m={
       'auth/user-not-found':'البريد غير مسجل في النظام',
@@ -847,16 +1027,18 @@ async function doLogin(){
   }
 }
 
-// ═══════════════════════════════════════
-// FORGOT PASSWORD
-// ═══════════════════════════════════════
+// نسيان كلمة السر
 async function sendReset(){
   const email=document.getElementById('fg-email').value.trim();
-  if(!email) return toast('أدخل بريدك الإلكتروني','warning');
+  if(!email)return toast('أدخل بريدك الإلكتروني','warning');
   setBtn('btn-fg',true,'');
   try{
-    const currentUrl=window.location.href.split('?')[0];
-    await auth.sendPasswordResetEmail(email,{url:currentUrl,handleCodeInApp:false});
+    // BUG FIX: لا نستخدم url يكشف رابط GitHub
+    const currentUrl=window.location.origin!=='null'
+      ?window.location.href.split('?')[0]:undefined;
+    const opts=currentUrl?{url:currentUrl,handleCodeInApp:false}:undefined;
+    if(opts)await auth.sendPasswordResetEmail(email,opts);
+    else await auth.sendPasswordResetEmail(email);
     document.getElementById('fg-s1').classList.add('hidden');
     document.getElementById('fg-s2').classList.remove('hidden');
   }catch(e){
@@ -867,9 +1049,7 @@ async function sendReset(){
   }
 }
 
-// ═══════════════════════════════════════
-// SIGNUP
-// ═══════════════════════════════════════
+// إنشاء حساب
 function setRole(r){
   signupRole=r;
   document.getElementById('rb-d').className=`rtb${r==='driver'?' on':''}`;
@@ -877,7 +1057,6 @@ function setRole(r){
   document.getElementById('fld-d').classList.toggle('hidden',r!=='driver');
   document.getElementById('fld-s').classList.toggle('hidden',r!=='staff');
 }
-
 async function doSignup(){
   const isD=signupRole==='driver';
   const email=(document.getElementById(isD?'d-email':'s-email').value||'').trim();
@@ -885,31 +1064,30 @@ async function doSignup(){
   const name=(document.getElementById(isD?'d-name':'s-name').value||'').trim();
   const phone=(document.getElementById(isD?'d-phone':'s-phone').value||'').trim();
 
-  if(!name)  return toast('أدخل الاسم الكامل','warning');
-  if(!phone) return toast('أدخل رقم الهاتف','warning');
-  if(!email) return toast('أدخل البريد الإلكتروني','warning');
-  if(!pass||pass.length<6) return toast('كلمة المرور ٦ أحرف على الأقل','warning');
+  if(!name)return toast('أدخل الاسم الكامل','warning');
+  if(!phone)return toast('أدخل رقم الهاتف','warning');
+  if(!email)return toast('أدخل البريد الإلكتروني','warning');
+  if(!pass||pass.length<6)return toast('كلمة المرور ٦ أحرف على الأقل','warning');
   if(isD){
-    if(!document.getElementById('d-nid').value.trim()) return toast('أدخل الرقم القومي','warning');
-    if(!document.getElementById('d-car').value.trim()) return toast('أدخل نوع السيارة','warning');
-    if(!document.getElementById('d-plate').value.trim()) return toast('أدخل رقم اللوحة','warning');
+    if(!document.getElementById('d-nid').value.trim())return toast('أدخل الرقم القومي','warning');
+    if(!document.getElementById('d-car').value.trim())return toast('أدخل نوع السيارة','warning');
+    if(!document.getElementById('d-plate').value.trim())return toast('أدخل رقم اللوحة','warning');
   }
 
   setBtn('btn-signup',true,'');
   try{
-    // Whitelist check
     const allowed=await db.collection('allowed_users').doc(email).get();
     if(!allowed.exists){
       const msg=isD
-        ?'بريدك غير مضاف بعد.\n\nراجع الموظف المختص لإضافة بريدك أولاً ثم عد للتسجيل.'
+        ?'بريدك غير مضاف بعد.\n\nراجع الموظف المختص لإضافة بريدك ثم أعد التسجيل.'
         :'بريدك غير مضاف في النظام.\n\nراجع مالك التطبيق لإضافتك كموظف أولاً.';
       toast(msg,'error');
       setBtn('btn-signup',false,'إتمام التسجيل');
       return;
     }
-    // Check role matches what was whitelist-assigned
+
     const allowedData=allowed.data();
-    if(allowedData.role && allowedData.role!==signupRole){
+    if(allowedData.role&&allowedData.role!==signupRole){
       toast(`هذا البريد مسجل كـ "${allowedData.role==='driver'?'سائق':'موظف'}" وليس "${isD?'سائق':'موظف'}"`, 'error');
       setBtn('btn-signup',false,'إتمام التسجيل');
       return;
@@ -928,13 +1106,19 @@ async function doSignup(){
       userData.plate=document.getElementById('d-plate').value.trim().toUpperCase();
     }
     await db.collection('users').doc(res.user.uid).set(userData);
-    // Update addedBy driversAdded count
-    if(isD && allowedData.addedBy){
+
+    // BUG FIX #12: فقط نحدث driversAdded إذا addedBy هو UID حقيقي (مش 'owner')
+    if(isD&&allowedData.addedBy&&allowedData.addedBy!=='owner'){
       await db.collection('users').doc(allowedData.addedBy).update({
         driversAdded:firebase.firestore.FieldValue.increment(1)
       });
     }
+
+    saveEmailHistory(email);
     toast('تم إنشاء حسابك بنجاح! مرحباً بك 👋','success');
+    // BUG FIX: إعادة تعيين زر التسجيل بعد النجاح
+    setBtn('btn-signup',false,'إتمام التسجيل');
+
   }catch(e){
     const m={
       'auth/email-already-in-use':'هذا البريد مسجل مسبقاً. جرب تسجيل الدخول.',
@@ -947,21 +1131,19 @@ async function doSignup(){
   }
 }
 
-// ═══════════════════════════════════════
-// LOGOUT
-// ═══════════════════════════════════════
+// تسجيل خروج
 async function doLogout(){
   if(!confirm('هل تريد تسجيل الخروج؟'))return;
   if(chatUnsub){chatUnsub();chatUnsub=null;}
   if(notifUnsub){notifUnsub();notifUnsub=null;}
   if(msgUnsub){msgUnsub();msgUnsub=null;}
-  CU=null; CUD=null;
+  CU=null;CUD=null;currentConvId=null;
   await auth.signOut();
 }
 
-// ═══════════════════════════════════════
-// ══════ DRIVER DASHBOARD ══════
-// ═══════════════════════════════════════
+// ════════════════════════════════════════════════
+// لوحة السائق
+// ════════════════════════════════════════════════
 async function loadDriverDash(){
   document.getElementById('d-uname').textContent=CUD.name||'السائق';
   document.getElementById('d-carinfo').textContent=CUD.carType||'—';
@@ -970,12 +1152,11 @@ async function loadDriverDash(){
 }
 function drvTab(tab){
   drvFilter=tab;
-  ['pending','accepted','history'].forEach(t=>{
-    const btn=document.getElementById('dt-'+t[0]+(t==='history'?'h':t==='accepted'?'a':'p'));
-    if(btn){
-      const active=t===tab;
-      btn.className=`flex-1 py-3 text-sm font-black border-b-2 transition-all ${active?'border-blue-600 text-blue-600':'border-transparent text-slate-400'}`;
-    }
+  [['p','pending'],['a','accepted'],['h','history']].forEach(([k,t])=>{
+    const btn=document.getElementById('dt-'+k);
+    if(!btn)return;
+    const on=t===tab;
+    btn.className=`flex-1 py-3 text-sm font-black border-b-2 transition-all ${on?'border-blue-600 text-blue-600':'border-transparent text-slate-400'}`;
   });
   loadDriverTrips();
 }
@@ -983,46 +1164,89 @@ async function loadDriverTrips(){
   const el=document.getElementById('drv-list');
   el.innerHTML='<p class="text-center py-8 text-slate-400 text-sm">جاري التحميل...</p>';
   try{
-    let q=db.collection('trips').orderBy('createdAt','desc');
-    const filter=drvFilter==='history'?['rejected','completed']:
-                 drvFilter==='accepted'?['accepted']:['pending'];
+    // BUG FIX: جلب بدون orderBy يتطلب index — نرتب client-side
+    const snap=await db.collection('trips').get();
 
-    const snap=await q.get();
-    const trips=snap.docs
-      .map(d=>({id:d.id,...d.data()}))
-      .filter(t=>{
-        const forMe=t.assignedTo==='all'||t.assignedTo===CU.uid;
-        const statusOk=filter.includes(t.status);
-        return forMe&&statusOk;
+    // BUG FIX #15: رحلات مرفوضة بواسطتي → أخفيها عني فقط
+    // BUG FIX #14: رحلات مقبولة من سائق آخر → تظهر كـ "مغلقة"
+    const allTrips=snap.docs.map(d=>({id:d.id,...d.data()}));
+
+    let trips;
+    if(drvFilter==='pending'){
+      trips=allTrips.filter(t=>{
+        if(t.assignedTo!=='all'&&t.assignedTo!==CU.uid)return false;
+        if(t.status!=='pending')return false;
+        // BUG FIX #15: أخفي الرحلات التي رفضتها أنا
+        const rejBy=Array.isArray(t.rejectedBy)?t.rejectedBy:[];
+        return!rejBy.includes(CU.uid);
       });
+    } else if(drvFilter==='accepted'){
+      trips=allTrips.filter(t=>{
+        if(t.assignedTo!=='all'&&t.assignedTo!==CU.uid)return false;
+        if(t.status!=='accepted')return false;
+        return t.driverId===CU.uid; // BUG FIX: الجارية = المقبولة مني أنا فقط
+      });
+    } else {
+      trips=allTrips.filter(t=>{
+        if(t.assignedTo!=='all'&&t.assignedTo!==CU.uid)return false;
+        if(!['completed','rejected'].includes(t.status))return false;
+        // في السجل نظهر فقط ما قبلته أو رفضته بنفسي
+        if(t.status==='completed')return t.driverId===CU.uid;
+        const rejBy=Array.isArray(t.rejectedBy)?t.rejectedBy:[];
+        return rejBy.includes(CU.uid);
+      });
+    }
+
+    // ترتيب client-side
+    trips.sort((a,b)=>{
+      const at=a.tripDate?.toDate?.()?.getTime()||a.createdAt?.toDate?.()?.getTime()||0;
+      const bt=b.tripDate?.toDate?.()?.getTime()||b.createdAt?.toDate?.()?.getTime()||0;
+      return bt-at;
+    });
 
     drvTripsAll=trips;
     if(!trips.length){
       el.innerHTML='<div class="text-center py-14 text-slate-400"><div class="text-5xl mb-3">🗺️</div><p class="font-bold">لا توجد رحلات</p></div>';
       return;
     }
-    el.innerHTML=trips.map(t=>`
-      <div class="card p-4 cursor-pointer active:scale-98 transition-transform" onclick="openTripDetail('${t.id}')">
+
+    el.innerHTML=trips.map(t=>{
+      // BUG FIX #14: إذا قبلها سائق آخر → أظهرها كمغلقة
+      const lockedByOther=t.status==='accepted'&&t.driverId&&t.driverId!==CU.uid;
+      return`
+      <div class="card p-4 cursor-pointer relative active:scale-98 transition-transform" onclick="openTripDetail('${t.id}')">
+        ${lockedByOther?`<div class="absolute inset-0 bg-white/80 rounded-[var(--rad)] flex items-center justify-center z-10 backdrop-blur-sm"><span class="chip cp-rej text-sm font-black px-4 py-2">🔒 تم أخذها</span></div>`:''}
         <div class="flex items-start justify-between mb-2">
           <div class="flex-1">
             <p class="font-black text-slate-800 text-sm leading-snug">${t.destination||'—'}</p>
-            <p class="text-slate-400 text-xs mt-0.5">${fmtDate(t.tripDate||t.createdAt)}</p>
+            ${t.origin?`<p class="text-blue-600 text-xs font-bold mt-0.5">📍 من: ${t.origin}</p>`:''}
+            <p class="text-slate-400 text-xs mt-1">${fmtDate(t.tripDate||t.createdAt)}</p>
           </div>
           <div class="flex flex-col items-end gap-1">
             ${statusChip(t.status)}
-            <span class="text-blue-600 font-black text-sm">${t.price?t.price+' جنيه':'—'}</span>
+            <span class="text-green-600 font-black text-sm">${t.price?t.price+' جنيه':'—'}</span>
           </div>
         </div>
-        ${t.notes?`<p class="text-slate-500 text-xs bg-slate-50 rounded-xl p-2">${t.notes}</p>`:''}
-        ${t.status==='pending'?`
+        <!-- BUG FIX #2: معلومات ناشر الرحلة + زر تواصل -->
+        ${t.addedByName?`
+        <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
+          <div class="flex items-center gap-1.5 text-xs text-slate-500">
+            <span>💼</span><span class="font-bold">${t.addedByName}</span>
+            ${t.addedByPhone?`<span>· ${t.addedByPhone}</span>`:''}
+          </div>
+          <button onclick="event.stopPropagation();startChatWith('${t.addedBy||''}','${t.addedByName||''}')"
+            class="btn btn-blue btn-sm py-1 px-2 text-xs">💬</button>
+        </div>`:''}
+        ${t.notes?`<p class="text-slate-500 text-xs bg-slate-50 rounded-xl p-2 mt-2">${t.notes}</p>`:''}
+        ${t.status==='pending'&&!lockedByOther?`
         <div class="flex gap-2 mt-3">
           <button onclick="event.stopPropagation();respondTrip('${t.id}','accepted')" class="btn btn-grn btn-sm flex-1">✅ قبول</button>
           <button onclick="event.stopPropagation();respondTrip('${t.id}','rejected')" class="btn btn-red btn-sm flex-1">❌ رفض</button>
         </div>`:''}
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   }catch(e){
-    el.innerHTML='<p class="text-center text-red-400 py-8">خطأ في التحميل</p>';
+    el.innerHTML='<p class="text-center text-red-400 py-8 text-sm">خطأ في التحميل</p>';
     console.error(e);
   }
 }
@@ -1033,35 +1257,55 @@ async function openTripDetail(id){
   document.getElementById('trip-detail').innerHTML=`
     <div class="space-y-3 mb-5">
       <div class="bg-slate-50 rounded-2xl p-4 space-y-2.5">
+        ${trip.origin?`<div class="flex justify-between items-center"><span class="text-slate-500 text-sm">مكان التحرك</span><span class="font-black text-blue-600 text-sm">📍 ${trip.origin}</span></div>`:''}
         <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">الوجهة</span><span class="font-black text-slate-800 text-sm">${trip.destination||'—'}</span></div>
-        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">التاريخ</span><span class="font-bold text-slate-700 text-sm">${fmtDate(trip.tripDate||trip.createdAt)}</span></div>
-        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">السعر</span><span class="font-black text-blue-600 text-base">${trip.price?trip.price+' جنيه':'—'}</span></div>
+        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">موعد الرحلة</span><span class="font-bold text-slate-700 text-sm">${fmtDate(trip.tripDate||trip.createdAt)}</span></div>
+        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">تاريخ النشر</span><span class="text-slate-500 text-xs">${fmtDate(trip.createdAt)}</span></div>
+        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">السعر</span><span class="font-black text-green-600 text-base">${trip.price?trip.price+' جنيه':'—'}</span></div>
         <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">الحالة</span>${statusChip(trip.status)}</div>
-        ${trip.addedByName?`<div class="flex justify-between items-center"><span class="text-slate-500 text-sm">أضيفت بواسطة</span><span class="font-bold text-slate-700 text-sm">${trip.addedByName}</span></div>`:''}
+        ${trip.addedByName?`<div class="flex justify-between items-center"><span class="text-slate-500 text-sm">الموظف الناشر</span><span class="font-bold text-slate-700 text-sm">💼 ${trip.addedByName}</span></div>`:''}
+        ${trip.addedByPhone?`<div class="flex justify-between items-center"><span class="text-slate-500 text-sm">هاتف الموظف</span><a href="tel:${trip.addedByPhone}" class="font-bold text-blue-600 text-sm" onclick="event.stopPropagation()">📱 ${trip.addedByPhone}</a></div>`:''}
         ${trip.notes?`<div class="pt-1 border-t border-slate-100"><p class="text-slate-500 text-xs mb-1">ملاحظات:</p><p class="text-slate-700 text-sm">${trip.notes}</p></div>`:''}
       </div>
+      ${trip.addedBy?`<button onclick="startChatWith('${trip.addedBy}','${trip.addedByName||'الموظف'}');closeMod('mod-trip')" class="btn btn-blue btn-lg">💬 تواصل مع الموظف الناشر</button>`:''}
       ${trip.status==='pending'?`
       <div class="flex gap-3">
         <button onclick="respondTrip('${trip.id}','accepted');closeMod('mod-trip')" class="btn btn-grn btn-md flex-1">✅ قبول الرحلة</button>
         <button onclick="respondTrip('${trip.id}','rejected');closeMod('mod-trip')" class="btn btn-red btn-md flex-1">❌ رفض</button>
       </div>`:''}
-      ${trip.status==='accepted'?`
-      <button onclick="completeTrip('${trip.id}');closeMod('mod-trip')" class="btn btn-blue btn-lg">🏁 تم إنجاز الرحلة</button>
-      `:''}
+      ${trip.status==='accepted'&&trip.driverId===CU.uid?`
+      <button onclick="completeTrip('${trip.id}');closeMod('mod-trip')" class="btn btn-blue btn-lg">🏁 تم إنجاز الرحلة</button>`:''}
     </div>
   `;
   openMod('mod-trip');
 }
+
+// BUG FIX #14: استخدام Transaction لمنع قبول الرحلة من أكثر من سائق
 async function respondTrip(id,response){
   try{
-    const upd={status:response};
-    if(response==='accepted') upd.acceptedAt=firebase.firestore.FieldValue.serverTimestamp();
-    if(response==='rejected') upd.rejectedAt=firebase.firestore.FieldValue.serverTimestamp();
-    upd.driverId=CU.uid;
-    upd.driverName=CUD.name;
-    upd.plate=CUD.plate;
-    await db.collection('trips').doc(id).update(upd);
-    // Notify staff
+    if(response==='accepted'){
+      // Transaction = تحقق وتحديث في نفس الوقت بشكل ذري
+      await db.runTransaction(async(txn)=>{
+        const ref=db.collection('trips').doc(id);
+        const doc=await txn.get(ref);
+        if(!doc.exists)throw new Error('not-found');
+        const d=doc.data();
+        if(d.status!=='pending')throw new Error('already-taken');
+        txn.update(ref,{
+          status:'accepted',
+          driverId:CU.uid,
+          driverName:CUD.name,
+          plate:CUD.plate||'',
+          acceptedAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+      });
+    } else {
+      // BUG FIX #15: رفض ناعم — يختفي من قائمتي فقط
+      await db.collection('trips').doc(id).update({
+        rejectedBy:firebase.firestore.FieldValue.arrayUnion(CU.uid)
+      });
+    }
+
     const trip=drvTripsAll.find(t=>t.id===id);
     if(trip&&trip.addedBy){
       await db.collection('notifications').add({
@@ -1072,11 +1316,23 @@ async function respondTrip(id,response){
         createdAt:firebase.firestore.FieldValue.serverTimestamp()
       });
     }
-    toast(response==='accepted'?'تم قبول الرحلة ✅':'تم رفض الرحلة','success');
+
+    toast(response==='accepted'?'تم قبول الرحلة ✅':'تم رفض الرحلة وإزالتها من قائمتك','success');
     loadDriverTrips();
-  }catch(e){toast('حدث خطأ','error');console.error(e);}
+  }catch(e){
+    if(e.message==='already-taken')toast('عذراً، هذه الرحلة تم أخذها بالفعل من سائق آخر','error');
+    else{toast('حدث خطأ','error');console.error(e);}
+  }
 }
+
+// BUG FIX #10: التحقق أن السائق الذي يكمل الرحلة هو نفسه الذي قبلها
 async function completeTrip(id){
+  const trip=drvTripsAll.find(t=>t.id===id);
+  if(!trip){toast('لم تُوجد الرحلة','error');return;}
+  if(trip.driverId&&trip.driverId!==CU.uid){
+    toast('لا يمكنك إكمال رحلة قبلها سائق آخر','error');
+    return;
+  }
   try{
     await db.collection('trips').doc(id).update({
       status:'completed',
@@ -1087,15 +1343,20 @@ async function completeTrip(id){
   }catch(e){toast('حدث خطأ','error');}
 }
 
-// ═══════════════════════════════════════
-// ══════ STAFF DASHBOARD ══════
-// ═══════════════════════════════════════
+function startChatWith(uid,name){
+  if(!uid)return;
+  openMessages();
+  setTimeout(()=>openChat(uid,name,getConvId(CU.uid,uid)),400);
+}
+
+// ════════════════════════════════════════════════
+// لوحة الموظف
+// ════════════════════════════════════════════════
 async function loadStaffDash(){
   document.getElementById('s-uname').textContent=CUD.name||'الموظف';
   updateSubBanner();
   loadStaffTrips();
   loadDriversDropdown();
-  // Update quota labels
   const isPremium=CUD.isPremium;
   const dLimit=isPremium?'∞':(APP.dLimit||2);
   const rLimit=isPremium?'∞':(APP.rLimit||5);
@@ -1115,10 +1376,9 @@ function updateSubBanner(){
   const ico=document.getElementById('stf-sub-ico');
   const lbl=document.getElementById('stf-sub-lbl');
   const det=document.getElementById('stf-sub-det');
-  if(ico) ico.textContent=isPremium?'👑':'🆓';
-  if(lbl) lbl.textContent=isPremium?'الخطة المميزة':'الخطة المجانية';
-  if(det) det.textContent=isPremium?'سائقون وتقارير غير محدودة ✅':`${APP.dLimit||2} سائق · ${APP.rLimit||5} تقارير / شهر`;
-  // Sub plan modal
+  if(ico)ico.textContent=isPremium?'👑':'🆓';
+  if(lbl)lbl.textContent=isPremium?'الخطة المميزة':'الخطة المجانية';
+  if(det)det.textContent=isPremium?'سائقون وتقارير غير محدودة ✅':`${APP.dLimit||2} سائق · ${APP.rLimit||5} تقارير / شهر`;
   const planCur=document.getElementById('plan-cur');
   if(planCur){
     planCur.innerHTML=isPremium
@@ -1126,22 +1386,28 @@ function updateSubBanner(){
       :`<div class="bg-slate-100 rounded-2xl p-3 text-center"><p class="text-slate-600 font-bold text-sm">الخطة الحالية: المجانية</p></div>`;
   }
 }
+
+// BUG FIX #5: حذف orderBy من الاستعلام — ترتيب client-side
 async function loadStaffTrips(){
   const el=document.getElementById('stf-trips');
   if(!el||!CU)return;
   try{
-    const snap=await db.collection('trips')
-      .where('addedBy','==',CU.uid)
-      .orderBy('createdAt','desc')
-      .limit(15)
-      .get();
-    if(snap.empty){el.innerHTML='<p class="text-center text-slate-400 text-sm py-4">لا توجد رحلات بعد</p>';return;}
-    el.innerHTML=snap.docs.map(d=>{
-      const t={id:d.id,...d.data()};
-      return`<div class="card p-4">
+    const snap=await db.collection('trips').where('addedBy','==',CU.uid).get();
+    if(snap.empty){
+      el.innerHTML='<p class="text-center text-slate-400 text-sm py-4">لا توجد رحلات بعد</p>';
+      return;
+    }
+    const trips=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.createdAt?.toDate?.()?.getTime()||0)-(a.createdAt?.toDate?.()?.getTime()||0))
+      .slice(0,20);
+
+    el.innerHTML=trips.map(t=>`
+      <div class="card p-4">
         <div class="flex items-start justify-between">
           <div class="flex-1">
             <p class="font-black text-slate-800 text-sm">${t.destination||'—'}</p>
+            ${t.origin?`<p class="text-blue-600 text-xs">📍 ${t.origin}</p>`:''}
             <p class="text-slate-400 text-xs mt-0.5">${t.driverName?'🚗 '+t.driverName:'🌍 عامة'} · ${fmtDate(t.createdAt)}</p>
           </div>
           <div class="flex flex-col items-end gap-1">
@@ -1149,47 +1415,54 @@ async function loadStaffTrips(){
             ${t.price?`<span class="text-blue-600 font-black text-xs">${t.price} جنيه</span>`:''}
           </div>
         </div>
-      </div>`;
-    }).join('');
-  }catch(e){el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ في التحميل</p>';console.error(e);}
+      </div>
+    `).join('');
+  }catch(e){
+    el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ في التحميل</p>';
+    console.error(e);
+  }
 }
+
 async function loadDriversDropdown(){
   try{
     const snap=await db.collection('users').where('role','==','driver').where('status','==','active').get();
     const sel=document.getElementById('trip-drv-sel');
     const rptCar=document.getElementById('rpt-car');
-    if(!sel&&!rptCar)return;
     const opts=snap.docs.map(d=>{const u=d.data();return`<option value="${d.id}">${u.name} – ${u.plate||'—'}</option>`;}).join('');
-    if(sel) sel.innerHTML='<option value="">— اختر سائقاً —</option>'+opts;
-    if(rptCar) rptCar.innerHTML='<option value="">— اختر السيارة —</option>'+opts;
+    if(sel)sel.innerHTML='<option value="">— اختر سائقاً —</option>'+opts;
+    if(rptCar)rptCar.innerHTML='<option value="">— اختر السيارة —</option>'+opts;
   }catch(e){console.error(e);}
 }
 
-// Add Trip (staff)
 function setTripType(t){
   tripTypeNew=t;
   document.getElementById('tt-g').className=`rtb${t==='general'?' on text-green-600':''}`;
   document.getElementById('tt-s').className=`rtb${t==='specific'?' on':''}`;
   document.getElementById('trip-drv-row').classList.toggle('hidden',t!=='specific');
 }
+
 async function submitTrip(){
+  const orig=(document.getElementById('t-orig').value||'').trim();
   const dest=(document.getElementById('t-dest').value||'').trim();
   const date=document.getElementById('t-date').value;
   const price=document.getElementById('t-price').value;
   const notes=(document.getElementById('t-notes').value||'').trim();
-  if(!dest) return toast('أدخل وصف أو وجهة الرحلة','warning');
-  if(!date) return toast('حدد تاريخ الرحلة','warning');
-  let assignedTo='all', driverName='', driverUid='';
+  if(!dest)return toast('أدخل وجهة الرحلة','warning');
+  if(!date)return toast('حدد تاريخ الرحلة','warning');
+
+  let assignedTo='all',driverName='',driverUid='';
   if(tripTypeNew==='specific'){
     const sel=document.getElementById('trip-drv-sel');
-    if(!sel.value) return toast('اختر سائقاً','warning');
+    if(!sel.value)return toast('اختر سائقاً','warning');
     driverUid=sel.value;
     driverName=sel.options[sel.selectedIndex].text.split('–')[0].trim();
     assignedTo=driverUid;
   }
+
   setBtn('btn-add-trip',true,'');
   try{
     const tripData={
+      origin:orig||'',
       destination:dest,
       tripDate:firebase.firestore.Timestamp.fromDate(new Date(date)),
       price:parseFloat(price)||0,
@@ -1198,33 +1471,42 @@ async function submitTrip(){
       driverName:driverName||'',
       driverId:driverUid||'',
       status:'pending',
+      rejectedBy:[],
       addedBy:CU.uid,
       addedByName:CUD.name,
+      addedByPhone:CUD.phone||'',
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     };
     await db.collection('trips').add(tripData);
-    // Notify assigned driver(s)
+
     if(tripTypeNew==='specific'&&driverUid){
       await db.collection('notifications').add({
         uid:driverUid,
         title:'🚗 رحلة جديدة بانتظارك!',
-        body:`${dest} – ${price} جنيه`,
+        body:`${orig?orig+' ← ':''}${dest} · ${price} جنيه`,
         read:false,
         createdAt:firebase.firestore.FieldValue.serverTimestamp()
       });
     } else {
-      // Notify all active drivers
       const allDrv=await db.collection('users').where('role','==','driver').where('status','==','active').get();
       const batch=db.batch();
       allDrv.docs.forEach(d=>{
         const ref=db.collection('notifications').doc();
-        batch.set(ref,{uid:d.id,title:'🚗 رحلة جديدة عامة!',body:`${dest} – ${price} جنيه`,read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+        batch.set(ref,{
+          uid:d.id,
+          title:'🚗 رحلة جديدة عامة!',
+          body:`${orig?orig+' ← ':''}${dest} · ${price} جنيه`,
+          read:false,
+          createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
       });
       await batch.commit();
     }
+
     toast('تم إرسال الرحلة بنجاح ✅','success');
-    ['t-dest','t-price','t-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    document.getElementById('t-date').value='';
+    ['t-orig','t-dest','t-price','t-notes','t-date'].forEach(id=>{
+      const el=document.getElementById(id);if(el)el.value='';
+    });
     closeMod('mod-add-trip');
     loadStaffTrips();
   }catch(e){toast('فشل الإرسال: '+e.message,'error');console.error(e);}
@@ -1232,7 +1514,6 @@ async function submitTrip(){
   lucide.createIcons();
 }
 
-// Add Driver (staff - whitelist)
 async function addDriver(){
   if(!CUD)return;
   const isPremium=CUD.isPremium;
@@ -1244,11 +1525,16 @@ async function addDriver(){
     return;
   }
   const email=(document.getElementById('nd-email').value||'').trim().toLowerCase();
-  if(!email||!email.includes('@')) return toast('أدخل بريداً إلكترونياً صحيحاً','warning');
+  if(!email||!email.includes('@'))return toast('أدخل بريداً إلكترونياً صحيحاً','warning');
   setBtn('btn-add-drv',true,'');
   try{
     const exists=await db.collection('allowed_users').doc(email).get();
-    if(exists.exists) return toast('هذا البريد مضاف مسبقاً','warning');
+    if(exists.exists){
+      toast('هذا البريد مضاف مسبقاً','warning');
+      setBtn('btn-add-drv',false,'<i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية');
+      lucide.createIcons();
+      return;
+    }
     await db.collection('allowed_users').doc(email).set({
       email,role:'driver',addedBy:CU.uid,addedByName:CUD.name,
       addedAt:firebase.firestore.FieldValue.serverTimestamp()
@@ -1261,7 +1547,6 @@ async function addDriver(){
   lucide.createIcons();
 }
 
-// Search Drivers (staff)
 async function searchDriver(){
   const q=(document.getElementById('srch-q').value||'').trim().toLowerCase();
   const el=document.getElementById('srch-res');
@@ -1276,10 +1561,13 @@ async function searchDriver(){
         (u.phone||'').includes(q)||
         (u.plate||'').toLowerCase().includes(q)
       );
-    if(!results.length){el.innerHTML='<p class="text-center text-slate-400 text-sm py-6">لا نتائج</p>';return;}
+    if(!results.length){
+      el.innerHTML='<p class="text-center text-slate-400 text-sm py-6">لا نتائج</p>';
+      return;
+    }
     el.innerHTML=results.map(u=>`
       <div class="card p-4">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between mb-2">
           <div>
             <p class="font-black text-slate-800 text-sm">${u.name}</p>
             <p class="text-slate-400 text-xs">📱 ${u.phone||'—'} · 🚗 ${u.plate||'—'}</p>
@@ -1287,64 +1575,74 @@ async function searchDriver(){
           </div>
           <span class="chip ${u.status==='frozen'?'cp-rej':'cp-acc'}">${u.status==='frozen'?'مجمد':'نشط'}</span>
         </div>
+        <button onclick="startChatWith('${u.uid||u.id}','${u.name}')" class="btn btn-blue btn-sm mt-1">💬 مراسلة</button>
       </div>
     `).join('');
   }catch(e){el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ في البحث</p>';console.error(e);}
 }
 
-// Report modal opener
 async function openReportModal(){
   const isPremium=CUD&&CUD.isPremium;
   const rLimit=parseInt(APP.rLimit)||5;
   const rUsed=reportsThisMonth();
-  const limitWarn=document.getElementById('rpt-limit-warn');
-  const rptForm=document.getElementById('rpt-form');
+  const lw=document.getElementById('rpt-limit-warn');
+  const rf=document.getElementById('rpt-form');
   if(!isPremium&&rUsed>=rLimit){
-    if(limitWarn) limitWarn.classList.remove('hidden');
-    if(rptForm) rptForm.classList.add('hidden');
+    if(lw)lw.classList.remove('hidden');
+    if(rf)rf.classList.add('hidden');
   } else {
-    if(limitWarn) limitWarn.classList.add('hidden');
-    if(rptForm) rptForm.classList.remove('hidden');
+    if(lw)lw.classList.add('hidden');
+    if(rf)rf.classList.remove('hidden');
   }
-  // Prefill dates
-  const to=new Date();
-  const from=new Date(); from.setDate(from.getDate()-30);
-  const rFrom=document.getElementById('rpt-from');
-  const rTo=document.getElementById('rpt-to');
-  if(rFrom&&!rFrom.value) rFrom.value=from.toISOString().split('T')[0];
-  if(rTo&&!rTo.value) rTo.value=to.toISOString().split('T')[0];
+  const to=new Date();const from=new Date();from.setDate(from.getDate()-30);
+  const rFrom=document.getElementById('rpt-from');const rTo=document.getElementById('rpt-to');
+  if(rFrom&&!rFrom.value)rFrom.value=from.toISOString().split('T')[0];
+  if(rTo&&!rTo.value)rTo.value=to.toISOString().split('T')[0];
   await loadDriversDropdown();
   openMod('mod-report');
 }
+
 function setRptType(t){
   rptType=t;
   document.getElementById('rt-a').className=`rtb${t==='all'?' on text-blue-600':''}`;
   document.getElementById('rt-s').className=`rtb${t==='single'?' on':''}`;
   document.getElementById('rpt-car-row').classList.toggle('hidden',t!=='single');
 }
+
+// BUG FIX #6 (تقارير): إزالة orderBy + range query على حقلين = يحتاج index مركب
+// الحل: جلب بسيط + فلترة client-side
 async function generateReport(){
   const from=document.getElementById('rpt-from').value;
   const to=document.getElementById('rpt-to').value;
-  if(!from||!to) return toast('حدد نطاق التاريخ','warning');
-  if(new Date(from)>new Date(to)) return toast('تاريخ البداية بعد النهاية!','warning');
+  if(!from||!to)return toast('حدد نطاق التاريخ','warning');
+  if(new Date(from)>new Date(to))return toast('تاريخ البداية بعد النهاية!','warning');
   setBtn('btn-gen-rpt',true,'');
   try{
-    let q=db.collection('trips')
-      .where('tripDate','>=',firebase.firestore.Timestamp.fromDate(new Date(from)))
-      .where('tripDate','<=',firebase.firestore.Timestamp.fromDate(new Date(to+'T23:59:59')));
+    let q=db.collection('trips');
     if(rptType==='single'){
       const carVal=document.getElementById('rpt-car').value;
-      if(!carVal){toast('اختر سيارة','warning');setBtn('btn-gen-rpt',false,'<i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير');lucide.createIcons();return;}
+      if(!carVal){
+        toast('اختر سيارة','warning');
+        setBtn('btn-gen-rpt',false,'<i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير');
+        lucide.createIcons();
+        return;
+      }
       q=q.where('driverId','==',carVal);
     }
     const snap=await q.get();
-    reportExportData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const fromD=new Date(from);
+    const toD=new Date(to+'T23:59:59');
+    reportExportData=snap.docs
+      .map(d=>({id:d.id,...d.data()}))
+      .filter(t=>{
+        const td=t.tripDate?.toDate?.();
+        return td&&td>=fromD&&td<=toD;
+      });
 
-    // Update reports quota
     const m=new Date().toISOString().substring(0,7);
     const newUsed=CUD.reportsMonth===m?(CUD.reportsUsed||0)+1:1;
     await db.collection('users').doc(CU.uid).update({reportsUsed:newUsed,reportsMonth:m});
-    CUD.reportsUsed=newUsed; CUD.reportsMonth=m;
+    CUD.reportsUsed=newUsed;CUD.reportsMonth=m;
     document.getElementById('stf-rleft').textContent=`${reportsThisMonth()} / ${CUD.isPremium?'∞':(APP.rLimit||5)} هذا الشهر`;
 
     renderReportSummary(from,to);
@@ -1354,52 +1652,41 @@ async function generateReport(){
   setBtn('btn-gen-rpt',false,'<i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير');
   lucide.createIcons();
 }
+
 function renderReportSummary(from,to){
   const el=document.getElementById('rpt-summary');
   if(!reportExportData.length){
     el.innerHTML='<p class="text-slate-400 text-center py-6">لا توجد رحلات في هذه الفترة</p>';
     return;
   }
-  // Group by driver/car
   const grouped={};
   reportExportData.forEach(t=>{
     const key=t.driverName||'غير محدد';
-    if(!grouped[key]) grouped[key]={trips:[],total:0,plate:t.plate||'—'};
+    if(!grouped[key])grouped[key]={trips:[],total:0,plate:t.plate||'—'};
     grouped[key].trips.push(t);
     grouped[key].total+=parseFloat(t.price)||0;
   });
   const grandTotal=reportExportData.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
   let html=`
     <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200">
-      <div class="text-right">
-        <p class="font-black text-slate-800 text-sm">تقرير Royal Drive</p>
-        <p class="text-slate-400 text-xs">${from} → ${to}</p>
-      </div>
-      <div class="text-right">
-        <p class="text-blue-600 font-black text-lg">${grandTotal.toFixed(2)} ج</p>
-        <p class="text-slate-400 text-xs">${reportExportData.length} رحلة</p>
-      </div>
+      <div><p class="font-black text-slate-800 text-sm">تقرير Royal Drive</p><p class="text-slate-400 text-xs">${from} → ${to}</p></div>
+      <div class="text-right"><p class="text-blue-600 font-black text-lg">${grandTotal.toFixed(2)} ج</p><p class="text-slate-400 text-xs">${reportExportData.length} رحلة</p></div>
     </div>`;
   Object.entries(grouped).forEach(([name,data])=>{
-    html+=`
-      <div class="mb-4 last:mb-0">
-        <div class="flex justify-between items-center mb-2 bg-slate-100 rounded-xl px-3 py-2">
-          <span class="font-black text-slate-700 text-sm">🚗 ${name}</span>
-          <span class="text-xs text-slate-500 font-bold">لوحة: ${data.plate}</span>
-          <span class="font-black text-blue-600 text-sm">${data.total.toFixed(2)} ج</span>
-        </div>
-        ${data.trips.map(t=>`
-          <div class="flex justify-between items-center py-1.5 px-2 border-b border-slate-50 text-xs">
-            <span class="text-slate-600">${fmtDate(t.tripDate||t.createdAt)}</span>
-            <span class="text-slate-700 font-bold flex-1 mx-2 truncate">${t.destination||'—'}</span>
-            <div class="flex items-center gap-1">
-              ${statusChip(t.status)}
-              <span class="font-black text-slate-700">${t.price||0} ج</span>
-            </div>
-          </div>
-        `).join('')}
-        <div class="text-left py-1.5 px-2 text-xs font-black text-green-700">الإجمالي: ${data.total.toFixed(2)} جنيه</div>
-      </div>`;
+    html+=`<div class="mb-4 last:mb-0">
+      <div class="flex justify-between items-center mb-2 bg-slate-100 rounded-xl px-3 py-2">
+        <span class="font-black text-slate-700 text-sm">🚗 ${name}</span>
+        <span class="text-xs text-slate-500 font-bold">لوحة: ${data.plate}</span>
+        <span class="font-black text-blue-600 text-sm">${data.total.toFixed(2)} ج</span>
+      </div>
+      ${data.trips.map(t=>`
+        <div class="flex justify-between items-center py-1.5 px-2 border-b border-slate-50 text-xs">
+          <span class="text-slate-600">${fmtDate(t.tripDate||t.createdAt)}</span>
+          <span class="text-slate-700 font-bold flex-1 mx-2 truncate">${t.destination||'—'}</span>
+          <div class="flex items-center gap-1">${statusChip(t.status)}<span class="font-black text-slate-700">${t.price||0} ج</span></div>
+        </div>`).join('')}
+      <div class="text-left py-1.5 px-2 text-xs font-black text-green-700">الإجمالي: ${data.total.toFixed(2)} جنيه</div>
+    </div>`;
   });
   el.innerHTML=html;
 }
@@ -1411,51 +1698,36 @@ function buildPrintHTML(){
   reportExportData.forEach(t=>{
     const key=t.driverName||'غير محدد';
     if(!grouped[key])grouped[key]={trips:[],total:0,plate:t.plate||'—'};
-    grouped[key].trips.push(t);
-    grouped[key].total+=parseFloat(t.price)||0;
+    grouped[key].trips.push(t);grouped[key].total+=parseFloat(t.price)||0;
   });
   const grandTotal=reportExportData.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
-  let html=`
-  <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير Royal Drive</title>
+  let html=`<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير Royal Drive</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-  <style>
-    *{font-family:'Cairo',sans-serif;box-sizing:border-box}
-    body{padding:30px;color:#1e293b;background:#fff}
-    h1{font-size:1.6rem;font-weight:900;margin-bottom:4px}
-    .sub{color:#64748b;font-size:.85rem;margin-bottom:20px}
-    table{width:100%;border-collapse:collapse;margin-bottom:20px}
-    th{background:#1e293b;color:#fff;padding:8px 12px;font-size:.8rem;text-align:right}
-    td{padding:8px 12px;font-size:.78rem;border-bottom:1px solid #f1f5f9;text-align:right}
-    tr:nth-child(even)td{background:#f8fafc}
-    .section-hdr{background:#eff6ff;font-weight:900;padding:10px 12px;font-size:.85rem;color:#1e40af;margin-top:20px;border-right:4px solid #2563eb}
-    .total-row td{font-weight:900;background:#f0fdf4;color:#166534}
-    .grand-total{background:#1e293b;color:#fff;padding:12px 20px;text-align:left;font-weight:900;font-size:1rem;margin-top:10px}
-    @page{margin:1.5cm}
-  </style></head><body>
+  <style>*{font-family:'Cairo',sans-serif;box-sizing:border-box}body{padding:30px;color:#1e293b;background:#fff}
+  h1{font-size:1.6rem;font-weight:900;margin-bottom:4px}.sub{color:#64748b;font-size:.85rem;margin-bottom:20px}
+  table{width:100%;border-collapse:collapse;margin-bottom:20px}
+  th{background:#1e293b;color:#fff;padding:8px 12px;font-size:.8rem;text-align:right}
+  td{padding:8px 12px;font-size:.78rem;border-bottom:1px solid #f1f5f9;text-align:right}
+  tr:nth-child(even)td{background:#f8fafc}
+  .sh{background:#eff6ff;font-weight:900;padding:10px 12px;font-size:.85rem;color:#1e40af;margin-top:20px;border-right:4px solid #2563eb}
+  .tr td{font-weight:900;background:#f0fdf4;color:#166534}
+  .gt{background:#1e293b;color:#fff;padding:12px 20px;text-align:left;font-weight:900;font-size:1rem;margin-top:10px}
+  @page{margin:1.5cm}</style></head><body>
   <h1>تقرير Royal Drive</h1>
   <p class="sub">الفترة: ${from} إلى ${to} · إجمالي الرحلات: ${reportExportData.length}</p>`;
   Object.entries(grouped).forEach(([name,data])=>{
-    html+=`<div class="section-hdr">🚗 السائق: ${name} &nbsp;|&nbsp; رقم اللوحة: ${data.plate}</div>
+    html+=`<div class="sh">🚗 السائق: ${name} &nbsp;|&nbsp; رقم اللوحة: ${data.plate}</div>
     <table><thead><tr><th>التاريخ</th><th>الوجهة</th><th>الحالة</th><th>السعر (جنيه)</th><th>ملاحظات</th></tr></thead><tbody>`;
     data.trips.forEach(t=>{
       html+=`<tr><td>${fmtDate(t.tripDate||t.createdAt)}</td><td>${t.destination||'—'}</td><td>${statusAr(t.status)}</td><td>${t.price||0}</td><td>${t.notes||'—'}</td></tr>`;
     });
-    html+=`<tr class="total-row"><td colspan="3">إجمالي السائق</td><td>${data.total.toFixed(2)} جنيه</td><td></td></tr></tbody></table>`;
+    html+=`<tr class="tr"><td colspan="3">إجمالي السائق</td><td>${data.total.toFixed(2)} جنيه</td><td></td></tr></tbody></table>`;
   });
-  html+=`<div class="grand-total">الإجمالي الكلي لجميع السيارات: ${grandTotal.toFixed(2)} جنيه</div></body></html>`;
+  html+=`<div class="gt">الإجمالي الكلي: ${grandTotal.toFixed(2)} جنيه</div></body></html>`;
   return html;
 }
-function doPrint(){
-  const win=window.open('','_blank','width=900,height=700');
-  win.document.write(buildPrintHTML());
-  win.document.close();
-  win.onload=()=>win.print();
-}
-function doPDF(){
-  const win=window.open('','_blank','width=900,height=700');
-  win.document.write(buildPrintHTML()+'<script>window.onload=()=>{window.print();}<\/script>');
-  win.document.close();
-}
+function doPrint(){const w=window.open('','_blank','width=900,height=700');w.document.write(buildPrintHTML());w.document.close();w.onload=()=>w.print();}
+function doPDF(){const w=window.open('','_blank','width=900,height=700');w.document.write(buildPrintHTML()+'<script>window.onload=()=>{window.print();}<\/script>');w.document.close();}
 function doExcel(){
   if(!reportExportData.length)return toast('لا توجد بيانات للتصدير','warning');
   const wb=XLSX.utils.book_new();
@@ -1483,12 +1755,11 @@ function doExcel(){
   XLSX.writeFile(wb,`تقرير-رويال-درايف-${todayStr()}.xlsx`);
 }
 
-// Submit Issue
 async function submitIssue(){
   const title=(document.getElementById('iss-title').value||'').trim();
   const desc=(document.getElementById('iss-desc').value||'').trim();
-  if(!title) return toast('أدخل عنوان المشكلة','warning');
-  if(!desc)  return toast('أدخل وصف المشكلة','warning');
+  if(!title)return toast('أدخل عنوان المشكلة','warning');
+  if(!desc)return toast('أدخل وصف المشكلة','warning');
   setBtn('btn-iss',true,'');
   try{
     await db.collection('issues').add({
@@ -1505,6 +1776,7 @@ async function submitIssue(){
   setBtn('btn-iss',false,'<i data-lucide="flag" class="w-4 h-4"></i> إرسال البلاغ');
   lucide.createIcons();
 }
+
 function openWhatsApp(){
   const vf=APP.vfNumber||'01552610460';
   const num='2'+vf.replace(/^0/,'');
@@ -1512,35 +1784,27 @@ function openWhatsApp(){
   window.open(`https://wa.me/${num}?text=${msg}`,'_blank');
 }
 
-// ═══════════════════════════════════════
-// ══════ OWNER DASHBOARD ══════
-// ═══════════════════════════════════════
+// ════════════════════════════════════════════════
+// لوحة المالك
+// ════════════════════════════════════════════════
 async function loadOwnerDash(){
   try{
-    // Load stats
     const [drv,stf,trps,iss]=await Promise.all([
       db.collection('users').where('role','==','driver').get(),
       db.collection('users').where('role','==','staff').get(),
       db.collection('trips').where('status','==','completed').get(),
       db.collection('issues').where('status','==','open').get()
     ]);
-    const dEl=document.getElementById('ow-dc');
-    const sEl=document.getElementById('ow-sc');
-    const tEl=document.getElementById('ow-tc');
-    const iEl=document.getElementById('ow-ic');
-    if(dEl)dEl.textContent=drv.size;
-    if(sEl)sEl.textContent=stf.size;
-    if(tEl)tEl.textContent=trps.size;
-    if(iEl)iEl.textContent=iss.size;
-    // Load staff list
+    const dEl=document.getElementById('ow-dc');const sEl=document.getElementById('ow-sc');
+    const tEl=document.getElementById('ow-tc');const iEl=document.getElementById('ow-ic');
+    if(dEl)dEl.textContent=drv.size;if(sEl)sEl.textContent=stf.size;
+    if(tEl)tEl.textContent=trps.size;if(iEl)iEl.textContent=iss.size;
     renderOwnerStaff(stf.docs);
-    // Load issues
     renderOwnerIssues(iss.docs);
   }catch(e){console.error('owner dash:',e);}
 }
 function renderOwnerStaff(docs){
-  const el=document.getElementById('ow-staff');
-  if(!el)return;
+  const el=document.getElementById('ow-staff');if(!el)return;
   if(!docs.length){el.innerHTML='<p class="text-slate-500 text-sm text-center py-4">لا يوجد موظفون</p>';return;}
   el.innerHTML=docs.map(d=>{
     const u=d.data();
@@ -1565,8 +1829,7 @@ function renderOwnerStaff(docs){
   }).join('');
 }
 function renderOwnerIssues(docs){
-  const el=document.getElementById('ow-issues');
-  if(!el)return;
+  const el=document.getElementById('ow-issues');if(!el)return;
   if(!docs.length){el.innerHTML='<p class="text-slate-500 text-sm text-center py-4">لا توجد بلاغات</p>';return;}
   el.innerHTML=docs.map(d=>{
     const i=d.data();
@@ -1580,40 +1843,28 @@ function renderOwnerIssues(docs){
     </div>`;
   }).join('');
 }
-async function toggleFreeze(uid,currentStatus){
-  if(!confirm(currentStatus==='active'?'تجميد هذا الموظف؟':'تفعيل هذا الموظف؟'))return;
-  try{
-    await db.collection('users').doc(uid).update({status:currentStatus==='active'?'frozen':'active'});
-    toast('تم التحديث ✅','success');
-    loadOwnerDash();
-  }catch(e){toast('فشل التحديث','error');}
+async function toggleFreeze(uid,cs){
+  if(!confirm(cs==='active'?'تجميد هذا الموظف؟':'تفعيل هذا الموظف؟'))return;
+  try{await db.collection('users').doc(uid).update({status:cs==='active'?'frozen':'active'});toast('تم التحديث ✅','success');loadOwnerDash();}
+  catch(e){toast('فشل التحديث','error');}
 }
 async function activatePremium(uid){
   if(!confirm('تفعيل الخطة المميزة لهذا الموظف؟'))return;
-  try{
-    await db.collection('users').doc(uid).update({isPremium:true});
-    toast('تم تفعيل الخطة المميزة ✅','success');
-    loadOwnerDash();
-  }catch(e){toast('فشل التفعيل','error');}
+  try{await db.collection('users').doc(uid).update({isPremium:true});toast('تم تفعيل الخطة المميزة ✅','success');loadOwnerDash();}
+  catch(e){toast('فشل التفعيل','error');}
 }
 async function deleteUser(uid){
   if(!confirm('حذف هذا المستخدم نهائياً؟ لا يمكن التراجع!'))return;
-  try{
-    await db.collection('users').doc(uid).delete();
-    toast('تم الحذف','success');
-    loadOwnerDash();
-  }catch(e){toast('فشل الحذف','error');}
+  try{await db.collection('users').doc(uid).delete();toast('تم الحذف','success');loadOwnerDash();}
+  catch(e){toast('فشل الحذف','error');}
 }
 async function closeIssue(id){
-  try{
-    await db.collection('issues').doc(id).update({status:'closed'});
-    toast('تم وضع البلاغ كمحلول ✅','success');
-    loadOwnerDash();
-  }catch(e){toast('فشل التحديث','error');}
+  try{await db.collection('issues').doc(id).update({status:'closed'});toast('تم وضع البلاغ كمحلول ✅','success');loadOwnerDash();}
+  catch(e){toast('فشل التحديث','error');}
 }
 async function addStaff(){
   const email=(document.getElementById('ns-email').value||'').trim().toLowerCase();
-  if(!email||!email.includes('@')) return toast('أدخل بريداً إلكترونياً صحيحاً','warning');
+  if(!email||!email.includes('@'))return toast('أدخل بريداً إلكترونياً صحيحاً','warning');
   setBtn('btn-add-stf',true,'');
   try{
     await db.collection('allowed_users').doc(email).set({
@@ -1627,12 +1878,13 @@ async function addStaff(){
   setBtn('btn-add-stf',false,'منح الصلاحية');
 }
 function openSettings(){
-  // Pre-fill current settings
   const set={
-    'set-name':APP.name,'set-sub':APP.sub,
+    'set-sub':APP.sub,
     'set-owner-email':APP.ownerEmail,
-    'set-price':APP.price,'set-vf':APP.vfNumber,
-    'set-dlimit':APP.dLimit,'set-rlimit':APP.rLimit,
+    'set-price':APP.price,
+    'set-vf':APP.vfNumber,
+    'set-dlimit':APP.dLimit,
+    'set-rlimit':APP.rLimit,
     'set-announce':APP.announce||''
   };
   Object.entries(set).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val;});
@@ -1640,8 +1892,8 @@ function openSettings(){
 }
 async function saveSettings(){
   const newSettings={
-    name:document.getElementById('set-name').value.trim()||'ROYAL DRIVE',
-    sub:document.getElementById('set-sub').value.trim()||'',
+    // BUG FIX #11: اسم التطبيق لا يُحفظ في الإعدادات
+    sub:document.getElementById('set-sub').value.trim()||'نظام إدارة المركبات الذكي',
     ownerEmail:(document.getElementById('set-owner-email').value.trim()||APP.ownerEmail).toLowerCase(),
     price:parseInt(document.getElementById('set-price').value)||99,
     vfNumber:document.getElementById('set-vf').value.trim()||'01552610460',
@@ -1661,28 +1913,31 @@ async function saveSettings(){
   lucide.createIcons();
 }
 
-// ═══════════════════════════════════════
-// NOTIFICATIONS
-// ═══════════════════════════════════════
+// ════════════════════════════════════════════════
+// إشعارات
+// ════════════════════════════════════════════════
+// BUG FIX #4: حذف orderBy('createdAt','desc') لأنه يحتاج composite index
+// الترتيب يتم client-side
 function listenNotifications(uid){
-  if(notifUnsub) notifUnsub();
+  if(notifUnsub)notifUnsub();
   notifUnsub=db.collection('notifications')
     .where('uid','==',uid)
-    .orderBy('createdAt','desc')
     .limit(50)
     .onSnapshot(snap=>{
-      const unread=snap.docs.filter(d=>!d.data().read);
-      const cnt=unread.length;
+      // ترتيب client-side
+      const items=snap.docs
+        .map(d=>({id:d.id,...d.data()}))
+        .sort((a,b)=>(b.createdAt?.toDate?.()?.getTime()||0)-(a.createdAt?.toDate?.()?.getTime()||0));
+      const unread=items.filter(n=>!n.read).length;
       ['bdg-dn','bdg-sn'].forEach(id=>{
         const b=document.getElementById(id);
-        if(b){b.textContent=cnt;b.classList.toggle('hidden',cnt===0);}
+        if(b){b.textContent=unread;b.classList.toggle('hidden',unread===0);}
       });
-      renderNotifList(snap.docs.map(d=>({id:d.id,...d.data()})));
+      renderNotifList(items);
     },e=>console.warn('notif:',e));
 }
 function renderNotifList(items){
-  const el=document.getElementById('notif-list');
-  if(!el)return;
+  const el=document.getElementById('notif-list');if(!el)return;
   if(!items.length){el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">لا توجد إشعارات</p>';return;}
   el.innerHTML=items.map(n=>`
     <div class="flex items-start gap-3 p-3 rounded-2xl ${n.read?'bg-slate-50':'bg-blue-50 border border-blue-100'}">
@@ -1705,54 +1960,75 @@ async function markAllRead(){
   }catch(e){console.warn(e);}
 }
 
-// ═══════════════════════════════════════
-// MESSAGING
-// ═══════════════════════════════════════
-let allUsers=[];
+// ════════════════════════════════════════════════
+// BUG FIX #1 — المراسلة (الإصلاح الكامل)
+// ════════════════════════════════════════════════
 function listenMessages(uid){
-  if(msgUnsub) msgUnsub();
+  if(msgUnsub)msgUnsub();
   msgUnsub=db.collection('chats')
     .where('participants','array-contains',uid)
     .onSnapshot(snap=>{
       let unread=0;
-      snap.docs.forEach(d=>{const data=d.data();if(data.unread&&data.unread[uid]) unread+=data.unread[uid];});
+      snap.docs.forEach(d=>{
+        const data=d.data();
+        if(data.unread&&data.unread[uid])unread+=data.unread[uid];
+      });
       ['bdg-dm','bdg-sm'].forEach(id=>{
         const b=document.getElementById(id);
         if(b){b.textContent=unread;b.classList.toggle('hidden',unread===0);}
       });
-    },e=>console.warn('msg:',e));
+    },e=>console.warn('msg listen:',e));
 }
-async function openMessages(role){
+
+async function openMessages(){
   openMod('mod-messages');
-  await showConvList(role);
+  await showConvList();
 }
+
 async function showConvList(){
   document.getElementById('msg-back').classList.add('hidden');
   document.getElementById('msg-hdr').textContent='الرسائل';
   document.getElementById('conv-list').classList.remove('hidden');
   document.getElementById('chat-view').classList.add('hidden');
   if(chatUnsub){chatUnsub();chatUnsub=null;}
+  currentConvId=null;
+
   const el=document.getElementById('conv-list');
   el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">جاري التحميل...</p>';
   try{
-    const snap=await db.collection('chats').where('participants','array-contains',CU.uid).orderBy('lastTime','desc').get();
-    if(snap.empty){
-      el.innerHTML='';
-      if(CUD.role==='staff') renderNewChatBtn(el);
+    // BUG FIX #1 الرئيسي: حذف orderBy('lastTime','desc')
+    // هذا كان يتطلب Firestore composite index غير موجود → يسبب crash للدردشة
+    // الحل: جلب بـ where فقط ثم ترتيب client-side
+    const snap=await db.collection('chats')
+      .where('participants','array-contains',CU.uid)
+      .get();
+
+    // ترتيب client-side بدلاً من orderBy
+    const docs=snap.docs.sort((a,b)=>{
+      const at=a.data().lastTime?.toDate?.()?.getTime()||0;
+      const bt=b.data().lastTime?.toDate?.()?.getTime()||0;
+      return bt-at;
+    });
+
+    el.innerHTML='';
+    if(!docs.length){
+      if(CUD.role==='staff'||CUD.role==='owner')renderNewChatBtn(el);
       else el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">لا توجد محادثات بعد</p>';
       return;
     }
-    el.innerHTML='';
-    for(const doc of snap.docs){
+
+    for(const doc of docs){
       const data=doc.data();
       const otherUid=data.participants.find(p=>p!==CU.uid);
+      if(!otherUid)continue;
       const otherSnap=await db.collection('users').doc(otherUid).get();
       const other=otherSnap.exists?otherSnap.data():{name:'مستخدم',role:'—'};
       const unreadCount=data.unread&&data.unread[CU.uid]?data.unread[CU.uid]:0;
       const btn=document.createElement('button');
       btn.className='w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition-colors text-right';
       btn.innerHTML=`
-        <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0" style="background:${other.role==='driver'?'#dbeafe':'#dcfce7'};color:${other.role==='driver'?'#1e40af':'#166534'}">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0"
+          style="background:${other.role==='driver'?'#dbeafe':'#dcfce7'};color:${other.role==='driver'?'#1e40af':'#166534'}">
           ${(other.name||'?').charAt(0)}
         </div>
         <div class="flex-1 min-w-0">
@@ -1766,86 +2042,130 @@ async function showConvList(){
       btn.onclick=()=>openChat(otherUid,other.name,doc.id);
       el.appendChild(btn);
     }
-    if(CUD.role==='staff') renderNewChatBtn(el);
-  }catch(e){el.innerHTML='<p class="text-center text-red-400 py-8 text-sm">خطأ في التحميل</p>';console.error(e);}
+    if(CUD.role==='staff'||CUD.role==='owner')renderNewChatBtn(el);
+  }catch(e){
+    el.innerHTML='<p class="text-center text-red-400 py-8 text-sm">خطأ في التحميل</p>';
+    console.error(e);
+  }
 }
+
 function renderNewChatBtn(el){
   const btn=document.createElement('button');
   btn.className='w-full flex items-center justify-center gap-2 p-3 mt-2 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-sm hover:border-blue-300 hover:text-blue-500 transition-colors';
   btn.innerHTML='<i data-lucide="plus" class="w-4 h-4"></i> محادثة جديدة';
-  btn.onclick=showDriverPicker;
+  btn.onclick=showUserPicker;
   el.appendChild(btn);
   lucide.createIcons();
 }
-async function showDriverPicker(){
+
+async function showUserPicker(){
   const el=document.getElementById('conv-list');
-  el.innerHTML='<p class="text-xs font-bold text-slate-400 mb-2 px-1">اختر سائقاً للتواصل:</p>';
+  el.innerHTML='<p class="text-xs font-bold text-slate-400 mb-2 px-1">اختر شخصاً للتواصل:</p>';
   try{
-    const snap=await db.collection('users').where('role','==','driver').where('status','==','active').get();
-    if(snap.empty){el.innerHTML+='<p class="text-slate-400 text-sm text-center py-4">لا يوجد سائقون</p>';return;}
-    snap.docs.forEach(d=>{
-      const u=d.data();
-      const btn=document.createElement('button');
-      btn.className='w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition-colors text-right';
-      btn.innerHTML=`<div class="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center font-black text-sm text-blue-700">${(u.name||'?').charAt(0)}</div>
-        <div><p class="font-bold text-slate-800 text-sm">${u.name}</p><p class="text-slate-400 text-xs">${u.carType||'—'} · ${u.plate||'—'}</p></div>`;
-      btn.onclick=()=>openChat(d.id,u.name,getConvId(CU.uid,d.id));
-      el.appendChild(btn);
-    });
+    const snap=await db.collection('users').where('status','==','active').get();
+    snap.docs
+      .filter(d=>d.id!==CU.uid)
+      .forEach(d=>{
+        const u=d.data();
+        const btn=document.createElement('button');
+        btn.className='w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition-colors text-right';
+        const bg=u.role==='driver'?'#dbeafe':u.role==='owner'?'#fef3c7':'#dcfce7';
+        const fg=u.role==='driver'?'#1e40af':u.role==='owner'?'#92400e':'#166534';
+        btn.innerHTML=`<div class="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm" style="background:${bg};color:${fg}">${(u.name||'?').charAt(0)}</div>
+          <div>
+            <p class="font-bold text-slate-800 text-sm">${u.name}</p>
+            <p class="text-slate-400 text-xs">${u.role==='driver'?'سائق':u.role==='owner'?'المالك':'موظف'}${u.plate?' · '+u.plate:''}</p>
+          </div>`;
+        btn.onclick=()=>openChat(d.id,u.name,getConvId(CU.uid,d.id));
+        el.appendChild(btn);
+      });
   }catch(e){console.error(e);}
 }
+
 async function openChat(otherUid,name,convId){
-  chatWith=otherUid; chatName_=name;
-  const convIdFinal=convId||getConvId(CU.uid,otherUid);
+  chatWith=otherUid;
+  // BUG FIX #3: نحتفظ بـ convId هنا ليستخدمه sendMsg
+  currentConvId=convId||getConvId(CU.uid,otherUid);
+
   document.getElementById('msg-back').classList.remove('hidden');
   document.getElementById('msg-hdr').textContent=name;
   document.getElementById('conv-list').classList.add('hidden');
   document.getElementById('chat-view').classList.remove('hidden');
+
   const el=document.getElementById('chat-msgs');
   el.innerHTML='<p class="text-center text-slate-400 text-xs py-4">جاري التحميل...</p>';
-  // Reset unread for this conversation
+
+  // إعادة تعيين عداد الرسائل غير المقروءة
   try{
-    const unreadUpdate={};
-    unreadUpdate[`unread.${CU.uid}`]=0;
-    await db.collection('chats').doc(convIdFinal).set(unreadUpdate,{merge:true});
+    const upd={};
+    upd[`unread.${CU.uid}`]=0;
+    await db.collection('chats').doc(currentConvId).set(upd,{merge:true});
   }catch(e){}
+
   if(chatUnsub){chatUnsub();chatUnsub=null;}
-  chatUnsub=db.collection('chats').doc(convIdFinal).collection('msgs')
-    .orderBy('createdAt','asc').limit(80)
+
+  chatUnsub=db.collection('chats').doc(currentConvId).collection('msgs')
+    .orderBy('createdAt','asc')
+    .limit(100)
     .onSnapshot(snap=>{
       el.innerHTML='';
       snap.docs.forEach(d=>{
         const m=d.data();
         const mine=m.from===CU.uid;
         const div=document.createElement('div');
+        // BUG FIX #1 اتجاه: في RTL
+        // justify-start = يمين (رسائلي)، justify-end = يسار (رسائلهم)
         div.className=`flex ${mine?'justify-start':'justify-end'}`;
-        div.innerHTML=`<div class="${mine?'b-out':'b-in'} px-4 py-2.5 text-sm mb-0.5">
+        div.innerHTML=`<div class="${mine?'b-out':'b-in'} px-4 py-2.5 text-sm">
+          ${!mine?`<p class="text-xs font-black opacity-60 mb-0.5">${m.fromName||''}</p>`:''}
           <p>${m.text}</p>
           <p class="text-xs mt-1 opacity-60">${fmtDateShort(m.createdAt)}</p>
         </div>`;
         el.appendChild(div);
       });
       el.scrollTop=el.scrollHeight;
-    },e=>console.warn('chat:',e));
+    },e=>console.warn('chat snap:',e));
 }
+
 async function sendMsg(){
   const inp=document.getElementById('chat-inp');
   const text=(inp.value||'').trim();
   if(!text||!chatWith||!CU)return;
   inp.value='';
-  const convId=getConvId(CU.uid,chatWith);
+
+  // BUG FIX #3: استخدم currentConvId بدلاً من إعادة حساب getConvId
+  const convId=currentConvId||getConvId(CU.uid,chatWith);
+
   try{
-    const msgData={from:CU.uid,fromName:CUD.name,to:chatWith,text,createdAt:firebase.firestore.FieldValue.serverTimestamp()};
-    await db.collection('chats').doc(convId).collection('msgs').add(msgData);
-    const unreadUpdate={};
-    unreadUpdate[`unread.${chatWith}`]=firebase.firestore.FieldValue.increment(1);
+    // BUG FIX #2 (الرئيسي): أنشئ document المحادثة أولاً مع participants
+    // ثم أضف الرسالة ثم حدّث الـ metadata بـ update (لا set مع spread)
+    // السبب: spread operator مع dot-notation keys ينشئ حقولاً حرفية مثل "unread.uid"
+    // وليس nested path — Firestore update() هو الوحيد الذي يفسر dot-notation كـ nested
+
+    // خطوة 1: تأكد من وجود doc المحادثة
     await db.collection('chats').doc(convId).set({
-      participants:[CU.uid,chatWith],
-      lastMsg:text,
-      lastTime:firebase.firestore.FieldValue.serverTimestamp(),
-      ...unreadUpdate
+      participants:[CU.uid,chatWith]
     },{merge:true});
-    // Notify the other person
+
+    // خطوة 2: أضف الرسالة
+    await db.collection('chats').doc(convId).collection('msgs').add({
+      from:CU.uid,
+      fromName:CUD.name,
+      to:chatWith,
+      text,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // خطوة 3: حدّث metadata + عداد الرسائل غير المقروءة
+    // update() يفسر "unread.chatWith" كـ nested field صحيح
+    const updateData={
+      lastMsg:text,
+      lastTime:firebase.firestore.FieldValue.serverTimestamp()
+    };
+    updateData[`unread.${chatWith}`]=firebase.firestore.FieldValue.increment(1);
+    await db.collection('chats').doc(convId).update(updateData);
+
+    // إشعار
     await db.collection('notifications').add({
       uid:chatWith,
       title:`💬 رسالة من ${CUD.name}`,
@@ -1853,12 +2173,17 @@ async function sendMsg(){
       read:false,
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
-  }catch(e){console.error('sendMsg:',e);toast('فشل الإرسال','error');}
+  }catch(e){
+    console.error('sendMsg:',e);
+    toast('فشل إرسال الرسالة','error');
+  }
 }
 
-// ═══════════════════════════════════════
-// STARTUP
-// ═══════════════════════════════════════
+// ════════════════════════════════════════════════
+// التهيئة
+// ════════════════════════════════════════════════
 loadAppSettings();
+loadEmailHistory();
 </script>
+</body>
 </html>
