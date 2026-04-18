@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0f1e">
 <title>Royal Drive Pro</title>
+<!-- FIX #8: PWA manifest + apple icon injected via JS canvas -->
+<link id="pwa-manifest" rel="manifest">
+<link id="apple-icon"   rel="apple-touch-icon">
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -19,97 +22,58 @@
 :root{--acc:#2563eb;--grn:#16a34a;--gld:#d97706;--rad:1.4rem}
 *,*::before,*::after{font-family:'Cairo',sans-serif;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0a0f1e}
-
-/* ─── صفحات ─── */
 .page{position:fixed;inset:0;overflow-y:auto;visibility:hidden;pointer-events:none;opacity:0;transition:opacity .2s;z-index:10}
 .page.active{visibility:visible;pointer-events:all;opacity:1;z-index:50}
-
-/* ─── BUG FIX #8,#9,#18: شاشة تحميل تمنع وميض صفحة Welcome عند الـ refresh ─── */
+/* FIX #6,#7,#13 loading screen */
 #pg-loading{background:#0a0f1e;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center}
-
-/* ─── مودال ─── */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(5px);display:flex;align-items:flex-end;justify-content:center;z-index:200;visibility:hidden;opacity:0;transition:opacity .25s,visibility .25s}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;z-index:200;visibility:hidden;opacity:0;transition:opacity .25s,visibility .25s}
 .modal.open{visibility:visible;opacity:1}
-.mbox{background:#fff;border-radius:2rem 2rem 0 0;width:100%;max-width:600px;max-height:88vh;overflow-y:auto;padding:20px 18px max(20px,env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.mbox{background:#fff;border-radius:2rem 2rem 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:20px 18px max(20px,env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1)}
 .modal.open .mbox{transform:translateY(0)}
-.mhandle{width:36px;height:4px;background:#e2e8f0;border-radius:2px;margin:0 auto 16px}
-
-/* ─── تدرجات ─── */
-.gd{background:linear-gradient(160deg,#0a0f1e 0%,#111827 100%)}
+.mhandle{width:38px;height:4px;background:#e2e8f0;border-radius:2px;margin:0 auto 18px}
+.gd    {background:linear-gradient(160deg,#0a0f1e 0%,#111827 100%)}
 .gd-drv{background:linear-gradient(145deg,#0d1b2a 0%,#1b3a5c 100%)}
 .gd-stf{background:linear-gradient(145deg,#052e16 0%,#14532d 100%)}
 .gd-own{background:linear-gradient(145deg,#1c1204 0%,#3d1a00 100%)}
-
-/* ─── لوجو ─── */
-.logo{background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:22px;display:flex!important;align-items:center;justify-content:center;box-shadow:0 0 0 8px rgba(245,158,11,.12),0 16px 40px rgba(245,158,11,.25);flex-shrink:0;position:relative;overflow:hidden}
+.logo{background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:22px;display:flex!important;align-items:center;justify-content:center;box-shadow:0 0 0 8px rgba(245,158,11,.12),0 14px 36px rgba(245,158,11,.28);flex-shrink:0;position:relative;overflow:hidden}
 .logo::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.22) 0%,transparent 55%)}
-
-/* ─── مدخلات ─── */
 .inp{width:100%;padding:13px 15px;border-radius:14px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:.88rem;color:#0f172a;transition:all .15s;outline:none}
 .inp:focus{border-color:#2563eb;background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
-textarea.inp{resize:none}
-
-/* ─── أزرار ─── */
+textarea.inp{resize:none} select.inp{cursor:pointer}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:900;border-radius:14px;border:none;cursor:pointer;transition:all .15s;outline:none}
-.btn:active{transform:scale(.96)}
-.btn:disabled{opacity:.6;pointer-events:none}
+.btn:active{transform:scale(.96)} .btn:disabled{opacity:.6;pointer-events:none}
 .btn-blue{background:#2563eb;color:#fff;box-shadow:0 6px 20px rgba(37,99,235,.3)}
 .btn-grn{background:#16a34a;color:#fff;box-shadow:0 6px 20px rgba(22,163,74,.3)}
 .btn-gld{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 6px 20px rgba(217,119,6,.3)}
 .btn-red{background:#dc2626;color:#fff;box-shadow:0 6px 20px rgba(220,38,38,.25)}
+.btn-ora{background:#ea580c;color:#fff;box-shadow:0 6px 20px rgba(234,88,12,.22)}
 .btn-ghost{background:rgba(255,255,255,.1);color:#fff;border:1.5px solid rgba(255,255,255,.15)}
 .btn-muted{background:#f1f5f9;color:#475569}
 .btn-sm{padding:8px 14px;font-size:.75rem;border-radius:11px}
 .btn-md{padding:12px 18px;font-size:.86rem}
 .btn-lg{padding:14px 18px;font-size:.9rem;width:100%}
-
-/* ─── كروت ─── */
 .card{background:#fff;border-radius:var(--rad);border:1px solid #f1f5f9;box-shadow:0 2px 12px rgba(0,0,0,.05)}
 .card-d{background:rgba(255,255,255,.06);border-radius:var(--rad);border:1px solid rgba(255,255,255,.09)}
-
-/* ─── تشيبات ─── */
 .chip{display:inline-flex;align-items:center;gap:3px;font-weight:700;font-size:.67rem;padding:3px 9px;border-radius:99px}
-.cp-pend{background:#fef3c7;color:#92400e}
-.cp-acc{background:#d1fae5;color:#065f46}
-.cp-rej{background:#fee2e2;color:#991b1b}
-.cp-done{background:#dbeafe;color:#1e40af}
-
-/* ─── بادج ─── */
-.bdg{position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:900;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid rgba(0,0,0,.2)}
-
-/* ─── سبينر ─── */
+.cp-pend{background:#fef3c7;color:#92400e} .cp-acc{background:#d1fae5;color:#065f46}
+.cp-rej{background:#fee2e2;color:#991b1b}  .cp-done{background:#dbeafe;color:#1e40af}
+.cp-wait{background:#fce7f3;color:#9d174d} .cp-lock{background:#e5e7eb;color:#6b7280}
+.bdg{position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:900;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid rgba(0,0,0,.18)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
-
-/* ─── تبديل الدور ─── */
 .rtb{flex:1;padding:10px;border-radius:12px;font-weight:900;font-size:.82rem;transition:all .2s;color:#94a3b8;border:none;background:transparent;cursor:pointer}
 .rtb.on{background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.1);color:#2563eb}
-
-/* ─── BUG FIX #1: فقاعات الدردشة بالاتجاه الصحيح لـ RTL ─── */
-/* في RTL: رسائلي على اليمين (justify-start) ، رسائلهم على اليسار (justify-end) */
-/* الزاوية الحادة تشير نحو الأسفل-يمين لرسائلي، الأسفل-يسار لرسائلهم */
+/* FIX #1: chat bubble direction - RTL: my messages justify-start (right), theirs justify-end (left) */
 .b-out{background:#2563eb;color:#fff;border-radius:18px 18px 4px 18px;max-width:78%}
-.b-in{background:#f1f5f9;color:#0f172a;border-radius:18px 18px 18px 4px;max-width:78%}
-
-/* ─── أنيميشن ─── */
+.b-in {background:#f1f5f9;color:#0f172a;border-radius:18px 18px 18px 4px;max-width:78%}
 @keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.fu{animation:fu .35s ease both}
-.fu2{animation:fu .35s .1s ease both}
-.fu3{animation:fu .35s .2s ease both}
-
-/* ─── توست ─── */
+.fu{animation:fu .35s ease both} .fu2{animation:fu .35s .1s ease both} .fu3{animation:fu .35s .2s ease both}
 .toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;width:90%;max-width:340px}
-
-/* ─── سكرول ─── */
-::-webkit-scrollbar{width:3px}
-::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
-
-/* ─── طباعة ─── */
-@media print{
-  body{overflow:visible!important;background:#fff!important}
-  .no-print,.page{display:none!important}
-  #print-area{display:block!important}
-}
+/* tab bar */
+.mtab{flex:1;padding:10px 4px;font-size:.78rem;font-weight:900;border-bottom:2.5px solid transparent;color:#94a3b8;background:none;border-top:none;border-left:none;border-right:none;cursor:pointer;transition:all .15s}
+.mtab.on{color:#2563eb;border-bottom-color:#2563eb}
+::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+@media print{body{overflow:visible!important;background:#fff!important} .no-print,.page{display:none!important} #print-area{display:block!important}}
 #print-area{display:none}
 </style>
 </head>
@@ -117,15 +81,14 @@ textarea.inp{resize:none}
 <div id="toast-wrap" class="toast-wrap"></div>
 <div id="print-area"></div>
 
-<!-- ════════ BUG FIX #8,#9,#18: شاشة التحميل ════════ -->
-<!-- تمنع وميض صفحة Welcome أثناء تحقق Firebase من الجلسة -->
+<!-- ══════ FIX #6,#7,#13: Loading screen ══════ -->
 <div id="pg-loading" class="page active gd">
-  <div class="logo w-20 h-20 text-4xl mb-6">👑</div>
-  <div class="spin" style="border-top-color:#f59e0b;border-color:rgba(245,158,11,.25);width:24px;height:24px;border-width:3px"></div>
-  <p class="text-slate-500 text-sm mt-4 font-bold tracking-widest">ROYAL DRIVE</p>
+  <div class="logo w-20 h-20 text-4xl mb-5">👑</div>
+  <div class="spin" style="border-top-color:#f59e0b;border-color:rgba(245,158,11,.25);width:22px;height:22px;border-width:3px"></div>
+  <p class="text-slate-500 text-xs mt-4 font-bold tracking-widest">ROYAL DRIVE</p>
 </div>
 
-<!-- ════════ 1. WELCOME ════════ -->
+<!-- ══════ WELCOME ══════ -->
 <div id="pg-welcome" class="page gd flex flex-col items-center justify-center p-8 text-white" style="min-height:100vh">
   <div class="fu text-center mb-10">
     <div class="logo w-24 h-24 text-5xl mx-auto mb-5">👑</div>
@@ -134,90 +97,68 @@ textarea.inp{resize:none}
   </div>
   <div class="w-full max-w-xs space-y-4 fu2">
     <button onclick="goTo('pg-login')" class="btn btn-lg" style="background:#fff;color:#0f172a;box-shadow:0 12px 40px rgba(0,0,0,.3)">
-      <i data-lucide="log-in" class="w-5 h-5"></i> تسجيل الدخول
-    </button>
+      <i data-lucide="log-in" class="w-5 h-5"></i> تسجيل الدخول</button>
     <button onclick="goTo('pg-signup')" class="btn btn-lg btn-ghost">
-      <i data-lucide="user-plus" class="w-5 h-5"></i> إنشاء حساب جديد
-    </button>
+      <i data-lucide="user-plus" class="w-5 h-5"></i> إنشاء حساب جديد</button>
   </div>
   <p class="text-slate-700 text-xs mt-14 fu3">© 2025 Royal Drive · جميع الحقوق محفوظة</p>
 </div>
 
-<!-- ════════ 2. LOGIN ════════ -->
+<!-- ══════ LOGIN ══════ -->
 <div id="pg-login" class="page bg-slate-50 flex items-center justify-center p-5">
   <div class="card w-full max-w-md p-8">
     <div class="flex justify-center mb-5"><div class="logo w-14 h-14 text-2xl">👑</div></div>
     <h2 class="text-2xl font-black text-center text-slate-800 mb-1">دخول النظام</h2>
     <p class="text-slate-400 text-sm text-center mb-7">أدخل بياناتك للمتابعة</p>
     <div class="space-y-4">
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-1.5">البريد الإلكتروني</label>
-        <!-- BUG FIX #6: list="email-dl" يعرض الإيميلات المستخدمة مؤخراً -->
-        <input type="email" id="l-email" class="inp" placeholder="example@mail.com"
-          autocomplete="email" list="email-dl">
-        <datalist id="email-dl"></datalist>
-      </div>
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-1.5">كلمة المرور</label>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">البريد الإلكتروني</label>
+        <input type="email" id="l-email" class="inp" placeholder="example@mail.com" autocomplete="email" list="email-dl">
+        <datalist id="email-dl"></datalist></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">كلمة المرور</label>
         <div class="relative">
-          <input type="password" id="l-pass" class="inp" placeholder="••••••••"
-            style="padding-left:46px" autocomplete="current-password">
-          <button id="eye-l" onclick="toggleEye('l-pass','eye-l')"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
-            <i data-lucide="eye" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-      <!-- BUG FIX #7: تذكرني -->
+          <input type="password" id="l-pass" class="inp" placeholder="••••••••" style="padding-left:46px" autocomplete="current-password">
+          <button id="eye-l" onclick="toggleEye('l-pass','eye-l')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+            <i data-lucide="eye" class="w-4 h-4"></i></button></div></div>
       <label class="flex items-center gap-2 cursor-pointer select-none py-0.5">
         <input type="checkbox" id="l-rem" class="w-4 h-4 accent-blue-600">
-        <span class="text-sm font-bold text-slate-600">تذكرني على هذا الجهاز</span>
-      </label>
+        <span class="text-sm font-bold text-slate-600">تذكرني على هذا الجهاز</span></label>
       <button id="btn-login" onclick="doLogin()" class="btn btn-blue btn-lg">دخول آمن</button>
-      <button onclick="goTo('pg-forgot')"
-        class="w-full text-center text-sm font-bold text-blue-500 py-1">نسيت كلمة المرور؟</button>
+      <button onclick="goTo('pg-forgot')" class="w-full text-center text-sm font-bold text-blue-500 py-1">نسيت كلمة المرور؟</button>
     </div>
-    <button onclick="goTo('pg-welcome')"
-      class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
-      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع
-    </button>
+    <button onclick="goTo('pg-welcome')" class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
+      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع</button>
   </div>
 </div>
 
-<!-- ════════ 3. FORGOT PASSWORD ════════ -->
+<!-- ══════ FORGOT PASSWORD ══════ -->
 <div id="pg-forgot" class="page bg-slate-50 flex items-center justify-center p-5">
   <div class="card w-full max-w-md p-8">
     <div class="flex justify-center mb-5"><div class="logo w-14 h-14 text-2xl">👑</div></div>
     <div id="fg-s1">
       <h2 class="text-xl font-black text-center text-slate-800 mb-2">استعادة كلمة المرور</h2>
-      <p class="text-slate-400 text-sm text-center mb-7">سنرسل لك رابط إعادة التعيين على بريدك فوراً</p>
+      <p class="text-slate-400 text-sm text-center mb-7">سنرسل لك رابط إعادة التعيين فوراً</p>
       <div class="space-y-4">
         <input type="email" id="fg-email" class="inp" placeholder="البريد الإلكتروني">
         <button id="btn-fg" onclick="sendReset()" class="btn btn-blue btn-lg">
-          <i data-lucide="send" class="w-4 h-4"></i> إرسال الرابط
-        </button>
+          <i data-lucide="send" class="w-4 h-4"></i> إرسال الرابط</button>
       </div>
     </div>
     <div id="fg-s2" class="hidden text-center">
       <div class="text-6xl mb-4">📧</div>
       <h3 class="text-xl font-black text-slate-800 mb-3">تم الإرسال!</h3>
-      <p class="text-slate-500 text-sm leading-relaxed mb-5">
-        تحقق من بريدك واضغط على الرابط. سيمكنك من إدخال كلمة مرور جديدة مباشرة.
-      </p>
+      <p class="text-slate-500 text-sm leading-relaxed mb-5">تحقق من بريدك واضغط على الرابط.</p>
       <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 text-right mb-5">
         <p class="text-blue-700 text-xs font-bold">لم يصلك البريد؟</p>
         <p class="text-blue-500 text-xs mt-1">تحقق من مجلد Spam أو أعد المحاولة</p>
       </div>
       <button onclick="goTo('pg-login')" class="btn btn-muted btn-lg">العودة لتسجيل الدخول</button>
     </div>
-    <button onclick="goTo('pg-login')"
-      class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
-      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع
-    </button>
+    <button onclick="goTo('pg-login')" class="flex items-center gap-1 mx-auto mt-6 text-slate-400 font-bold text-sm">
+      <i data-lucide="chevron-right" class="w-4 h-4"></i> رجوع</button>
   </div>
 </div>
 
-<!-- ════════ 4. SIGNUP ════════ -->
+<!-- ══════ SIGNUP ══════ -->
 <div id="pg-signup" class="page bg-slate-50">
   <div class="flex items-start justify-center min-h-screen p-5 py-10 pb-20">
     <div class="card w-full max-w-md p-7">
@@ -228,7 +169,6 @@ textarea.inp{resize:none}
         <button onclick="setRole('driver')" id="rb-d" class="rtb on">🚗 سائق</button>
         <button onclick="setRole('staff')"  id="rb-s" class="rtb">💼 موظف</button>
       </div>
-      <!-- حقول السائق -->
       <div id="fld-d" class="space-y-3">
         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">البيانات الشخصية</p>
         <input type="text" id="d-name"  class="inp" placeholder="الاسم الكامل">
@@ -241,15 +181,11 @@ textarea.inp{resize:none}
         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">بيانات الدخول</p>
         <input type="email" id="d-email" class="inp" placeholder="البريد الإلكتروني" autocomplete="email">
         <div class="relative">
-          <input type="password" id="d-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)"
-            style="padding-left:46px" autocomplete="new-password">
-          <button id="eye-d" onclick="toggleEye('d-pass','eye-d')"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
-            <i data-lucide="eye" class="w-4 h-4"></i>
-          </button>
+          <input type="password" id="d-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)" style="padding-left:46px" autocomplete="new-password">
+          <button id="eye-d" onclick="toggleEye('d-pass','eye-d')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+            <i data-lucide="eye" class="w-4 h-4"></i></button>
         </div>
       </div>
-      <!-- حقول الموظف -->
       <div id="fld-s" class="space-y-3 hidden">
         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">البيانات الشخصية</p>
         <input type="text"  id="s-name"  class="inp" placeholder="الاسم الكامل">
@@ -258,12 +194,9 @@ textarea.inp{resize:none}
         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">بيانات الدخول</p>
         <input type="email" id="s-email" class="inp" placeholder="البريد الإلكتروني" autocomplete="email">
         <div class="relative">
-          <input type="password" id="s-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)"
-            style="padding-left:46px" autocomplete="new-password">
-          <button id="eye-s" onclick="toggleEye('s-pass','eye-s')"
-            class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
-            <i data-lucide="eye" class="w-4 h-4"></i>
-          </button>
+          <input type="password" id="s-pass" class="inp" placeholder="كلمة المرور (٦ أحرف+)" style="padding-left:46px" autocomplete="new-password">
+          <button id="eye-s" onclick="toggleEye('s-pass','eye-s')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+            <i data-lucide="eye" class="w-4 h-4"></i></button>
         </div>
       </div>
       <button id="btn-signup" onclick="doSignup()" class="btn btn-grn btn-lg mt-5">إتمام التسجيل</button>
@@ -272,75 +205,54 @@ textarea.inp{resize:none}
   </div>
 </div>
 
-<!-- ════════ 5. لوحة السائق ════════ -->
+<!-- ══════ DRIVER DASHBOARD ══════ -->
 <div id="pg-driver" class="page bg-slate-50" style="padding-bottom:20px">
   <div class="gd-drv p-5 text-white">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <div class="logo w-10 h-10 text-lg">👑</div>
-        <div>
-          <p class="text-blue-300 text-xs font-bold uppercase tracking-wider">سائق</p>
-          <h2 id="d-uname" class="text-lg font-black">—</h2>
-        </div>
+        <div><p class="text-blue-300 text-xs font-bold uppercase tracking-wider">سائق</p>
+          <h2 id="d-uname" class="text-lg font-black">—</h2></div>
       </div>
       <div class="flex gap-2">
         <button onclick="openMod('mod-notif')" class="relative p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="bell" class="w-5 h-5"></i>
-          <span id="bdg-dn" class="bdg hidden">0</span>
-        </button>
+          <i data-lucide="bell" class="w-5 h-5"></i><span id="bdg-dn" class="bdg hidden">0</span></button>
         <button onclick="openMessages()" class="relative p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="message-circle" class="w-5 h-5"></i>
-          <span id="bdg-dm" class="bdg hidden">0</span>
-        </button>
-        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="log-out" class="w-5 h-5"></i>
-        </button>
+          <i data-lucide="message-circle" class="w-5 h-5"></i><span id="bdg-dm" class="bdg hidden">0</span></button>
+        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></button>
       </div>
     </div>
     <div class="card-d p-3 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-green-400 block"></span>
-        <span id="d-carinfo" class="text-sm font-bold text-white/90">—</span>
-      </div>
+      <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-400 block"></span>
+        <span id="d-carinfo" class="text-sm font-bold text-white/90">—</span></div>
       <span id="d-platex" class="text-xs bg-white/15 px-3 py-1 rounded-lg font-bold">—</span>
     </div>
   </div>
   <div class="flex bg-white border-b border-slate-100 sticky top-0 z-10">
     <button onclick="drvTab('pending')"  id="dt-p" class="flex-1 py-3 text-sm font-black border-b-2 border-blue-600 text-blue-600 transition-all">🆕 جديدة</button>
-    <button onclick="drvTab('accepted')" id="dt-a" class="flex-1 py-3 text-sm font-black border-b-2 border-transparent text-slate-400 transition-all">✅ جارية</button>
+    <button onclick="drvTab('accepted')" id="dt-a" class="flex-1 py-3 text-sm font-black border-b-2 border-transparent text-slate-400 transition-all">🚗 جارية</button>
     <button onclick="drvTab('history')"  id="dt-h" class="flex-1 py-3 text-sm font-black border-b-2 border-transparent text-slate-400 transition-all">📋 السجل</button>
   </div>
   <div id="drv-list" class="p-4 space-y-3">
-    <div class="text-center py-14 text-slate-400">
-      <div class="text-5xl mb-3">🗺️</div>
-      <p class="font-bold">لا توجد رحلات حالياً</p>
-    </div>
+    <div class="text-center py-14 text-slate-400"><div class="text-5xl mb-3">🗺️</div><p class="font-bold">لا توجد رحلات</p></div>
   </div>
 </div>
 
-<!-- ════════ 6. لوحة الموظف ════════ -->
+<!-- ══════ STAFF DASHBOARD ══════ -->
 <div id="pg-staff" class="page bg-slate-50" style="padding-bottom:20px">
   <div class="gd-stf p-5 text-white">
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center gap-3">
         <div class="logo w-10 h-10 text-lg">👑</div>
-        <div>
-          <p class="text-green-300 text-xs font-bold uppercase tracking-wider">موظف</p>
-          <h2 id="s-uname" class="text-lg font-black">—</h2>
-        </div>
+        <div><p class="text-green-300 text-xs font-bold uppercase tracking-wider">موظف</p>
+          <h2 id="s-uname" class="text-lg font-black">—</h2></div>
       </div>
       <div class="flex gap-2">
         <button onclick="openMod('mod-notif')" class="relative p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="bell" class="w-5 h-5"></i>
-          <span id="bdg-sn" class="bdg hidden">0</span>
-        </button>
+          <i data-lucide="bell" class="w-5 h-5"></i><span id="bdg-sn" class="bdg hidden">0</span></button>
         <button onclick="openMessages()" class="relative p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="message-circle" class="w-5 h-5"></i>
-          <span id="bdg-sm" class="bdg hidden">0</span>
-        </button>
-        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="log-out" class="w-5 h-5"></i>
-        </button>
+          <i data-lucide="message-circle" class="w-5 h-5"></i><span id="bdg-sm" class="bdg hidden">0</span></button>
+        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></button>
       </div>
     </div>
     <button onclick="openMod('mod-sub')" class="w-full card-d p-3 flex items-center justify-between">
@@ -354,62 +266,64 @@ textarea.inp{resize:none}
       <span class="text-xs bg-yellow-500/20 text-yellow-300 font-bold px-3 py-1 rounded-lg">ترقية ⬆</span>
     </button>
   </div>
-  <div class="p-4">
-    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">الإجراءات السريعة</p>
+  <!-- Staff tabs: Actions / Trips / Confirm -->
+  <div class="flex bg-white border-b border-slate-100 sticky top-0 z-10">
+    <button onclick="stfTab('actions')" id="st-a" class="flex-1 py-3 text-xs font-black border-b-2 border-green-600 text-green-700 transition-all">⚡ إجراءات</button>
+    <button onclick="stfTab('trips')"   id="st-t" class="flex-1 py-3 text-xs font-black border-b-2 border-transparent text-slate-400 transition-all">🗺️ الرحلات</button>
+    <!-- FIX #3: تبويب تأكيد الإنجاز -->
+    <button onclick="stfTab('confirm')" id="st-c" class="flex-1 py-3 text-xs font-black border-b-2 border-transparent text-slate-400 transition-all">
+      ✅ تأكيد <span id="cnf-bdg" class="hidden bg-pink-500 text-white text-xs px-1.5 py-0.5 rounded-full font-black">0</span></button>
+  </div>
+  <div id="stf-panel-actions" class="p-4">
     <div class="grid grid-cols-2 gap-3 mb-3">
       <button onclick="openMod('mod-add-driver')" class="card p-4 text-right active:scale-95 transition-transform">
         <div class="text-2xl mb-2">➕👤</div>
         <p class="font-black text-sm text-slate-700">إضافة سائق</p>
-        <p id="stf-dleft" class="text-xs text-slate-400 mt-0.5">٠ سائق مضاف</p>
+        <p id="stf-dleft" class="text-xs text-slate-400 mt-0.5">٠ سائق</p>
       </button>
       <button onclick="openMod('mod-add-trip')" class="card p-4 text-right active:scale-95 transition-transform">
         <div class="text-2xl mb-2">🗺️</div>
-        <p class="font-black text-sm text-slate-700">إضافة رحلة</p>
+        <p class="font-black text-sm text-slate-700">رحلة جديدة</p>
         <p class="text-xs text-slate-400 mt-0.5">عامة أو لسائق محدد</p>
       </button>
       <button onclick="openMod('mod-search')" class="card p-4 text-right active:scale-95 transition-transform">
         <div class="text-2xl mb-2">🔍</div>
-        <p class="font-black text-sm text-slate-700">بحث عن سائق</p>
-        <p class="text-xs text-slate-400 mt-0.5">بالاسم أو الموبايل</p>
+        <p class="font-black text-sm text-slate-700">بحث سائق</p>
+        <p class="text-xs text-slate-400 mt-0.5">اسم أو موبايل</p>
       </button>
       <button onclick="openReportModal()" class="card p-4 text-right active:scale-95 transition-transform">
         <div class="text-2xl mb-2">📊</div>
         <p class="font-black text-sm text-slate-700">تقرير تفصيلي</p>
-        <p id="stf-rleft" class="text-xs text-slate-400 mt-0.5">٠ / ٥ هذا الشهر</p>
+        <p id="stf-rleft" class="text-xs text-slate-400 mt-0.5">٠ / ٥</p>
       </button>
     </div>
-    <button onclick="openMod('mod-issue')" class="card w-full p-4 mb-3 flex items-center gap-3 text-right active:scale-95 transition-transform">
+    <button onclick="openMod('mod-issue')" class="card w-full p-4 flex items-center gap-3 text-right active:scale-95 transition-transform">
       <span class="text-2xl">⚠️</span>
-      <div>
-        <p class="font-black text-sm text-slate-700">الإبلاغ عن مشكلة</p>
-        <p class="text-xs text-slate-400">إرسال بلاغ للمالك</p>
-      </div>
+      <div><p class="font-black text-sm text-slate-700">الإبلاغ عن مشكلة</p><p class="text-xs text-slate-400">إرسال بلاغ للمالك</p></div>
     </button>
-    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">آخر الرحلات</p>
-    <div id="stf-trips" class="space-y-3">
-      <p class="text-center text-slate-400 text-sm py-4">لا توجد رحلات بعد</p>
-    </div>
+  </div>
+  <div id="stf-panel-trips" class="p-4 hidden">
+    <div id="stf-trips" class="space-y-3"><p class="text-center text-slate-400 text-sm py-4">لا توجد رحلات بعد</p></div>
+  </div>
+  <!-- FIX #3: staff confirmation panel -->
+  <div id="stf-panel-confirm" class="p-4 hidden">
+    <div id="stf-confirm-list" class="space-y-3"><p class="text-center text-slate-400 text-sm py-6">✅ لا توجد طلبات تأكيد</p></div>
   </div>
 </div>
 
-<!-- ════════ 7. لوحة المالك ════════ -->
+<!-- ══════ OWNER DASHBOARD ══════ -->
 <div id="pg-owner" class="page gd-own text-white" style="padding-bottom:20px">
   <div class="p-5 border-b border-white/10">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="logo w-10 h-10 text-lg">👑</div>
-        <div>
-          <p class="text-yellow-400 text-xs font-bold uppercase tracking-wider">مالك التطبيق</p>
-          <h2 class="text-lg font-black">لوحة التحكم الكاملة</h2>
-        </div>
+        <div><p class="text-yellow-400 text-xs font-bold uppercase tracking-wider">مالك التطبيق</p>
+          <h2 class="text-lg font-black">لوحة التحكم</h2></div>
       </div>
       <div class="flex gap-2">
-        <button onclick="openSettings()" class="p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="settings" class="w-5 h-5"></i>
-        </button>
-        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl">
-          <i data-lucide="log-out" class="w-5 h-5"></i>
-        </button>
+        <button onclick="openMessages()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="message-circle" class="w-5 h-5"></i></button>
+        <button onclick="openSettings()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="settings" class="w-5 h-5"></i></button>
+        <button onclick="doLogout()" class="p-2 btn btn-ghost rounded-xl"><i data-lucide="log-out" class="w-5 h-5"></i></button>
       </div>
     </div>
   </div>
@@ -418,15 +332,22 @@ textarea.inp{resize:none}
     <div class="card-d p-4"><div class="text-2xl mb-1">💼</div><p id="ow-sc" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">موظف</p></div>
     <div class="card-d p-4"><div class="text-2xl mb-1">🗺️</div><p id="ow-tc" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">رحلة منجزة</p></div>
     <div class="card-d p-4 cursor-pointer" onclick="document.getElementById('ow-issues-sec').scrollIntoView({behavior:'smooth'})">
-      <div class="text-2xl mb-1">⚠️</div><p id="ow-ic" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">بلاغ مفتوح</p>
-    </div>
+      <div class="text-2xl mb-1">⚠️</div><p id="ow-ic" class="text-2xl font-black">٠</p><p class="text-slate-400 text-xs">بلاغ مفتوح</p></div>
   </div>
   <div class="px-4 mb-4">
     <div class="flex items-center justify-between mb-3">
       <p class="text-sm font-black">إدارة الموظفين</p>
-      <button onclick="openMod('mod-add-staff')" class="btn btn-gld btn-sm">+ إضافة موظف</button>
+      <button onclick="openMod('mod-add-staff')" class="btn btn-gld btn-sm">+ إضافة</button>
     </div>
     <div id="ow-staff" class="space-y-2"><p class="text-slate-500 text-sm text-center py-4">جاري التحميل...</p></div>
+  </div>
+  <!-- FIX #4: trip management in owner panel -->
+  <div class="px-4 mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-sm font-black">إدارة الرحلات</p>
+      <button onclick="loadOwnerTrips()" class="text-xs text-yellow-300 font-bold">🔄 تحديث</button>
+    </div>
+    <div id="ow-trips" class="space-y-2"><p class="text-slate-500 text-sm text-center py-4">جاري التحميل...</p></div>
   </div>
   <div class="px-4 pb-4" id="ow-issues-sec">
     <p class="text-sm font-black mb-3">البلاغات والمشاكل</p>
@@ -434,7 +355,7 @@ textarea.inp{resize:none}
   </div>
 </div>
 
-<!-- ════════════════════ المودالات ════════════════════ -->
+<!-- ═══════════════════════ MODALS ═══════════════════════ -->
 
 <!-- إشعارات -->
 <div id="mod-notif" class="modal" onclick="closeMod('mod-notif')">
@@ -450,61 +371,73 @@ textarea.inp{resize:none}
   </div>
 </div>
 
-<!-- مراسلات -->
+<!-- FIX #1 + #5: Messages with private + group tabs -->
 <div id="mod-messages" class="modal" onclick="closeMod('mod-messages')">
-  <div class="mbox" style="height:82vh;display:flex;flex-direction:column;padding-bottom:max(16px,env(safe-area-inset-bottom))"
-       onclick="event.stopPropagation()">
+  <div class="mbox" style="height:84vh;display:flex;flex-direction:column;padding-bottom:max(16px,env(safe-area-inset-bottom))" onclick="event.stopPropagation()">
     <div class="mhandle flex-shrink-0"></div>
-    <div class="flex items-center justify-between mb-3 flex-shrink-0">
+    <div class="flex items-center justify-between mb-2 flex-shrink-0">
       <div class="flex items-center gap-2">
-        <button id="msg-back" onclick="showConvList()" class="text-slate-400 p-1 hidden">
-          <i data-lucide="chevron-right" class="w-5 h-5"></i>
-        </button>
+        <button id="msg-back" onclick="showConvList()" class="text-slate-400 p-1 hidden"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
         <h3 id="msg-hdr" class="text-lg font-black text-slate-800">الرسائل</h3>
       </div>
-      <button onclick="closeMod('mod-messages')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
+      <button onclick="closeMod('mod-messages')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <!-- FIX #5: Message tabs -->
+    <div id="msg-tabs-bar" class="flex border-b border-slate-100 mb-1 flex-shrink-0">
+      <button onclick="setMsgTab('private')" id="mtab-p" class="mtab on">💬 خاص</button>
+      <button onclick="setMsgTab('group')"   id="mtab-g" class="mtab">
+        👥 المجموعة<span id="bdg-grp" class="hidden ml-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-black">•</span>
       </button>
     </div>
-    <div id="conv-list" class="flex-1 overflow-y-auto"></div>
-    <div id="chat-view" class="hidden flex-1 flex flex-col min-h-0">
-      <div id="chat-msgs" class="flex-1 overflow-y-auto p-1 space-y-1 mb-2"></div>
+    <div id="conv-list"       class="flex-1 overflow-y-auto"></div>
+    <div id="group-chat-view" class="hidden flex-1 flex flex-col min-h-0">
+      <div class="text-center text-xs text-slate-400 py-1">مجموعة Royal Drive — جميع الأعضاء</div>
+      <div id="group-msgs" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
       <div class="flex gap-2 flex-shrink-0 pt-2 border-t border-slate-100">
-        <input id="chat-inp" type="text" class="inp flex-1 py-2.5 text-sm"
-          placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter')sendMsg()">
-        <button onclick="sendMsg()"
-          class="btn btn-blue w-10 h-10 rounded-2xl p-0 flex-shrink-0">
-          <i data-lucide="send" class="w-4 h-4"></i>
-        </button>
+        <input id="grp-inp" type="text" class="inp flex-1 py-2.5 text-sm" placeholder="اكتب رسالة للمجموعة..." onkeydown="if(event.key==='Enter')sendGroupMsg()">
+        <button onclick="sendGroupMsg()" class="btn btn-blue w-10 h-10 rounded-2xl p-0 flex-shrink-0"><i data-lucide="send" class="w-4 h-4"></i></button>
+      </div>
+    </div>
+    <div id="chat-view" class="hidden flex-1 flex flex-col min-h-0">
+      <div id="chat-msgs" class="flex-1 overflow-y-auto p-1 space-y-1"></div>
+      <div class="flex gap-2 flex-shrink-0 pt-2 border-t border-slate-100">
+        <input id="chat-inp" type="text" class="inp flex-1 py-2.5 text-sm" placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button onclick="sendMsg()" class="btn btn-blue w-10 h-10 rounded-2xl p-0 flex-shrink-0"><i data-lucide="send" class="w-4 h-4"></i></button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- تفاصيل رحلة (سائق) -->
+<!-- FIX #2: Trip detail (driver) with full info -->
 <div id="mod-trip" class="modal" onclick="closeMod('mod-trip')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">تفاصيل الرحلة</h3>
-      <button onclick="closeMod('mod-trip')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-trip')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <div id="trip-detail"></div>
     <input type="hidden" id="trip-cur-id">
   </div>
 </div>
 
-<!-- إضافة رحلة (موظف) -->
+<!-- FIX #12: Payment confirmation (driver) -->
+<div id="mod-pay" class="modal" onclick="closeMod('mod-pay')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <h3 class="text-lg font-black text-slate-800 mb-3">تأكيد استلام المبلغ 💰</h3>
+    <div id="pay-body"></div>
+    <input type="hidden" id="pay-trip-id">
+  </div>
+</div>
+
+<!-- Add trip (staff) - FIX #2: added origin field -->
 <div id="mod-add-trip" class="modal" onclick="closeMod('mod-add-trip')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">إضافة رحلة جديدة</h3>
-      <button onclick="closeMod('mod-add-trip')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-add-trip')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <div class="flex p-1 bg-slate-100 rounded-2xl mb-4 gap-1">
       <button onclick="setTripType('general')"  id="tt-g" class="rtb on text-green-600">🌍 عامة للجميع</button>
@@ -515,88 +448,97 @@ textarea.inp{resize:none}
       <select id="trip-drv-sel" class="inp"><option value="">— اختر سائقاً —</option></select>
     </div>
     <div class="space-y-3">
-      <input type="text" id="t-orig"  class="inp" placeholder="مكان التحرك / الانطلاق">
-      <input type="text" id="t-dest"  class="inp" placeholder="الوجهة / وصف الرحلة">
+      <input type="text" id="t-orig"  class="inp" placeholder="📍 مكان التحرك / الانطلاق">
+      <input type="text" id="t-dest"  class="inp" placeholder="🎯 الوجهة / الوصول">
       <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-xs font-bold text-slate-500 block mb-1">التاريخ والوقت</label>
-          <input type="datetime-local" id="t-date" class="inp">
-        </div>
-        <div>
-          <label class="text-xs font-bold text-slate-500 block mb-1">السعر (جنيه)</label>
-          <input type="number" id="t-price" class="inp" placeholder="0">
-        </div>
+        <div><label class="text-xs font-bold text-slate-500 block mb-1">التاريخ والوقت</label>
+          <input type="datetime-local" id="t-date" class="inp"></div>
+        <div><label class="text-xs font-bold text-slate-500 block mb-1">السعر (جنيه)</label>
+          <input type="number" id="t-price" class="inp" placeholder="0"></div>
       </div>
       <textarea id="t-notes" class="inp" rows="2" placeholder="ملاحظات (اختياري)"></textarea>
       <button id="btn-add-trip" onclick="submitTrip()" class="btn btn-grn btn-lg">
-        <i data-lucide="send" class="w-4 h-4"></i> إرسال الرحلة
-      </button>
+        <i data-lucide="send" class="w-4 h-4"></i> إرسال الرحلة</button>
     </div>
   </div>
 </div>
 
-<!-- إضافة سائق (موظف) -->
+<!-- FIX #4: Edit trip modal -->
+<div id="mod-edit-trip" class="modal" onclick="closeMod('mod-edit-trip')">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mhandle"></div>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-black text-slate-800">تعديل الرحلة</h3>
+      <button onclick="closeMod('mod-edit-trip')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <input type="hidden" id="et-id">
+    <div class="space-y-3">
+      <input type="text" id="et-orig"  class="inp" placeholder="مكان التحرك">
+      <input type="text" id="et-dest"  class="inp" placeholder="الوجهة">
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-xs font-bold text-slate-500 block mb-1">التاريخ والوقت</label>
+          <input type="datetime-local" id="et-date" class="inp"></div>
+        <div><label class="text-xs font-bold text-slate-500 block mb-1">السعر (جنيه)</label>
+          <input type="number" id="et-price" class="inp"></div>
+      </div>
+      <textarea id="et-notes" class="inp" rows="2" placeholder="ملاحظات"></textarea>
+      <button id="btn-save-trip" onclick="saveEditTrip()" class="btn btn-blue btn-lg">
+        <i data-lucide="save" class="w-4 h-4"></i> حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add driver (staff) -->
 <div id="mod-add-driver" class="modal" onclick="closeMod('mod-add-driver')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">إضافة سائق جديد</h3>
-      <button onclick="closeMod('mod-add-driver')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-add-driver')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <div class="bg-blue-50 border border-blue-100 rounded-2xl p-3 mb-4 text-sm text-blue-700">
-      💡 أدخل البريد الإلكتروني للسائق لمنحه صلاحية التسجيل
-    </div>
+      💡 أدخل البريد الإلكتروني للسائق لمنحه صلاحية التسجيل</div>
     <div id="drv-limit-warn" class="hidden bg-red-50 border border-red-200 rounded-2xl p-3 mb-4">
       <p class="text-red-600 font-bold text-sm">⛔ وصلت للحد الأقصى للخطة المجانية</p>
-      <p class="text-red-500 text-xs mt-1">قم بترقية خطتك لإضافة سائقين غير محدودين</p>
       <button onclick="closeMod('mod-add-driver');openMod('mod-sub')" class="btn btn-gld btn-sm mt-2">ترقية الآن</button>
     </div>
     <div id="drv-add-form" class="space-y-3">
       <input type="email" id="nd-email" class="inp" placeholder="البريد الإلكتروني للسائق">
       <button id="btn-add-drv" onclick="addDriver()" class="btn btn-grn btn-lg">
-        <i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية
-      </button>
+        <i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية</button>
     </div>
   </div>
 </div>
 
-<!-- بحث سائق (موظف) -->
+<!-- Search driver -->
 <div id="mod-search" class="modal" onclick="closeMod('mod-search')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">بحث عن سائق</h3>
-      <button onclick="closeMod('mod-search')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-search')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
-    <input type="text" id="srch-q" class="inp mb-4"
-      placeholder="الاسم أو رقم الموبايل أو رقم اللوحة..." oninput="searchDriver()">
+    <input type="text" id="srch-q" class="inp mb-4" placeholder="الاسم أو رقم الموبايل أو رقم اللوحة..." oninput="searchDriver()">
     <div id="srch-res" class="space-y-2 max-h-[50vh] overflow-y-auto">
       <p class="text-center text-slate-400 text-sm py-6">ابدأ بالكتابة للبحث...</p>
     </div>
   </div>
 </div>
 
-<!-- تقرير (موظف) -->
+<!-- Report -->
 <div id="mod-report" class="modal" onclick="closeMod('mod-report')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">إنشاء تقرير تفصيلي</h3>
-      <button onclick="closeMod('mod-report')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-report')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <div id="rpt-limit-warn" class="hidden bg-red-50 border border-red-200 rounded-2xl p-3 mb-4">
       <p class="text-red-600 font-bold text-sm">⛔ استنفذت تقاريرك المجانية هذا الشهر</p>
       <button onclick="closeMod('mod-report');openMod('mod-sub')" class="btn btn-gld btn-sm mt-2">ترقية للنسخة المميزة</button>
     </div>
     <div id="rpt-form" class="space-y-4">
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-2">نوع التقرير</label>
+      <div><label class="text-xs font-bold text-slate-500 block mb-2">نوع التقرير</label>
         <div class="flex p-1 bg-slate-100 rounded-2xl gap-1">
           <button onclick="setRptType('all')"    id="rt-a" class="rtb on text-blue-600">🚗 كل السيارات</button>
           <button onclick="setRptType('single')" id="rt-s" class="rtb">🔍 سيارة واحدة</button>
@@ -607,120 +549,94 @@ textarea.inp{resize:none}
         <select id="rpt-car" class="inp"><option value="">— جاري التحميل —</option></select>
       </div>
       <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-xs font-bold text-slate-500 block mb-1.5">من تاريخ</label>
-          <input type="date" id="rpt-from" class="inp">
-        </div>
-        <div>
-          <label class="text-xs font-bold text-slate-500 block mb-1.5">إلى تاريخ</label>
-          <input type="date" id="rpt-to" class="inp">
-        </div>
+        <div><label class="text-xs font-bold text-slate-500 block mb-1.5">من تاريخ</label><input type="date" id="rpt-from" class="inp"></div>
+        <div><label class="text-xs font-bold text-slate-500 block mb-1.5">إلى تاريخ</label><input type="date" id="rpt-to"   class="inp"></div>
       </div>
       <button id="btn-gen-rpt" onclick="generateReport()" class="btn btn-blue btn-lg">
-        <i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير
-      </button>
+        <i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير</button>
     </div>
   </div>
 </div>
 
-<!-- نتيجة التقرير -->
+<!-- Report result -->
 <div id="mod-rpt-result" class="modal" onclick="closeMod('mod-rpt-result')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">📊 التقرير جاهز</h3>
-      <button onclick="closeMod('mod-rpt-result')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-rpt-result')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <div id="rpt-summary" class="bg-slate-50 rounded-2xl p-4 mb-4 max-h-[45vh] overflow-y-auto text-right"></div>
     <div class="grid grid-cols-3 gap-2">
-      <button onclick="doPrint()"  class="btn btn-muted btn-md py-3 rounded-2xl flex-col gap-1" style="font-size:.8rem">🖨️<br>طباعة</button>
-      <button onclick="doExcel()"  class="btn btn-grn btn-md py-3 rounded-2xl flex-col gap-1"  style="font-size:.8rem">📗<br>Excel</button>
-      <button onclick="doPDF()"    class="btn btn-blue btn-md py-3 rounded-2xl flex-col gap-1" style="font-size:.8rem">📄<br>PDF</button>
+      <button onclick="doPrint()"  class="btn btn-muted btn-md py-3 rounded-2xl flex-col gap-1" style="font-size:.78rem">🖨️<br>طباعة</button>
+      <button onclick="doExcel()"  class="btn btn-grn  btn-md py-3 rounded-2xl flex-col gap-1" style="font-size:.78rem">📗<br>Excel</button>
+      <button onclick="doPDF()"    class="btn btn-blue btn-md py-3 rounded-2xl flex-col gap-1" style="font-size:.78rem">📄<br>PDF</button>
     </div>
   </div>
 </div>
 
-<!-- بلاغ مشكلة (موظف) -->
+<!-- Issue report -->
 <div id="mod-issue" class="modal" onclick="closeMod('mod-issue')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">الإبلاغ عن مشكلة</h3>
-      <button onclick="closeMod('mod-issue')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-issue')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <div class="space-y-3">
       <input type="text" id="iss-title" class="inp" placeholder="عنوان المشكلة">
-      <textarea id="iss-desc" class="inp" rows="4" placeholder="وصف تفصيلي للمشكلة..."></textarea>
+      <textarea id="iss-desc" class="inp" rows="4" placeholder="وصف تفصيلي..."></textarea>
       <button id="btn-iss" onclick="submitIssue()" class="btn btn-red btn-lg">
-        <i data-lucide="flag" class="w-4 h-4"></i> إرسال البلاغ
-      </button>
+        <i data-lucide="flag" class="w-4 h-4"></i> إرسال البلاغ</button>
     </div>
   </div>
 </div>
 
-<!-- اشتراك (موظف) -->
+<!-- Subscription -->
 <div id="mod-sub" class="modal" onclick="closeMod('mod-sub')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">الاشتراك والترقية</h3>
-      <button onclick="closeMod('mod-sub')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-sub')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <div id="plan-cur" class="mb-4"></div>
     <div class="rounded-2xl p-4 mb-4" style="background:linear-gradient(135deg,#fef3c7,#fffbeb);border:1.5px solid #fde68a">
-      <div class="flex items-center gap-3 mb-3">
-        <span class="text-3xl">👑</span>
-        <div>
-          <p class="font-black text-amber-800">الخطة المميزة</p>
-          <p id="sub-price-lbl" class="text-amber-600 text-sm font-bold">99 جنيه / شهرياً</p>
-        </div>
+      <div class="flex items-center gap-3 mb-3"><span class="text-3xl">👑</span>
+        <div><p class="font-black text-amber-800">الخطة المميزة</p>
+          <p id="sub-price-lbl" class="text-amber-600 text-sm font-bold">99 جنيه / شهرياً</p></div>
       </div>
       <div class="space-y-1.5 text-sm text-amber-800">
-        <p>✅ سائقون غير محدودين</p>
-        <p>✅ تقارير غير محدودة يومياً</p>
-        <p>✅ تصدير PDF و Excel</p>
-        <p>✅ إشعارات فورية متقدمة</p>
-        <p>✅ بحث ذكي متقدم عن السائقين</p>
-        <p>✅ أرشيف كامل لجميع الرحلات</p>
-        <p>✅ دعم فني مباشر عبر واتساب</p>
+        <p>✅ سائقون غير محدودين</p><p>✅ تقارير غير محدودة</p>
+        <p>✅ تصدير PDF و Excel</p><p>✅ إشعارات فورية متقدمة</p>
+        <p>✅ بحث ذكي وأرشيف كامل</p><p>✅ دعم فني مباشر عبر واتساب</p>
       </div>
     </div>
     <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-3">
       <p class="font-black text-slate-700 text-sm mb-2">📋 خطوات الاشتراك:</p>
       <ol class="space-y-2 text-xs text-slate-600 list-decimal list-inside leading-relaxed">
         <li>حوّل مبلغ الاشتراك على رقم فودافون كاش:<br>
-          <span class="font-black text-slate-800 text-sm" id="vf-show">01552610460</span></li>
+          <span class="font-black text-slate-800 text-base" id="vf-show">01552610460</span></li>
         <li>اضغط زر "تواصل للتفعيل" أدناه</li>
-        <li>أرسل صورة رسالة SMS التأكيدية من فودافون</li>
-        <li>سيتم تفعيل اشتراكك خلال ٢٤ ساعة</li>
+        <li>أرسل صورة SMS التأكيدية من فودافون</li>
+        <li>سيتم التفعيل خلال ٢٤ ساعة</li>
       </ol>
     </div>
-    <button onclick="openWhatsApp()" class="btn btn-lg mb-2"
-      style="background:#25D366;color:#fff;box-shadow:0 6px 20px rgba(37,211,102,.3)">
-      <span style="font-size:1.1rem">💬</span> تواصل للتفعيل عبر واتساب
-    </button>
+    <button onclick="openWhatsApp()" class="btn btn-lg" style="background:#25D366;color:#fff;box-shadow:0 6px 20px rgba(37,211,102,.3)">
+      💬 تواصل للتفعيل عبر واتساب</button>
   </div>
 </div>
 
-<!-- إضافة موظف (مالك) -->
+<!-- Add staff (owner) -->
 <div id="mod-add-staff" class="modal" onclick="closeMod('mod-add-staff')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">إضافة موظف جديد</h3>
-      <button onclick="closeMod('mod-add-staff')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-add-staff')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-3 mb-4 text-sm text-yellow-700">
-      👑 أدخل بريد الموظف لمنحه صلاحية التسجيل في النظام
-    </div>
+      👑 أدخل بريد الموظف لمنحه صلاحية التسجيل</div>
     <div class="space-y-3">
       <input type="email" id="ns-email" class="inp" placeholder="البريد الإلكتروني للموظف">
       <button id="btn-add-stf" onclick="addStaff()" class="btn btn-gld btn-lg">منح الصلاحية</button>
@@ -728,58 +644,115 @@ textarea.inp{resize:none}
   </div>
 </div>
 
-<!-- إعدادات (مالك) -->
+<!-- Settings (owner) -->
 <div id="mod-settings" class="modal" onclick="closeMod('mod-settings')">
   <div class="mbox" onclick="event.stopPropagation()">
     <div class="mhandle"></div>
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-black text-slate-800">⚙️ إعدادات التطبيق</h3>
-      <button onclick="closeMod('mod-settings')" class="text-slate-400 p-1">
-        <i data-lucide="x" class="w-5 h-5"></i>
-      </button>
+      <button onclick="closeMod('mod-settings')" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
     </div>
     <div class="space-y-4">
-      <!-- BUG FIX #11: تم إزالة حقل اسم التطبيق — الاسم ثابت لا يتغير -->
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-1.5">رسالة الترحيب</label>
-        <input type="text" id="set-sub" class="inp" placeholder="نظام إدارة المركبات الذكي">
+      <!-- اسم التطبيق ثابت - لا يمكن تغييره -->
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3">
+        <p class="text-xs font-bold text-slate-500 mb-1">اسم التطبيق (ثابت)</p>
+        <p class="font-black text-slate-700">ROYAL DRIVE PRO</p>
       </div>
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-1.5">إيميل المالك (صلاحية لوحة التحكم)</label>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">رسالة الترحيب</label>
+        <input type="text" id="set-sub" class="inp" placeholder="نظام إدارة المركبات الذكي"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">إيميل المالك (صلاحية لوحة التحكم)</label>
         <input type="email" id="set-owner-email" class="inp" placeholder="admin@royaldrive.com">
-        <p class="text-xs text-red-500 mt-1 font-bold">⚠️ تغيير هذا يتطلب إعادة تسجيل الدخول</p>
-      </div>
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-1.5">سعر الاشتراك المميز (جنيه/شهر)</label>
-        <input type="number" id="set-price" class="inp" placeholder="99">
-      </div>
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-1.5">رقم فودافون كاش لاستقبال المدفوعات</label>
-        <input type="tel" id="set-vf" class="inp" placeholder="01552610460">
-      </div>
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-1.5">حد السائقين – الخطة المجانية</label>
-        <input type="number" id="set-dlimit" class="inp" placeholder="2">
-      </div>
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-1.5">حد التقارير الشهرية – الخطة المجانية</label>
-        <input type="number" id="set-rlimit" class="inp" placeholder="5">
-      </div>
-      <div>
-        <label class="text-xs font-bold text-slate-500 block mb-1.5">إشعار مخصص لجميع المستخدمين (فارغ=إيقاف)</label>
-        <textarea id="set-announce" class="inp" rows="2" placeholder="مثال: سيتم الصيانة الجمعة من ٢-٤ ص"></textarea>
-      </div>
+        <p class="text-xs text-red-500 mt-1 font-bold">⚠️ تغيير هذا يتطلب إعادة تسجيل الدخول</p></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">سعر الاشتراك المميز (جنيه/شهر)</label>
+        <input type="number" id="set-price" class="inp" placeholder="99"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">رقم فودافون كاش لاستقبال المدفوعات</label>
+        <input type="tel" id="set-vf" class="inp" placeholder="01552610460"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">حد السائقين – الخطة المجانية</label>
+        <input type="number" id="set-dlimit" class="inp" placeholder="2"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">حد التقارير الشهرية – الخطة المجانية</label>
+        <input type="number" id="set-rlimit" class="inp" placeholder="5"></div>
+      <div><label class="text-xs font-bold text-slate-500 block mb-1.5">إشعار مخصص لجميع المستخدمين (فارغ=إيقاف)</label>
+        <textarea id="set-announce" class="inp" rows="2" placeholder="مثال: صيانة الجمعة..."></textarea></div>
       <button id="btn-save-set" onclick="saveSettings()" class="btn btn-gld btn-lg">
-        <i data-lucide="save" class="w-4 h-4"></i> حفظ الإعدادات
-      </button>
+        <i data-lucide="save" class="w-4 h-4"></i> حفظ الإعدادات</button>
     </div>
   </div>
 </div>
 
 <script>
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// FIX #8: PWA ICON via Canvas
+// ══════════════════════════════════════════
+(function(){
+  try{
+    const cv=document.createElement('canvas');cv.width=cv.height=192;
+    const c=cv.getContext('2d');
+    // rounded background
+    c.fillStyle='#0a0f1e';
+    c.beginPath();c.roundRect(0,0,192,192,38);c.fill();
+    // gold gradient circle
+    const g=c.createRadialGradient(96,72,4,96,96,88);
+    g.addColorStop(0,'#fbbf24');g.addColorStop(1,'#b45309');
+    c.fillStyle=g;
+    c.beginPath();c.roundRect(22,22,148,148,28);c.fill();
+    // crown emoji
+    c.font='84px serif';c.textAlign='center';c.textBaseline='middle';
+    c.fillText('👑',96,102);
+    const ico=cv.toDataURL('image/png');
+    document.getElementById('apple-icon').href=ico;
+    const mf=JSON.stringify({
+      name:'Royal Drive Pro',short_name:'Royal Drive',
+      icons:[{src:ico,sizes:'192x192',type:'image/png'},{src:ico,sizes:'512x512',type:'image/png'}],
+      start_url:'./',display:'standalone',
+      background_color:'#0a0f1e',theme_color:'#0a0f1e',orientation:'portrait'
+    });
+    const bl=new Blob([mf],{type:'application/manifest+json'});
+    document.getElementById('pwa-manifest').href=URL.createObjectURL(bl);
+  }catch(e){}
+})();
+
+// ══════════════════════════════════════════
+// FIX #9: SOUND SYSTEM (Web Audio API)
+// ══════════════════════════════════════════
+const SND={
+  ctx:null,
+  init(){
+    if(this.ctx)return;
+    try{this.ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
+  },
+  tone(freq,start,dur,vol=0.18,type='sine'){
+    if(!this.ctx)return;
+    const o=this.ctx.createOscillator(),g=this.ctx.createGain();
+    o.connect(g);g.connect(this.ctx.destination);
+    o.frequency.value=freq;o.type=type;
+    g.gain.setValueAtTime(vol,start);
+    g.gain.exponentialRampToValueAtTime(0.001,start+dur);
+    o.start(start);o.stop(start+dur);
+  },
+  trip(){   // صوت رحلة جديدة
+    this.init();if(!this.ctx)return;
+    const t=this.ctx.currentTime;
+    this.tone(440,t,.15,.22,'square');
+    this.tone(660,t+.18,.15,.22,'square');
+    this.tone(880,t+.36,.25,.22,'square');
+  },
+  msg(){    // صوت رسالة واردة
+    this.init();if(!this.ctx)return;
+    const t=this.ctx.currentTime;
+    this.tone(880,t,.12,.18);
+    this.tone(1100,t+.15,.12,.18);
+  },
+  notif(){ // صوت إشعار عام
+    this.init();if(!this.ctx)return;
+    const t=this.ctx.currentTime;
+    this.tone(660,t,.1,.15);
+    this.tone(880,t+.12,.15,.15);
+  }
+};
+
+// ══════════════════════════════════════════
 // FIREBASE
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 const firebaseConfig={
   apiKey:"AIzaSyBhZdYXdISIPlcCbC4yiVdlUx0QDWfITdk",
   authDomain:"royal-drive-38c15.firebaseapp.com",
@@ -793,31 +766,23 @@ const auth=firebase.auth();
 const db=firebase.firestore();
 lucide.createIcons();
 
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════════════
-let CU=null, CUD=null;
-let APP={
-  sub:'نظام إدارة المركبات الذكي',
-  ownerEmail:'admin@royal.com',
-  price:99, vfNumber:'01552610460', dLimit:2, rLimit:5, announce:''
-};
-let signupRole='driver';
-let tripTypeNew='general';
-let rptType='all';
-let chatWith=null;
-let currentConvId=null; // BUG FIX #3: نحتفظ بـ convId الحالي هنا بدلاً من إعادة حسابه
-let chatUnsub=null;
-let notifUnsub=null;
-let msgUnsub=null;
-let drvFilter='pending';
+// ══════════════════════════════════════════
+let CU=null,CUD=null;
+let APP={sub:'نظام إدارة المركبات الذكي',ownerEmail:'admin@royal.com',price:99,vfNumber:'01552610460',dLimit:2,rLimit:5,announce:''};
+let signupRole='driver',tripTypeNew='general',rptType='all';
+let chatWith=null,currentConvId=null;
+let chatUnsub=null,notifUnsub=null,msgUnsub=null,grpUnsub=null;
+let drvFilter='pending',drvTripsAll=[];
 let reportExportData=[];
-let drvTripsAll=[];
-let authInitialized=false; // BUG FIX #8,#9: علامة لمعرفة هل Firebase جاهز
+let authReady=false;
+let msgTab='private';
+let prevNotifCount=0;
 
-// ════════════════════════════════════════════════
-// تنقل
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
 function goTo(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   const t=document.getElementById(id);
@@ -829,16 +794,12 @@ function toggleEye(inp,btn){
   const f=document.getElementById(inp),b=document.getElementById(btn);
   if(!f||!b)return;
   f.type=f.type==='password'?'text':'password';
-  b.innerHTML=f.type==='text'
-    ?'<i data-lucide="eye-off" class="w-4 h-4"></i>'
-    :'<i data-lucide="eye" class="w-4 h-4"></i>';
+  b.innerHTML=f.type==='text'?'<i data-lucide="eye-off" class="w-4 h-4"></i>':'<i data-lucide="eye" class="w-4 h-4"></i>';
   lucide.createIcons();
 }
 function setBtn(id,loading,label){
-  const b=document.getElementById(id);
-  if(!b)return;
-  b.disabled=loading;
-  b.style.opacity=loading?'.65':'1';
+  const b=document.getElementById(id);if(!b)return;
+  b.disabled=loading;b.style.opacity=loading?'.65':'1';
   b.innerHTML=loading?'<span class="spin"></span>':label;
 }
 function toast(msg,type='info'){
@@ -846,197 +807,156 @@ function toast(msg,type='info'){
   const w=document.getElementById('toast-wrap');
   const el=document.createElement('div');
   el.style.cssText=`background:${c[type]||c.info};color:#fff;padding:12px 20px;border-radius:16px;font-weight:700;font-size:.82rem;box-shadow:0 8px 30px rgba(0,0,0,.25);animation:fu .3s ease;text-align:center;pointer-events:auto`;
-  el.textContent=msg;
-  w.appendChild(el);
-  setTimeout(()=>el.remove(),3500);
+  el.textContent=msg;w.appendChild(el);setTimeout(()=>el.remove(),3500);
 }
 function fmtDate(ts){
-  if(!ts)return'—';
-  const d=ts.toDate?ts.toDate():new Date(ts);
+  if(!ts)return'—';const d=ts.toDate?ts.toDate():new Date(ts);
   return d.toLocaleDateString('ar-EG',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
 }
-function fmtDateShort(ts){
-  if(!ts)return'—';
-  const d=ts.toDate?ts.toDate():new Date(ts);
-  return d.toLocaleDateString('ar-EG',{month:'short',day:'numeric'});
+function fmtShort(ts){
+  if(!ts)return'—';const d=ts.toDate?ts.toDate():new Date(ts);
+  return d.toLocaleDateString('ar-EG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 function todayStr(){return new Date().toISOString().split('T')[0];}
 function getConvId(a,b){return[a,b].sort().join('_');}
-function statusAr(s){return{pending:'قيد الانتظار',accepted:'مقبولة',rejected:'مرفوضة',completed:'مكتملة'}[s]||s;}
+function statusAr(s){return{pending:'قيد الانتظار',accepted:'مقبولة',rejected:'مرفوضة',completed:'مكتملة',pendingConfirm:'بانتظار تأكيد الموظف'}[s]||s;}
 function statusChip(s){
-  const m={pending:'cp-pend',accepted:'cp-acc',rejected:'cp-rej',completed:'cp-done'};
+  const m={pending:'cp-pend',accepted:'cp-acc',rejected:'cp-rej',completed:'cp-done',pendingConfirm:'cp-wait'};
   return`<span class="chip ${m[s]||''}">${statusAr(s)}</span>`;
 }
-
-// BUG FIX #6: حفظ وتحميل الإيميلات المستخدمة
+// Email history (datalist)
 function saveEmailHistory(email){
   if(!email)return;
   try{
-    const hist=JSON.parse(localStorage.getItem('rdp_emails')||'[]');
-    if(!hist.includes(email)){hist.unshift(email);if(hist.length>8)hist.pop();}
-    localStorage.setItem('rdp_emails',JSON.stringify(hist));
-    const dl=document.getElementById('email-dl');
-    if(dl)dl.innerHTML=hist.map(e=>`<option value="${e}">`).join('');
+    const h=JSON.parse(localStorage.getItem('rdp_emails')||'[]');
+    if(!h.includes(email)){h.unshift(email);if(h.length>8)h.pop();}
+    localStorage.setItem('rdp_emails',JSON.stringify(h));
+    refreshEmailDL(h);
   }catch(e){}
 }
 function loadEmailHistory(){
-  try{
-    const hist=JSON.parse(localStorage.getItem('rdp_emails')||'[]');
-    const dl=document.getElementById('email-dl');
-    if(dl)dl.innerHTML=hist.map(e=>`<option value="${e}">`).join('');
-  }catch(e){}
+  try{refreshEmailDL(JSON.parse(localStorage.getItem('rdp_emails')||'[]'));}catch(e){}
+}
+function refreshEmailDL(arr){
+  const dl=document.getElementById('email-dl');
+  if(dl)dl.innerHTML=arr.map(e=>`<option value="${e}">`).join('');
 }
 
-// ════════════════════════════════════════════════
-// إعدادات التطبيق
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// APP SETTINGS
+// ══════════════════════════════════════════
 async function loadAppSettings(){
-  try{
-    const snap=await db.collection('settings').doc('app').get();
-    if(snap.exists)APP={...APP,...snap.data()};
-    applyAppUI();
-  }catch(e){console.warn('settings:',e);}
+  try{const s=await db.collection('settings').doc('app').get();if(s.exists)APP={...APP,...s.data()};applyAppUI();}
+  catch(e){console.warn('settings:',e);}
 }
 function applyAppUI(){
-  // BUG FIX #11: اسم التطبيق ثابت — لا نعدّله من الإعدادات
-  const s=document.getElementById('app-sub');
-  const v=document.getElementById('vf-show');
-  const p=document.getElementById('sub-price-lbl');
+  const s=document.getElementById('app-sub');const v=document.getElementById('vf-show');const p=document.getElementById('sub-price-lbl');
   if(s)s.textContent=APP.sub||'نظام إدارة المركبات الذكي';
   if(v)v.textContent=APP.vfNumber||'01552610460';
   if(p)p.textContent=`${APP.price||99} جنيه / شهرياً`;
   if(APP.announce){
     let an=document.getElementById('announce-bar');
-    if(!an){
-      an=document.createElement('div');
-      an.id='announce-bar';
-      an.style.cssText='position:fixed;top:0;left:0;right:0;background:#d97706;color:#fff;text-align:center;font-size:.78rem;font-weight:700;padding:6px 12px;z-index:9990';
-      document.body.prepend(an);
-    }
+    if(!an){an=document.createElement('div');an.id='announce-bar';an.style.cssText='position:fixed;top:0;left:0;right:0;background:#d97706;color:#fff;text-align:center;font-size:.78rem;font-weight:700;padding:6px 12px;z-index:9990';document.body.prepend(an);}
     an.textContent='📢 '+APP.announce;
-  } else {
-    const an=document.getElementById('announce-bar');
-    if(an)an.remove();
-  }
+  } else {document.getElementById('announce-bar')?.remove();}
 }
 
-// ════════════════════════════════════════════════
-// BUG FIX #8,#9,#18 — AUTH STATE مع شاشة تحميل
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// FIX #6,#7,#13: AUTH STATE with loading screen
+// ══════════════════════════════════════════
 auth.onAuthStateChanged(async(user)=>{
-  // أخفي شاشة التحميل مرة واحدة فقط عند أول استجابة من Firebase
-  if(!authInitialized){
-    authInitialized=true;
+  // Hide loading screen on FIRST response only
+  if(!authReady){
+    authReady=true;
     document.getElementById('pg-loading').classList.remove('active');
   }
-
-  if(!user){
-    // BUG FIX #7: بعد تسجيل الخروج — العودة للترحيب
-    setBtn('btn-login',false,'دخول آمن');
-    goTo('pg-welcome');
-    return;
-  }
-
+  if(!user){setBtn('btn-login',false,'دخول آمن');goTo('pg-welcome');return;}
   try{
     await loadAppSettings();
-
     if(user.email===APP.ownerEmail){
       const owDoc=await db.collection('users').doc(user.uid).get();
       if(!owDoc.exists){
         await db.collection('users').doc(user.uid).set({
-          uid:user.uid,email:user.email,name:'المالك',
-          role:'owner',status:'active',
+          uid:user.uid,email:user.email,name:'المالك',role:'owner',status:'active',
           createdAt:firebase.firestore.FieldValue.serverTimestamp()
         });
       }
       CU=user;CUD={role:'owner',email:user.email,name:'المالك',uid:user.uid};
       listenNotifications(user.uid);
+      listenGroupChat();
       await loadOwnerDash();
       goTo('pg-owner');
       return;
     }
-
     const snap=await db.collection('users').doc(user.uid).get();
-    if(!snap.exists){
-      toast('بيانات حسابك غير مكتملة. تواصل مع المسؤول.','error');
-      await auth.signOut();
-      return;
-    }
+    if(!snap.exists){toast('بيانات حسابك غير مكتملة. تواصل مع المسؤول.','error');await auth.signOut();return;}
     CU=user;CUD=snap.data();
-
     if(CUD.role==='owner'){
-      listenNotifications(user.uid);
-      await loadOwnerDash();
-      goTo('pg-owner');
-      return;
+      listenNotifications(user.uid);listenGroupChat();
+      await loadOwnerDash();goTo('pg-owner');return;
     }
-    if(CUD.status==='frozen'){
-      toast('حسابك مجمد. تواصل مع المسؤول.','error');
-      await auth.signOut();
-      return;
-    }
-
+    if(CUD.status==='frozen'){toast('حسابك مجمد. تواصل مع المسؤول.','error');await auth.signOut();return;}
     listenNotifications(user.uid);
     listenMessages(user.uid);
+    listenGroupChat();
+    if(CUD.role==='staff'){await loadStaffDash();goTo('pg-staff');}
+    else{await loadDriverDash();goTo('pg-driver');}
+  }catch(e){console.error('auth:',e);goTo('pg-welcome');}
+});
 
-    if(CUD.role==='staff'){
-      await loadStaffDash();
-      goTo('pg-staff');
-    } else {
-      await loadDriverDash();
-      goTo('pg-driver');
-    }
-  }catch(e){
-    console.error('auth error:',e);
-    document.getElementById('pg-loading').classList.remove('active');
-    goTo('pg-welcome');
+// FIX #6,#7: Don't logout on visibility change or focus
+// Firebase LOCAL persistence handles session automatically
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible'&&CU){
+    // Just refresh data silently
+    const active=document.querySelector('.page.active');
+    if(!active)return;
+    if(active.id==='pg-driver')loadDriverTrips();
+    if(active.id==='pg-staff'){loadStaffTrips();loadStaffConfirm();}
   }
 });
 
-// ════════════════════════════════════════════════
-// BUG FIX #7 — تسجيل الدخول مع "تذكرني"
-// ════════════════════════════════════════════════
+// FIX #13: Back button handling
+window.addEventListener('popstate',e=>{
+  const openModal=document.querySelector('.modal.open');
+  if(openModal){openModal.classList.remove('open');history.pushState({},'','');return;}
+  if(CU){
+    // Push state back and ask
+    history.pushState({},'','');
+    if(confirm('هل تريد تسجيل الخروج من التطبيق؟'))doLogout();
+  } else {
+    history.pushState({},'','');
+  }
+});
+history.pushState({},'','');
+
+// ══════════════════════════════════════════
+// LOGIN (FIX #7: persistence)
+// ══════════════════════════════════════════
 async function doLogin(){
   const email=document.getElementById('l-email').value.trim();
   const pass=document.getElementById('l-pass').value;
   const rem=document.getElementById('l-rem').checked;
   if(!email||!pass)return toast('أدخل البريد وكلمة المرور','warning');
   setBtn('btn-login',true,'');
+  SND.init(); // unlock audio on user gesture
   try{
-    // BUG FIX #7: LOCAL = يبقى مسجلاً حتى بعد إغلاق المتصفح
-    //             SESSION = يبقى مسجلاً فقط في نفس الجلسة
-    await auth.setPersistence(
-      rem
-        ? firebase.auth.Auth.Persistence.LOCAL
-        : firebase.auth.Auth.Persistence.SESSION
-    );
+    await auth.setPersistence(rem?firebase.auth.Auth.Persistence.LOCAL:firebase.auth.Auth.Persistence.SESSION);
     await auth.signInWithEmailAndPassword(email,pass);
-    saveEmailHistory(email); // BUG FIX #6
+    saveEmailHistory(email);
   }catch(e){
-    const m={
-      'auth/user-not-found':'البريد غير مسجل في النظام',
-      'auth/wrong-password':'كلمة المرور غير صحيحة',
-      'auth/invalid-credential':'البيانات غير صحيحة',
-      'auth/invalid-login-credentials':'البيانات غير صحيحة',
-      'auth/too-many-requests':'تم تجاوز عدد المحاولات. انتظر قليلاً',
-      'auth/invalid-email':'صيغة البريد غير صحيحة',
-      'auth/network-request-failed':'تحقق من اتصالك بالإنترنت'
-    };
-    toast(m[e.code]||'حدث خطأ، حاول مجدداً','error');
+    const m={'auth/user-not-found':'البريد غير مسجل','auth/wrong-password':'كلمة المرور غير صحيحة','auth/invalid-credential':'البيانات غير صحيحة','auth/invalid-login-credentials':'البيانات غير صحيحة','auth/too-many-requests':'تم تجاوز عدد المحاولات','auth/invalid-email':'صيغة البريد غير صحيحة','auth/network-request-failed':'تحقق من الإنترنت'};
+    toast(m[e.code]||'حدث خطأ','error');
     setBtn('btn-login',false,'دخول آمن');
   }
 }
-
-// نسيان كلمة السر
 async function sendReset(){
   const email=document.getElementById('fg-email').value.trim();
-  if(!email)return toast('أدخل بريدك الإلكتروني','warning');
+  if(!email)return toast('أدخل بريدك','warning');
   setBtn('btn-fg',true,'');
   try{
-    // BUG FIX: لا نستخدم url يكشف رابط GitHub
-    const currentUrl=window.location.origin!=='null'
-      ?window.location.href.split('?')[0]:undefined;
-    const opts=currentUrl?{url:currentUrl,handleCodeInApp:false}:undefined;
+    const url=window.location.origin!=='null'?window.location.href.split('?')[0]:undefined;
+    const opts=url?{url,handleCodeInApp:false}:undefined;
     if(opts)await auth.sendPasswordResetEmail(email,opts);
     else await auth.sendPasswordResetEmail(email);
     document.getElementById('fg-s1').classList.add('hidden');
@@ -1044,12 +964,9 @@ async function sendReset(){
   }catch(e){
     const m={'auth/user-not-found':'لا يوجد حساب بهذا البريد','auth/invalid-email':'صيغة البريد غير صحيحة'};
     toast(m[e.code]||'حدث خطأ','error');
-    setBtn('btn-fg',false,'<i data-lucide="send" class="w-4 h-4"></i> إرسال الرابط');
-    lucide.createIcons();
+    setBtn('btn-fg',false,'<i data-lucide="send" class="w-4 h-4"></i> إرسال الرابط');lucide.createIcons();
   }
 }
-
-// إنشاء حساب
 function setRole(r){
   signupRole=r;
   document.getElementById('rb-d').className=`rtb${r==='driver'?' on':''}`;
@@ -1063,7 +980,6 @@ async function doSignup(){
   const pass=document.getElementById(isD?'d-pass':'s-pass').value;
   const name=(document.getElementById(isD?'d-name':'s-name').value||'').trim();
   const phone=(document.getElementById(isD?'d-phone':'s-phone').value||'').trim();
-
   if(!name)return toast('أدخل الاسم الكامل','warning');
   if(!phone)return toast('أدخل رقم الهاتف','warning');
   if(!email)return toast('أدخل البريد الإلكتروني','warning');
@@ -1073,77 +989,45 @@ async function doSignup(){
     if(!document.getElementById('d-car').value.trim())return toast('أدخل نوع السيارة','warning');
     if(!document.getElementById('d-plate').value.trim())return toast('أدخل رقم اللوحة','warning');
   }
-
   setBtn('btn-signup',true,'');
   try{
     const allowed=await db.collection('allowed_users').doc(email).get();
     if(!allowed.exists){
-      const msg=isD
-        ?'بريدك غير مضاف بعد.\n\nراجع الموظف المختص لإضافة بريدك ثم أعد التسجيل.'
-        :'بريدك غير مضاف في النظام.\n\nراجع مالك التطبيق لإضافتك كموظف أولاً.';
-      toast(msg,'error');
-      setBtn('btn-signup',false,'إتمام التسجيل');
-      return;
+      toast(isD?'بريدك غير مضاف. راجع الموظف المختص أولاً.':'بريدك غير مضاف. راجع مالك التطبيق أولاً.','error');
+      setBtn('btn-signup',false,'إتمام التسجيل');return;
     }
-
-    const allowedData=allowed.data();
-    if(allowedData.role&&allowedData.role!==signupRole){
-      toast(`هذا البريد مسجل كـ "${allowedData.role==='driver'?'سائق':'موظف'}" وليس "${isD?'سائق':'موظف'}"`, 'error');
-      setBtn('btn-signup',false,'إتمام التسجيل');
-      return;
+    const ad=allowed.data();
+    if(ad.role&&ad.role!==signupRole){
+      toast(`هذا البريد مسجل كـ "${ad.role==='driver'?'سائق':'موظف'}" وليس "${isD?'سائق':'موظف'}"`, 'error');
+      setBtn('btn-signup',false,'إتمام التسجيل');return;
     }
-
     const res=await auth.createUserWithEmailAndPassword(email,pass);
-    const userData={
-      uid:res.user.uid,name,email,phone,
-      role:signupRole,status:'active',isPremium:false,
-      driversAdded:0,reportsUsed:0,reportsMonth:'',
-      createdAt:firebase.firestore.FieldValue.serverTimestamp()
-    };
-    if(isD){
-      userData.nid=document.getElementById('d-nid').value.trim();
-      userData.carType=document.getElementById('d-car').value.trim();
-      userData.plate=document.getElementById('d-plate').value.trim().toUpperCase();
+    const ud={uid:res.user.uid,name,email,phone,role:signupRole,status:'active',isPremium:false,driversAdded:0,reportsUsed:0,reportsMonth:'',createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    if(isD){ud.nid=document.getElementById('d-nid').value.trim();ud.carType=document.getElementById('d-car').value.trim();ud.plate=document.getElementById('d-plate').value.trim().toUpperCase();}
+    await db.collection('users').doc(res.user.uid).set(ud);
+    if(isD&&ad.addedBy&&ad.addedBy!=='owner'){
+      await db.collection('users').doc(ad.addedBy).update({driversAdded:firebase.firestore.FieldValue.increment(1)});
     }
-    await db.collection('users').doc(res.user.uid).set(userData);
-
-    // BUG FIX #12: فقط نحدث driversAdded إذا addedBy هو UID حقيقي (مش 'owner')
-    if(isD&&allowedData.addedBy&&allowedData.addedBy!=='owner'){
-      await db.collection('users').doc(allowedData.addedBy).update({
-        driversAdded:firebase.firestore.FieldValue.increment(1)
-      });
-    }
-
     saveEmailHistory(email);
-    toast('تم إنشاء حسابك بنجاح! مرحباً بك 👋','success');
-    // BUG FIX: إعادة تعيين زر التسجيل بعد النجاح
+    toast('تم إنشاء حسابك بنجاح! 👋','success');
     setBtn('btn-signup',false,'إتمام التسجيل');
-
   }catch(e){
-    const m={
-      'auth/email-already-in-use':'هذا البريد مسجل مسبقاً. جرب تسجيل الدخول.',
-      'auth/weak-password':'كلمة المرور ضعيفة جداً',
-      'auth/invalid-email':'صيغة البريد غير صحيحة',
-      'auth/network-request-failed':'تحقق من اتصالك بالإنترنت'
-    };
+    const m={'auth/email-already-in-use':'هذا البريد مسجل مسبقاً','auth/weak-password':'كلمة المرور ضعيفة','auth/invalid-email':'صيغة البريد غير صحيحة','auth/network-request-failed':'تحقق من الإنترنت'};
     toast(m[e.code]||'فشل التسجيل: '+e.message,'error');
     setBtn('btn-signup',false,'إتمام التسجيل');
   }
 }
-
-// تسجيل خروج
 async function doLogout(){
   if(!confirm('هل تريد تسجيل الخروج؟'))return;
-  if(chatUnsub){chatUnsub();chatUnsub=null;}
-  if(notifUnsub){notifUnsub();notifUnsub=null;}
-  if(msgUnsub){msgUnsub();msgUnsub=null;}
+  [chatUnsub,notifUnsub,msgUnsub,grpUnsub].forEach(u=>{if(u)u();});
+  chatUnsub=notifUnsub=msgUnsub=grpUnsub=null;
   CU=null;CUD=null;currentConvId=null;
   await auth.signOut();
 }
 
-// ════════════════════════════════════════════════
-// لوحة السائق
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// DRIVER DASHBOARD
+// ══════════════════════════════════════════
 async function loadDriverDash(){
   document.getElementById('d-uname').textContent=CUD.name||'السائق';
   document.getElementById('d-carinfo').textContent=CUD.carType||'—';
@@ -1153,10 +1037,8 @@ async function loadDriverDash(){
 function drvTab(tab){
   drvFilter=tab;
   [['p','pending'],['a','accepted'],['h','history']].forEach(([k,t])=>{
-    const btn=document.getElementById('dt-'+k);
-    if(!btn)return;
-    const on=t===tab;
-    btn.className=`flex-1 py-3 text-sm font-black border-b-2 transition-all ${on?'border-blue-600 text-blue-600':'border-transparent text-slate-400'}`;
+    const b=document.getElementById('dt-'+k);if(!b)return;
+    b.className=`flex-1 py-3 text-sm font-black border-b-2 transition-all ${t===tab?'border-blue-600 text-blue-600':'border-transparent text-slate-400'}`;
   });
   loadDriverTrips();
 }
@@ -1164,61 +1046,46 @@ async function loadDriverTrips(){
   const el=document.getElementById('drv-list');
   el.innerHTML='<p class="text-center py-8 text-slate-400 text-sm">جاري التحميل...</p>';
   try{
-    // BUG FIX: جلب بدون orderBy يتطلب index — نرتب client-side
     const snap=await db.collection('trips').get();
-
-    // BUG FIX #15: رحلات مرفوضة بواسطتي → أخفيها عني فقط
-    // BUG FIX #14: رحلات مقبولة من سائق آخر → تظهر كـ "مغلقة"
-    const allTrips=snap.docs.map(d=>({id:d.id,...d.data()}));
-
-    let trips;
+    const all=snap.docs.map(d=>({id:d.id,...d.data()}));
+    let trips=[];
     if(drvFilter==='pending'){
-      trips=allTrips.filter(t=>{
+      trips=all.filter(t=>{
         if(t.assignedTo!=='all'&&t.assignedTo!==CU.uid)return false;
         if(t.status!=='pending')return false;
-        // BUG FIX #15: أخفي الرحلات التي رفضتها أنا
-        const rejBy=Array.isArray(t.rejectedBy)?t.rejectedBy:[];
-        return!rejBy.includes(CU.uid);
+        // FIX #11: Hide trips I rejected
+        return!( Array.isArray(t.rejectedBy)&&t.rejectedBy.includes(CU.uid) );
       });
     } else if(drvFilter==='accepted'){
-      trips=allTrips.filter(t=>{
+      trips=all.filter(t=>{
         if(t.assignedTo!=='all'&&t.assignedTo!==CU.uid)return false;
-        if(t.status!=='accepted')return false;
-        return t.driverId===CU.uid; // BUG FIX: الجارية = المقبولة مني أنا فقط
+        return (t.status==='accepted'||t.status==='pendingConfirm')&&t.driverId===CU.uid;
       });
     } else {
-      trips=allTrips.filter(t=>{
+      trips=all.filter(t=>{
         if(t.assignedTo!=='all'&&t.assignedTo!==CU.uid)return false;
-        if(!['completed','rejected'].includes(t.status))return false;
-        // في السجل نظهر فقط ما قبلته أو رفضته بنفسي
         if(t.status==='completed')return t.driverId===CU.uid;
-        const rejBy=Array.isArray(t.rejectedBy)?t.rejectedBy:[];
-        return rejBy.includes(CU.uid);
+        if(t.status==='rejected'){const rb=Array.isArray(t.rejectedBy)?t.rejectedBy:[];return rb.includes(CU.uid);}
+        return false;
       });
     }
-
-    // ترتيب client-side
-    trips.sort((a,b)=>{
-      const at=a.tripDate?.toDate?.()?.getTime()||a.createdAt?.toDate?.()?.getTime()||0;
-      const bt=b.tripDate?.toDate?.()?.getTime()||b.createdAt?.toDate?.()?.getTime()||0;
-      return bt-at;
-    });
-
+    trips.sort((a,b)=>(b.tripDate?.toDate?.()?.getTime()||b.createdAt?.toDate?.()?.getTime()||0)-(a.tripDate?.toDate?.()?.getTime()||a.createdAt?.toDate?.()?.getTime()||0));
     drvTripsAll=trips;
     if(!trips.length){
       el.innerHTML='<div class="text-center py-14 text-slate-400"><div class="text-5xl mb-3">🗺️</div><p class="font-bold">لا توجد رحلات</p></div>';
       return;
     }
-
+    const now=new Date();
     el.innerHTML=trips.map(t=>{
-      // BUG FIX #14: إذا قبلها سائق آخر → أظهرها كمغلقة
+      // FIX #10: show locked overlay if accepted by someone else
       const lockedByOther=t.status==='accepted'&&t.driverId&&t.driverId!==CU.uid;
-      return`
-      <div class="card p-4 cursor-pointer relative active:scale-98 transition-transform" onclick="openTripDetail('${t.id}')">
-        ${lockedByOther?`<div class="absolute inset-0 bg-white/80 rounded-[var(--rad)] flex items-center justify-center z-10 backdrop-blur-sm"><span class="chip cp-rej text-sm font-black px-4 py-2">🔒 تم أخذها</span></div>`:''}
+      const tripTime=t.tripDate?.toDate?.();
+      const canComplete=!tripTime||now>=tripTime;
+      return`<div class="card p-4 relative overflow-hidden cursor-pointer active:scale-98 transition-transform" onclick="openTripDetail('${t.id}')">
+        ${lockedByOther?`<div class="absolute inset-0 bg-white/85 rounded-[var(--rad)] flex items-center justify-center z-10"><span class="chip cp-lock text-sm px-4 py-2 font-black">🔒 محجوزة</span></div>`:''}
         <div class="flex items-start justify-between mb-2">
           <div class="flex-1">
-            <p class="font-black text-slate-800 text-sm leading-snug">${t.destination||'—'}</p>
+            <p class="font-black text-slate-800 text-sm">${t.destination||'—'}</p>
             ${t.origin?`<p class="text-blue-600 text-xs font-bold mt-0.5">📍 من: ${t.origin}</p>`:''}
             <p class="text-slate-400 text-xs mt-1">${fmtDate(t.tripDate||t.createdAt)}</p>
           </div>
@@ -1227,64 +1094,71 @@ async function loadDriverTrips(){
             <span class="text-green-600 font-black text-sm">${t.price?t.price+' جنيه':'—'}</span>
           </div>
         </div>
-        <!-- BUG FIX #2: معلومات ناشر الرحلة + زر تواصل -->
-        ${t.addedByName?`
-        <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
-          <div class="flex items-center gap-1.5 text-xs text-slate-500">
+        <!-- FIX #2: staff info -->
+        ${t.addedByName?`<div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100">
+          <div class="text-xs text-slate-500 flex items-center gap-1.5">
             <span>💼</span><span class="font-bold">${t.addedByName}</span>
             ${t.addedByPhone?`<span>· ${t.addedByPhone}</span>`:''}
           </div>
-          <button onclick="event.stopPropagation();startChatWith('${t.addedBy||''}','${t.addedByName||''}')"
-            class="btn btn-blue btn-sm py-1 px-2 text-xs">💬</button>
+          <button onclick="event.stopPropagation();openChatWith('${t.addedBy||''}','${t.addedByName||''}')" class="btn btn-blue btn-sm py-1 px-2 text-xs">💬</button>
         </div>`:''}
         ${t.notes?`<p class="text-slate-500 text-xs bg-slate-50 rounded-xl p-2 mt-2">${t.notes}</p>`:''}
-        ${t.status==='pending'&&!lockedByOther?`
-        <div class="flex gap-2 mt-3">
+        ${t.status==='pending'&&!lockedByOther?`<div class="flex gap-2 mt-3">
           <button onclick="event.stopPropagation();respondTrip('${t.id}','accepted')" class="btn btn-grn btn-sm flex-1">✅ قبول</button>
           <button onclick="event.stopPropagation();respondTrip('${t.id}','rejected')" class="btn btn-red btn-sm flex-1">❌ رفض</button>
         </div>`:''}
+        ${(t.status==='accepted'||t.status==='pendingConfirm')&&t.driverId===CU.uid&&t.status!=='pendingConfirm'?`
+          <button onclick="event.stopPropagation();requestComplete('${t.id}')" class="btn btn-ora btn-sm w-full mt-3 ${canComplete?'':'opacity-50 pointer-events-none'}">
+            ${canComplete?'🏁 طلب تأكيد إنجاز الرحلة':'⏳ لا يمكن الإنجاز قبل '+fmtDate(t.tripDate)}
+          </button>`:''}
+        ${t.status==='pendingConfirm'&&t.driverId===CU.uid?`<div class="mt-2 bg-pink-50 rounded-xl p-2 text-center"><p class="text-pink-700 text-xs font-bold">⏳ بانتظار تأكيد الموظف</p></div>`:''}
+        ${t.status==='completed'&&t.driverId===CU.uid&&!t.paymentConfirmed?`
+          <button onclick="event.stopPropagation();openPayConfirm('${t.id}',${t.price||0})" class="btn btn-grn btn-sm w-full mt-3">💰 تأكيد استلام المبلغ</button>`:''}
+        ${t.status==='completed'&&t.paymentConfirmed?`<div class="mt-2 flex items-center gap-1 text-green-600 text-xs font-bold"><span>✅</span><span>تم استلام المبلغ</span></div>`:''}
       </div>`;
     }).join('');
-  }catch(e){
-    el.innerHTML='<p class="text-center text-red-400 py-8 text-sm">خطأ في التحميل</p>';
-    console.error(e);
-  }
+  }catch(e){el.innerHTML='<p class="text-center text-red-400 py-8 text-sm">خطأ في التحميل</p>';console.error(e);}
 }
 async function openTripDetail(id){
   const trip=drvTripsAll.find(t=>t.id===id);
   if(!trip)return;
   document.getElementById('trip-cur-id').value=id;
+  const now=new Date();
+  const tripTime=trip.tripDate?.toDate?.();
+  const canComplete=!tripTime||now>=tripTime;
   document.getElementById('trip-detail').innerHTML=`
-    <div class="space-y-3 mb-5">
+    <div class="space-y-3 mb-4">
       <div class="bg-slate-50 rounded-2xl p-4 space-y-2.5">
-        ${trip.origin?`<div class="flex justify-between items-center"><span class="text-slate-500 text-sm">مكان التحرك</span><span class="font-black text-blue-600 text-sm">📍 ${trip.origin}</span></div>`:''}
-        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">الوجهة</span><span class="font-black text-slate-800 text-sm">${trip.destination||'—'}</span></div>
-        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">موعد الرحلة</span><span class="font-bold text-slate-700 text-sm">${fmtDate(trip.tripDate||trip.createdAt)}</span></div>
-        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">تاريخ النشر</span><span class="text-slate-500 text-xs">${fmtDate(trip.createdAt)}</span></div>
-        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">السعر</span><span class="font-black text-green-600 text-base">${trip.price?trip.price+' جنيه':'—'}</span></div>
-        <div class="flex justify-between items-center"><span class="text-slate-500 text-sm">الحالة</span>${statusChip(trip.status)}</div>
-        ${trip.addedByName?`<div class="flex justify-between items-center"><span class="text-slate-500 text-sm">الموظف الناشر</span><span class="font-bold text-slate-700 text-sm">💼 ${trip.addedByName}</span></div>`:''}
-        ${trip.addedByPhone?`<div class="flex justify-between items-center"><span class="text-slate-500 text-sm">هاتف الموظف</span><a href="tel:${trip.addedByPhone}" class="font-bold text-blue-600 text-sm" onclick="event.stopPropagation()">📱 ${trip.addedByPhone}</a></div>`:''}
-        ${trip.notes?`<div class="pt-1 border-t border-slate-100"><p class="text-slate-500 text-xs mb-1">ملاحظات:</p><p class="text-slate-700 text-sm">${trip.notes}</p></div>`:''}
+        ${trip.origin?`<div class="flex justify-between"><span class="text-slate-500 text-sm">مكان التحرك</span><span class="font-black text-blue-600 text-sm">📍 ${trip.origin}</span></div>`:''}
+        <div class="flex justify-between"><span class="text-slate-500 text-sm">الوجهة</span><span class="font-black text-slate-800 text-sm">${trip.destination||'—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500 text-sm">موعد الرحلة</span><span class="font-bold text-slate-700 text-sm">${fmtDate(trip.tripDate||trip.createdAt)}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500 text-sm">تاريخ النشر</span><span class="text-slate-400 text-xs">${fmtDate(trip.createdAt)}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500 text-sm">السعر</span><span class="font-black text-green-600 text-base">${trip.price?trip.price+' جنيه':'—'}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500 text-sm">الحالة</span>${statusChip(trip.status)}</div>
+        ${trip.addedByName?`<div class="flex justify-between"><span class="text-slate-500 text-sm">الموظف الناشر</span><span class="font-bold text-slate-700 text-sm">💼 ${trip.addedByName}</span></div>`:''}
+        ${trip.addedByPhone?`<div class="flex justify-between"><span class="text-slate-500 text-sm">هاتف الموظف</span><a href="tel:${trip.addedByPhone}" class="font-bold text-blue-600 text-sm" onclick="event.stopPropagation()">📱 ${trip.addedByPhone}</a></div>`:''}
+        ${trip.notes?`<div class="pt-2 border-t border-slate-100"><p class="text-slate-500 text-xs mb-1">ملاحظات:</p><p class="text-slate-700 text-sm">${trip.notes}</p></div>`:''}
       </div>
-      ${trip.addedBy?`<button onclick="startChatWith('${trip.addedBy}','${trip.addedByName||'الموظف'}');closeMod('mod-trip')" class="btn btn-blue btn-lg">💬 تواصل مع الموظف الناشر</button>`:''}
-      ${trip.status==='pending'?`
-      <div class="flex gap-3">
-        <button onclick="respondTrip('${trip.id}','accepted');closeMod('mod-trip')" class="btn btn-grn btn-md flex-1">✅ قبول الرحلة</button>
+      ${trip.addedBy?`<button onclick="openChatWith('${trip.addedBy}','${trip.addedByName||'الموظف'}');closeMod('mod-trip')" class="btn btn-blue btn-lg">💬 تواصل مع الموظف الناشر</button>`:''}
+      ${trip.status==='pending'?`<div class="flex gap-3">
+        <button onclick="respondTrip('${trip.id}','accepted');closeMod('mod-trip')" class="btn btn-grn btn-md flex-1">✅ قبول</button>
         <button onclick="respondTrip('${trip.id}','rejected');closeMod('mod-trip')" class="btn btn-red btn-md flex-1">❌ رفض</button>
       </div>`:''}
-      ${trip.status==='accepted'&&trip.driverId===CU.uid?`
-      <button onclick="completeTrip('${trip.id}');closeMod('mod-trip')" class="btn btn-blue btn-lg">🏁 تم إنجاز الرحلة</button>`:''}
-    </div>
-  `;
+      ${trip.status==='accepted'&&trip.driverId===CU.uid?
+        (canComplete
+          ?`<button onclick="requestComplete('${trip.id}');closeMod('mod-trip')" class="btn btn-ora btn-lg">🏁 طلب تأكيد إنجاز الرحلة</button>`
+          :`<div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-3 text-center"><p class="text-yellow-700 font-bold text-sm">⏳ لا يمكن الإنجاز قبل موعد الرحلة</p><p class="text-yellow-600 text-xs mt-1">${fmtDate(trip.tripDate)}</p></div>`)
+        :''}
+      ${trip.status==='pendingConfirm'&&trip.driverId===CU.uid?`<div class="bg-pink-50 border border-pink-200 rounded-2xl p-3 text-center"><p class="text-pink-700 font-bold text-sm">⏳ بانتظار تأكيد الموظف على الإنجاز</p></div>`:''}
+      ${trip.status==='completed'&&trip.driverId===CU.uid&&!trip.paymentConfirmed?`
+        <button onclick="openPayConfirm('${trip.id}',${trip.price||0});closeMod('mod-trip')" class="btn btn-grn btn-lg">💰 تأكيد استلام المبلغ</button>`:''}
+    </div>`;
   openMod('mod-trip');
 }
-
-// BUG FIX #14: استخدام Transaction لمنع قبول الرحلة من أكثر من سائق
+// FIX #10: Transaction to prevent double booking
 async function respondTrip(id,response){
   try{
     if(response==='accepted'){
-      // Transaction = تحقق وتحديث في نفس الوقت بشكل ذري
       await db.runTransaction(async(txn)=>{
         const ref=db.collection('trips').doc(id);
         const doc=await txn.get(ref);
@@ -1292,78 +1166,119 @@ async function respondTrip(id,response){
         const d=doc.data();
         if(d.status!=='pending')throw new Error('already-taken');
         txn.update(ref,{
-          status:'accepted',
-          driverId:CU.uid,
-          driverName:CUD.name,
-          plate:CUD.plate||'',
+          status:'accepted',driverId:CU.uid,driverName:CUD.name,plate:CUD.plate||'',
           acceptedAt:firebase.firestore.FieldValue.serverTimestamp()
         });
       });
+      SND.notif();
     } else {
-      // BUG FIX #15: رفض ناعم — يختفي من قائمتي فقط
+      // FIX #11: Soft reject - only hide from this driver
       await db.collection('trips').doc(id).update({
         rejectedBy:firebase.firestore.FieldValue.arrayUnion(CU.uid)
       });
     }
-
     const trip=drvTripsAll.find(t=>t.id===id);
-    if(trip&&trip.addedBy){
+    if(trip?.addedBy){
       await db.collection('notifications').add({
         uid:trip.addedBy,
         title:response==='accepted'?'✅ تم قبول الرحلة':'❌ تم رفض الرحلة',
         body:`${CUD.name||'السائق'} ${response==='accepted'?'قبل':'رفض'} رحلة: ${trip.destination}`,
-        read:false,
-        createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()
       });
     }
-
-    toast(response==='accepted'?'تم قبول الرحلة ✅':'تم رفض الرحلة وإزالتها من قائمتك','success');
+    toast(response==='accepted'?'تم قبول الرحلة ✅':'تم رفض الرحلة وإخفاؤها من قائمتك','success');
     loadDriverTrips();
   }catch(e){
-    if(e.message==='already-taken')toast('عذراً، هذه الرحلة تم أخذها بالفعل من سائق آخر','error');
+    if(e.message==='already-taken')toast('عذراً! تم أخذ هذه الرحلة من سائق آخر','error');
     else{toast('حدث خطأ','error');console.error(e);}
   }
 }
-
-// BUG FIX #10: التحقق أن السائق الذي يكمل الرحلة هو نفسه الذي قبلها
-async function completeTrip(id){
+// FIX #3: Driver requests completion → staff must confirm
+async function requestComplete(id){
   const trip=drvTripsAll.find(t=>t.id===id);
-  if(!trip){toast('لم تُوجد الرحلة','error');return;}
-  if(trip.driverId&&trip.driverId!==CU.uid){
-    toast('لا يمكنك إكمال رحلة قبلها سائق آخر','error');
-    return;
+  if(!trip)return;
+  const tripTime=trip.tripDate?.toDate?.();
+  if(tripTime&&new Date()<tripTime){
+    toast('لا يمكن تأكيد الإنجاز قبل موعد الرحلة','warning');return;
   }
+  if(trip.driverId&&trip.driverId!==CU.uid){toast('لا يمكنك تعديل رحلة سائق آخر','error');return;}
   try{
     await db.collection('trips').doc(id).update({
-      status:'completed',
-      completedAt:firebase.firestore.FieldValue.serverTimestamp()
+      status:'pendingConfirm',
+      completionRequestedAt:firebase.firestore.FieldValue.serverTimestamp()
     });
-    toast('تم تأكيد إنجاز الرحلة 🏁','success');
+    if(trip.addedBy){
+      await db.collection('notifications').add({
+        uid:trip.addedBy,title:'🏁 طلب تأكيد إنجاز رحلة',
+        body:`${CUD.name} يطلب تأكيد إنجاز رحلة: ${trip.destination}`,
+        read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    toast('تم إرسال طلب التأكيد للموظف ✅','success');
     loadDriverTrips();
   }catch(e){toast('حدث خطأ','error');}
 }
-
-function startChatWith(uid,name){
+// FIX #12: Payment confirmation by driver
+function openPayConfirm(tripId,price){
+  document.getElementById('pay-trip-id').value=tripId;
+  document.getElementById('pay-body').innerHTML=`
+    <div class="text-center mb-5">
+      <div class="text-5xl mb-3">💰</div>
+      <p class="font-black text-slate-800 text-xl">${price} جنيه</p>
+      <p class="text-slate-500 text-sm mt-2">هل استلمت هذا المبلغ من الموظف؟</p>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="confirmPayment()" class="btn btn-grn flex-1 py-3 font-black">✅ نعم، استلمت المبلغ</button>
+      <button onclick="closeMod('mod-pay')" class="btn btn-muted flex-1 py-3 font-black">لاحقاً</button>
+    </div>`;
+  openMod('mod-pay');
+}
+async function confirmPayment(){
+  const id=document.getElementById('pay-trip-id').value;if(!id)return;
+  try{
+    await db.collection('trips').doc(id).update({
+      paymentConfirmed:true,
+      paymentConfirmedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const trip=drvTripsAll.find(t=>t.id===id);
+    if(trip?.addedBy){
+      await db.collection('notifications').add({
+        uid:trip.addedBy,title:'💰 تأكيد استلام المبلغ',
+        body:`${CUD.name} أكد استلام مبلغ ${trip.price} جنيه`,
+        read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+    toast('تم تأكيد استلام المبلغ ✅','success');
+    closeMod('mod-pay');loadDriverTrips();
+  }catch(e){toast('حدث خطأ','error');}
+}
+function openChatWith(uid,name){
   if(!uid)return;
   openMessages();
-  setTimeout(()=>openChat(uid,name,getConvId(CU.uid,uid)),400);
+  setTimeout(()=>openChat(uid,name,getConvId(CU.uid,uid)),350);
 }
 
-// ════════════════════════════════════════════════
-// لوحة الموظف
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// STAFF DASHBOARD
+// ══════════════════════════════════════════
 async function loadStaffDash(){
   document.getElementById('s-uname').textContent=CUD.name||'الموظف';
   updateSubBanner();
-  loadStaffTrips();
   loadDriversDropdown();
-  const isPremium=CUD.isPremium;
-  const dLimit=isPremium?'∞':(APP.dLimit||2);
-  const rLimit=isPremium?'∞':(APP.rLimit||5);
-  const dAdded=CUD.driversAdded||0;
-  const rUsed=reportsThisMonth();
-  document.getElementById('stf-dleft').textContent=`${dAdded} / ${dLimit} سائق مضاف`;
-  document.getElementById('stf-rleft').textContent=`${rUsed} / ${rLimit} هذا الشهر`;
+  updateQuota();
+  stfTab('actions');
+  listenStaffConfirm();
+}
+function stfTab(tab){
+  [['actions','a'],['trips','t'],['confirm','c']].forEach(([t,k])=>{
+    const b=document.getElementById('st-'+k);
+    const p=document.getElementById('stf-panel-'+t);
+    const on=t===tab;
+    if(b)b.className=`flex-1 py-3 text-xs font-black border-b-2 transition-all ${on?'border-green-600 text-green-700':'border-transparent text-slate-400'}`;
+    if(p)p.classList.toggle('hidden',!on);
+  });
+  if(tab==='trips')loadStaffTrips();
+  if(tab==='confirm')loadStaffConfirm();
 }
 function reportsThisMonth(){
   if(!CUD)return 0;
@@ -1372,75 +1287,133 @@ function reportsThisMonth(){
 }
 function updateSubBanner(){
   if(!CUD)return;
-  const isPremium=CUD.isPremium;
-  const ico=document.getElementById('stf-sub-ico');
-  const lbl=document.getElementById('stf-sub-lbl');
-  const det=document.getElementById('stf-sub-det');
-  if(ico)ico.textContent=isPremium?'👑':'🆓';
-  if(lbl)lbl.textContent=isPremium?'الخطة المميزة':'الخطة المجانية';
-  if(det)det.textContent=isPremium?'سائقون وتقارير غير محدودة ✅':`${APP.dLimit||2} سائق · ${APP.rLimit||5} تقارير / شهر`;
-  const planCur=document.getElementById('plan-cur');
-  if(planCur){
-    planCur.innerHTML=isPremium
-      ?`<div class="bg-green-50 border border-green-200 rounded-2xl p-3 text-center"><p class="text-green-700 font-black">✅ أنت على الخطة المميزة</p><p class="text-green-600 text-xs mt-1">تستمتع بجميع المميزات بدون قيود</p></div>`
-      :`<div class="bg-slate-100 rounded-2xl p-3 text-center"><p class="text-slate-600 font-bold text-sm">الخطة الحالية: المجانية</p></div>`;
-  }
+  const ip=CUD.isPremium;
+  const ico=document.getElementById('stf-sub-ico');const lbl=document.getElementById('stf-sub-lbl');const det=document.getElementById('stf-sub-det');
+  if(ico)ico.textContent=ip?'👑':'🆓';
+  if(lbl)lbl.textContent=ip?'الخطة المميزة':'الخطة المجانية';
+  if(det)det.textContent=ip?'سائقون وتقارير غير محدودة ✅':`${APP.dLimit||2} سائق · ${APP.rLimit||5} تقارير / شهر`;
+  const pc=document.getElementById('plan-cur');
+  if(pc)pc.innerHTML=ip
+    ?`<div class="bg-green-50 border border-green-200 rounded-2xl p-3 text-center"><p class="text-green-700 font-black">✅ أنت على الخطة المميزة</p></div>`
+    :`<div class="bg-slate-100 rounded-2xl p-3 text-center"><p class="text-slate-600 font-bold text-sm">الخطة الحالية: المجانية</p></div>`;
 }
-
-// BUG FIX #5: حذف orderBy من الاستعلام — ترتيب client-side
+function updateQuota(){
+  if(!CUD)return;
+  const ip=CUD.isPremium;
+  const dL=ip?'∞':(APP.dLimit||2);const rL=ip?'∞':(APP.rLimit||5);
+  const dA=CUD.driversAdded||0;const rU=reportsThisMonth();
+  const dl=document.getElementById('stf-dleft');const rl=document.getElementById('stf-rleft');
+  if(dl)dl.textContent=`${dA} / ${dL} سائق`;
+  if(rl)rl.textContent=`${rU} / ${rL} هذا الشهر`;
+}
 async function loadStaffTrips(){
-  const el=document.getElementById('stf-trips');
-  if(!el||!CU)return;
+  const el=document.getElementById('stf-trips');if(!el||!CU)return;
   try{
     const snap=await db.collection('trips').where('addedBy','==',CU.uid).get();
-    if(snap.empty){
-      el.innerHTML='<p class="text-center text-slate-400 text-sm py-4">لا توجد رحلات بعد</p>';
-      return;
-    }
-    const trips=snap.docs
-      .map(d=>({id:d.id,...d.data()}))
-      .sort((a,b)=>(b.createdAt?.toDate?.()?.getTime()||0)-(a.createdAt?.toDate?.()?.getTime()||0))
-      .slice(0,20);
-
+    const trips=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.createdAt?.toDate?.()?.getTime()||0)-(a.createdAt?.toDate?.()?.getTime()||0)).slice(0,25);
+    if(!trips.length){el.innerHTML='<p class="text-center text-slate-400 text-sm py-4">لا توجد رحلات بعد</p>';return;}
     el.innerHTML=trips.map(t=>`
       <div class="card p-4">
-        <div class="flex items-start justify-between">
+        <div class="flex items-start justify-between mb-2">
           <div class="flex-1">
             <p class="font-black text-slate-800 text-sm">${t.destination||'—'}</p>
             ${t.origin?`<p class="text-blue-600 text-xs">📍 ${t.origin}</p>`:''}
-            <p class="text-slate-400 text-xs mt-0.5">${t.driverName?'🚗 '+t.driverName:'🌍 عامة'} · ${fmtDate(t.createdAt)}</p>
+            <p class="text-slate-400 text-xs">${t.driverName?'🚗 '+t.driverName:'🌍 عامة'} · ${fmtDate(t.createdAt)}</p>
           </div>
           <div class="flex flex-col items-end gap-1">
             ${statusChip(t.status)}
             ${t.price?`<span class="text-blue-600 font-black text-xs">${t.price} جنيه</span>`:''}
           </div>
         </div>
-      </div>
-    `).join('');
-  }catch(e){
-    el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ في التحميل</p>';
-    console.error(e);
-  }
+        <div class="flex gap-2 flex-wrap mt-2">
+          <button onclick="openEditTrip('${t.id}')" class="btn btn-muted btn-sm">✏️ تعديل</button>
+          <button onclick="deleteTripById('${t.id}')" class="btn btn-red btn-sm">🗑️ حذف</button>
+          ${t.status==='pendingConfirm'?`<button onclick="confirmTripDone('${t.id}',true)"  class="btn btn-grn btn-sm">✅ تأكيد الإنجاز</button><button onclick="confirmTripDone('${t.id}',false)" class="btn btn-ora btn-sm">↩ إعادة</button>`:''}
+          ${t.status==='completed'&&t.paymentConfirmed?`<span class="chip cp-acc">💰 استلم المبلغ</span>`:''}
+        </div>
+      </div>`).join('');
+  }catch(e){el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ</p>';console.error(e);}
 }
-
+// FIX #3: listen for pendingConfirm in real-time
+function listenStaffConfirm(){
+  if(!CU)return;
+  db.collection('trips').where('addedBy','==',CU.uid).where('status','==','pendingConfirm')
+    .onSnapshot(snap=>{
+      const cnt=snap.size;
+      const b=document.getElementById('cnf-bdg');if(b){b.textContent=cnt;b.classList.toggle('hidden',cnt===0);}
+    },e=>console.warn(e));
+}
+async function loadStaffConfirm(){
+  const el=document.getElementById('stf-confirm-list');if(!el||!CU)return;
+  try{
+    const snap=await db.collection('trips').where('addedBy','==',CU.uid).where('status','==','pendingConfirm').get();
+    if(snap.empty){el.innerHTML='<p class="text-center text-slate-400 text-sm py-6">✅ لا توجد طلبات تأكيد</p>';return;}
+    el.innerHTML=snap.docs.map(d=>{
+      const t={id:d.id,...d.data()};
+      return`<div class="card p-4">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <p class="font-black text-slate-800 text-sm">${t.destination||'—'}</p>
+            ${t.origin?`<p class="text-blue-600 text-xs">📍 ${t.origin}</p>`:''}
+            <p class="text-slate-500 text-xs">🚗 ${t.driverName||'—'} · ${t.plate||'—'}</p>
+            <p class="text-slate-400 text-xs">السعر: ${t.price||0} جنيه</p>
+          </div>
+          <span class="chip cp-wait">بانتظار تأكيدك</span>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="confirmTripDone('${t.id}',true)"  class="btn btn-grn btn-md flex-1">✅ تأكيد الإنجاز</button>
+          <button onclick="confirmTripDone('${t.id}',false)" class="btn btn-ora btn-md flex-1">↩ إعادة للسائق</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ</p>';console.error(e);}
+}
+async function confirmTripDone(id,confirm){
+  try{
+    const snap=await db.collection('trips').doc(id).get();
+    const t=snap.data();
+    if(confirm){
+      await db.collection('trips').doc(id).update({
+        status:'completed',completedAt:firebase.firestore.FieldValue.serverTimestamp(),confirmedBy:CU.uid
+      });
+      if(t?.driverId){
+        await db.collection('notifications').add({
+          uid:t.driverId,title:'✅ تم تأكيد إنجاز رحلتك',
+          body:`${t.destination} — ${t.price} جنيه`,
+          read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      toast('تم تأكيد الإنجاز وتسجيله في التقارير ✅','success');
+    } else {
+      await db.collection('trips').doc(id).update({status:'accepted',confirmRejected:true});
+      if(t?.driverId){
+        await db.collection('notifications').add({
+          uid:t.driverId,title:'↩ تم إعادة الرحلة إليك',
+          body:`الموظف أعاد رحلة "${t.destination}"`,
+          read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      toast('تم إعادة الرحلة للسائق','info');
+    }
+    loadStaffConfirm();loadStaffTrips();
+  }catch(e){toast('حدث خطأ','error');console.error(e);}
+}
 async function loadDriversDropdown(){
   try{
     const snap=await db.collection('users').where('role','==','driver').where('status','==','active').get();
-    const sel=document.getElementById('trip-drv-sel');
-    const rptCar=document.getElementById('rpt-car');
     const opts=snap.docs.map(d=>{const u=d.data();return`<option value="${d.id}">${u.name} – ${u.plate||'—'}</option>`;}).join('');
+    const sel=document.getElementById('trip-drv-sel');const rptCar=document.getElementById('rpt-car');
     if(sel)sel.innerHTML='<option value="">— اختر سائقاً —</option>'+opts;
     if(rptCar)rptCar.innerHTML='<option value="">— اختر السيارة —</option>'+opts;
   }catch(e){console.error(e);}
 }
-
 function setTripType(t){
   tripTypeNew=t;
   document.getElementById('tt-g').className=`rtb${t==='general'?' on text-green-600':''}`;
   document.getElementById('tt-s').className=`rtb${t==='specific'?' on':''}`;
   document.getElementById('trip-drv-row').classList.toggle('hidden',t!=='specific');
 }
-
 async function submitTrip(){
   const orig=(document.getElementById('t-orig').value||'').trim();
   const dest=(document.getElementById('t-dest').value||'').trim();
@@ -1449,104 +1422,86 @@ async function submitTrip(){
   const notes=(document.getElementById('t-notes').value||'').trim();
   if(!dest)return toast('أدخل وجهة الرحلة','warning');
   if(!date)return toast('حدد تاريخ الرحلة','warning');
-
   let assignedTo='all',driverName='',driverUid='';
   if(tripTypeNew==='specific'){
     const sel=document.getElementById('trip-drv-sel');
     if(!sel.value)return toast('اختر سائقاً','warning');
-    driverUid=sel.value;
-    driverName=sel.options[sel.selectedIndex].text.split('–')[0].trim();
-    assignedTo=driverUid;
+    driverUid=sel.value;driverName=sel.options[sel.selectedIndex].text.split('–')[0].trim();assignedTo=driverUid;
   }
-
   setBtn('btn-add-trip',true,'');
   try{
-    const tripData={
-      origin:orig||'',
-      destination:dest,
-      tripDate:firebase.firestore.Timestamp.fromDate(new Date(date)),
-      price:parseFloat(price)||0,
-      notes,
-      assignedTo,
-      driverName:driverName||'',
-      driverId:driverUid||'',
-      status:'pending',
-      rejectedBy:[],
-      addedBy:CU.uid,
-      addedByName:CUD.name,
-      addedByPhone:CUD.phone||'',
-      createdAt:firebase.firestore.FieldValue.serverTimestamp()
-    };
-    await db.collection('trips').add(tripData);
-
+    const td={origin:orig,destination:dest,tripDate:firebase.firestore.Timestamp.fromDate(new Date(date)),price:parseFloat(price)||0,notes,assignedTo,driverName:driverName||'',driverId:driverUid||'',status:'pending',rejectedBy:[],addedBy:CU.uid,addedByName:CUD.name,addedByPhone:CUD.phone||'',createdAt:firebase.firestore.FieldValue.serverTimestamp()};
+    await db.collection('trips').add(td);
     if(tripTypeNew==='specific'&&driverUid){
-      await db.collection('notifications').add({
-        uid:driverUid,
-        title:'🚗 رحلة جديدة بانتظارك!',
-        body:`${orig?orig+' ← ':''}${dest} · ${price} جنيه`,
-        read:false,
-        createdAt:firebase.firestore.FieldValue.serverTimestamp()
-      });
+      await db.collection('notifications').add({uid:driverUid,title:'🚗 رحلة جديدة بانتظارك!',body:`${orig?orig+' ← ':''}${dest} · ${price} جنيه`,read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
     } else {
       const allDrv=await db.collection('users').where('role','==','driver').where('status','==','active').get();
       const batch=db.batch();
-      allDrv.docs.forEach(d=>{
-        const ref=db.collection('notifications').doc();
-        batch.set(ref,{
-          uid:d.id,
-          title:'🚗 رحلة جديدة عامة!',
-          body:`${orig?orig+' ← ':''}${dest} · ${price} جنيه`,
-          read:false,
-          createdAt:firebase.firestore.FieldValue.serverTimestamp()
-        });
-      });
+      allDrv.docs.forEach(d=>{const ref=db.collection('notifications').doc();batch.set(ref,{uid:d.id,title:'🚗 رحلة جديدة عامة!',body:`${orig?orig+' ← ':''}${dest} · ${price} جنيه`,read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});});
       await batch.commit();
     }
-
+    SND.trip();
     toast('تم إرسال الرحلة بنجاح ✅','success');
-    ['t-orig','t-dest','t-price','t-notes','t-date'].forEach(id=>{
-      const el=document.getElementById(id);if(el)el.value='';
-    });
-    closeMod('mod-add-trip');
-    loadStaffTrips();
+    ['t-orig','t-dest','t-price','t-notes','t-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    closeMod('mod-add-trip');loadStaffTrips();
   }catch(e){toast('فشل الإرسال: '+e.message,'error');console.error(e);}
-  setBtn('btn-add-trip',false,'<i data-lucide="send" class="w-4 h-4"></i> إرسال الرحلة');
-  lucide.createIcons();
+  setBtn('btn-add-trip',false,'<i data-lucide="send" class="w-4 h-4"></i> إرسال الرحلة');lucide.createIcons();
 }
-
+// FIX #4: Edit trip
+async function openEditTrip(id){
+  const snap=await db.collection('trips').doc(id).get();
+  if(!snap.exists)return;
+  const t=snap.data();
+  document.getElementById('et-id').value=id;
+  document.getElementById('et-orig').value=t.origin||'';
+  document.getElementById('et-dest').value=t.destination||'';
+  document.getElementById('et-price').value=t.price||'';
+  document.getElementById('et-notes').value=t.notes||'';
+  if(t.tripDate){
+    const d=t.tripDate.toDate();
+    const local=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    document.getElementById('et-date').value=local;
+  }
+  openMod('mod-edit-trip');
+}
+async function saveEditTrip(){
+  const id=document.getElementById('et-id').value;if(!id)return;
+  const dest=(document.getElementById('et-dest').value||'').trim();
+  if(!dest)return toast('أدخل الوجهة','warning');
+  setBtn('btn-save-trip',true,'');
+  try{
+    const upd={destination:dest,origin:document.getElementById('et-orig').value.trim()||'',price:parseFloat(document.getElementById('et-price').value)||0,notes:document.getElementById('et-notes').value.trim()||''};
+    const date=document.getElementById('et-date').value;
+    if(date)upd.tripDate=firebase.firestore.Timestamp.fromDate(new Date(date));
+    await db.collection('trips').doc(id).update(upd);
+    toast('تم تعديل الرحلة ✅','success');closeMod('mod-edit-trip');loadStaffTrips();
+  }catch(e){toast('فشل التعديل','error');}
+  setBtn('btn-save-trip',false,'<i data-lucide="save" class="w-4 h-4"></i> حفظ التعديلات');lucide.createIcons();
+}
+async function deleteTripById(id){
+  if(!confirm('حذف هذه الرحلة نهائياً؟'))return;
+  try{await db.collection('trips').doc(id).delete();toast('تم الحذف','success');loadStaffTrips();}
+  catch(e){toast('فشل الحذف','error');}
+}
 async function addDriver(){
   if(!CUD)return;
-  const isPremium=CUD.isPremium;
-  const dLimit=parseInt(APP.dLimit)||2;
-  const dAdded=CUD.driversAdded||0;
-  if(!isPremium&&dAdded>=dLimit){
+  const dLimit=parseInt(APP.dLimit)||2;const dAdded=CUD.driversAdded||0;
+  if(!CUD.isPremium&&dAdded>=dLimit){
     document.getElementById('drv-limit-warn').classList.remove('hidden');
-    document.getElementById('drv-add-form').classList.add('hidden');
-    return;
+    document.getElementById('drv-add-form').classList.add('hidden');return;
   }
   const email=(document.getElementById('nd-email').value||'').trim().toLowerCase();
-  if(!email||!email.includes('@'))return toast('أدخل بريداً إلكترونياً صحيحاً','warning');
+  if(!email||!email.includes('@'))return toast('أدخل بريداً صحيحاً','warning');
   setBtn('btn-add-drv',true,'');
   try{
     const exists=await db.collection('allowed_users').doc(email).get();
-    if(exists.exists){
-      toast('هذا البريد مضاف مسبقاً','warning');
-      setBtn('btn-add-drv',false,'<i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية');
-      lucide.createIcons();
-      return;
-    }
-    await db.collection('allowed_users').doc(email).set({
-      email,role:'driver',addedBy:CU.uid,addedByName:CUD.name,
-      addedAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
+    if(exists.exists){toast('هذا البريد مضاف مسبقاً','warning');setBtn('btn-add-drv',false,'<i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية');lucide.createIcons();return;}
+    await db.collection('allowed_users').doc(email).set({email,role:'driver',addedBy:CU.uid,addedByName:CUD.name,addedAt:firebase.firestore.FieldValue.serverTimestamp()});
     toast('تم منح الصلاحية للسائق ✅','success');
-    document.getElementById('nd-email').value='';
-    closeMod('mod-add-driver');
-  }catch(e){toast('فشل الإضافة','error');console.error(e);}
-  setBtn('btn-add-drv',false,'<i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية');
-  lucide.createIcons();
+    document.getElementById('nd-email').value='';closeMod('mod-add-driver');
+  }catch(e){toast('فشل الإضافة','error');}
+  setBtn('btn-add-drv',false,'<i data-lucide="user-plus" class="w-4 h-4"></i> منح الصلاحية');lucide.createIcons();
 }
-
 async function searchDriver(){
   const q=(document.getElementById('srch-q').value||'').trim().toLowerCase();
   const el=document.getElementById('srch-res');
@@ -1554,239 +1509,119 @@ async function searchDriver(){
   el.innerHTML='<p class="text-center text-slate-400 text-sm py-4">جاري البحث...</p>';
   try{
     const snap=await db.collection('users').where('role','==','driver').get();
-    const results=snap.docs
-      .map(d=>({id:d.id,...d.data()}))
-      .filter(u=>
-        (u.name||'').toLowerCase().includes(q)||
-        (u.phone||'').includes(q)||
-        (u.plate||'').toLowerCase().includes(q)
-      );
-    if(!results.length){
-      el.innerHTML='<p class="text-center text-slate-400 text-sm py-6">لا نتائج</p>';
-      return;
-    }
-    el.innerHTML=results.map(u=>`
-      <div class="card p-4">
-        <div class="flex items-center justify-between mb-2">
-          <div>
-            <p class="font-black text-slate-800 text-sm">${u.name}</p>
-            <p class="text-slate-400 text-xs">📱 ${u.phone||'—'} · 🚗 ${u.plate||'—'}</p>
-            <p class="text-slate-400 text-xs">${u.carType||'—'}</p>
-          </div>
-          <span class="chip ${u.status==='frozen'?'cp-rej':'cp-acc'}">${u.status==='frozen'?'مجمد':'نشط'}</span>
-        </div>
-        <button onclick="startChatWith('${u.uid||u.id}','${u.name}')" class="btn btn-blue btn-sm mt-1">💬 مراسلة</button>
+    const results=snap.docs.map(d=>({id:d.id,...d.data()})).filter(u=>(u.name||'').toLowerCase().includes(q)||(u.phone||'').includes(q)||(u.plate||'').toLowerCase().includes(q));
+    if(!results.length){el.innerHTML='<p class="text-center text-slate-400 text-sm py-6">لا نتائج</p>';return;}
+    el.innerHTML=results.map(u=>`<div class="card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <div><p class="font-black text-slate-800 text-sm">${u.name}</p><p class="text-slate-400 text-xs">📱 ${u.phone||'—'} · 🚗 ${u.plate||'—'}</p><p class="text-slate-400 text-xs">${u.carType||'—'}</p></div>
+        <span class="chip ${u.status==='frozen'?'cp-rej':'cp-acc'}">${u.status==='frozen'?'مجمد':'نشط'}</span>
       </div>
-    `).join('');
-  }catch(e){el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ في البحث</p>';console.error(e);}
+      <button onclick="openChatWith('${u.uid||u.id}','${u.name}')" class="btn btn-blue btn-sm">💬 مراسلة</button>
+    </div>`).join('');
+  }catch(e){el.innerHTML='<p class="text-center text-red-400 text-sm py-4">خطأ</p>';console.error(e);}
 }
-
 async function openReportModal(){
-  const isPremium=CUD&&CUD.isPremium;
-  const rLimit=parseInt(APP.rLimit)||5;
-  const rUsed=reportsThisMonth();
-  const lw=document.getElementById('rpt-limit-warn');
-  const rf=document.getElementById('rpt-form');
-  if(!isPremium&&rUsed>=rLimit){
-    if(lw)lw.classList.remove('hidden');
-    if(rf)rf.classList.add('hidden');
-  } else {
-    if(lw)lw.classList.add('hidden');
-    if(rf)rf.classList.remove('hidden');
-  }
+  const ip=CUD&&CUD.isPremium;const rLimit=parseInt(APP.rLimit)||5;const rUsed=reportsThisMonth();
+  const lw=document.getElementById('rpt-limit-warn');const rf=document.getElementById('rpt-form');
+  if(!ip&&rUsed>=rLimit){if(lw)lw.classList.remove('hidden');if(rf)rf.classList.add('hidden');}
+  else{if(lw)lw.classList.add('hidden');if(rf)rf.classList.remove('hidden');}
   const to=new Date();const from=new Date();from.setDate(from.getDate()-30);
   const rFrom=document.getElementById('rpt-from');const rTo=document.getElementById('rpt-to');
   if(rFrom&&!rFrom.value)rFrom.value=from.toISOString().split('T')[0];
   if(rTo&&!rTo.value)rTo.value=to.toISOString().split('T')[0];
-  await loadDriversDropdown();
-  openMod('mod-report');
+  await loadDriversDropdown();openMod('mod-report');
 }
-
 function setRptType(t){
   rptType=t;
   document.getElementById('rt-a').className=`rtb${t==='all'?' on text-blue-600':''}`;
   document.getElementById('rt-s').className=`rtb${t==='single'?' on':''}`;
   document.getElementById('rpt-car-row').classList.toggle('hidden',t!=='single');
 }
-
-// BUG FIX #6 (تقارير): إزالة orderBy + range query على حقلين = يحتاج index مركب
-// الحل: جلب بسيط + فلترة client-side
 async function generateReport(){
-  const from=document.getElementById('rpt-from').value;
-  const to=document.getElementById('rpt-to').value;
+  const from=document.getElementById('rpt-from').value;const to=document.getElementById('rpt-to').value;
   if(!from||!to)return toast('حدد نطاق التاريخ','warning');
   if(new Date(from)>new Date(to))return toast('تاريخ البداية بعد النهاية!','warning');
   setBtn('btn-gen-rpt',true,'');
   try{
     let q=db.collection('trips');
     if(rptType==='single'){
-      const carVal=document.getElementById('rpt-car').value;
-      if(!carVal){
-        toast('اختر سيارة','warning');
-        setBtn('btn-gen-rpt',false,'<i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير');
-        lucide.createIcons();
-        return;
-      }
-      q=q.where('driverId','==',carVal);
+      const cv=document.getElementById('rpt-car').value;
+      if(!cv){toast('اختر سيارة','warning');setBtn('btn-gen-rpt',false,'<i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير');lucide.createIcons();return;}
+      q=q.where('driverId','==',cv);
     }
     const snap=await q.get();
-    const fromD=new Date(from);
-    const toD=new Date(to+'T23:59:59');
-    reportExportData=snap.docs
-      .map(d=>({id:d.id,...d.data()}))
-      .filter(t=>{
-        const td=t.tripDate?.toDate?.();
-        return td&&td>=fromD&&td<=toD;
-      });
-
+    const fromD=new Date(from);const toD=new Date(to+'T23:59:59');
+    reportExportData=snap.docs.map(d=>({id:d.id,...d.data()})).filter(t=>{const td=t.tripDate?.toDate?.();return td&&td>=fromD&&td<=toD;});
     const m=new Date().toISOString().substring(0,7);
-    const newUsed=CUD.reportsMonth===m?(CUD.reportsUsed||0)+1:1;
-    await db.collection('users').doc(CU.uid).update({reportsUsed:newUsed,reportsMonth:m});
-    CUD.reportsUsed=newUsed;CUD.reportsMonth=m;
-    document.getElementById('stf-rleft').textContent=`${reportsThisMonth()} / ${CUD.isPremium?'∞':(APP.rLimit||5)} هذا الشهر`;
-
-    renderReportSummary(from,to);
-    closeMod('mod-report');
-    openMod('mod-rpt-result');
+    const nu=CUD.reportsMonth===m?(CUD.reportsUsed||0)+1:1;
+    await db.collection('users').doc(CU.uid).update({reportsUsed:nu,reportsMonth:m});
+    CUD.reportsUsed=nu;CUD.reportsMonth=m;updateQuota();
+    renderReportSummary(from,to);closeMod('mod-report');openMod('mod-rpt-result');
   }catch(e){toast('فشل إنشاء التقرير: '+e.message,'error');console.error(e);}
-  setBtn('btn-gen-rpt',false,'<i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير');
-  lucide.createIcons();
+  setBtn('btn-gen-rpt',false,'<i data-lucide="file-bar-chart" class="w-4 h-4"></i> إنشاء التقرير');lucide.createIcons();
 }
-
 function renderReportSummary(from,to){
   const el=document.getElementById('rpt-summary');
-  if(!reportExportData.length){
-    el.innerHTML='<p class="text-slate-400 text-center py-6">لا توجد رحلات في هذه الفترة</p>';
-    return;
-  }
-  const grouped={};
-  reportExportData.forEach(t=>{
-    const key=t.driverName||'غير محدد';
-    if(!grouped[key])grouped[key]={trips:[],total:0,plate:t.plate||'—'};
-    grouped[key].trips.push(t);
-    grouped[key].total+=parseFloat(t.price)||0;
-  });
-  const grandTotal=reportExportData.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
-  let html=`
-    <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200">
-      <div><p class="font-black text-slate-800 text-sm">تقرير Royal Drive</p><p class="text-slate-400 text-xs">${from} → ${to}</p></div>
-      <div class="text-right"><p class="text-blue-600 font-black text-lg">${grandTotal.toFixed(2)} ج</p><p class="text-slate-400 text-xs">${reportExportData.length} رحلة</p></div>
-    </div>`;
+  if(!reportExportData.length){el.innerHTML='<p class="text-slate-400 text-center py-6">لا توجد رحلات في هذه الفترة</p>';return;}
+  const grouped={};reportExportData.forEach(t=>{const k=t.driverName||'غير محدد';if(!grouped[k])grouped[k]={trips:[],total:0,plate:t.plate||'—'};grouped[k].trips.push(t);grouped[k].total+=parseFloat(t.price)||0;});
+  const gt=reportExportData.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
+  let html=`<div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-200"><div><p class="font-black text-slate-800 text-sm">تقرير Royal Drive</p><p class="text-slate-400 text-xs">${from} → ${to}</p></div><div class="text-right"><p class="text-blue-600 font-black text-lg">${gt.toFixed(2)} ج</p><p class="text-slate-400 text-xs">${reportExportData.length} رحلة</p></div></div>`;
   Object.entries(grouped).forEach(([name,data])=>{
-    html+=`<div class="mb-4 last:mb-0">
-      <div class="flex justify-between items-center mb-2 bg-slate-100 rounded-xl px-3 py-2">
-        <span class="font-black text-slate-700 text-sm">🚗 ${name}</span>
-        <span class="text-xs text-slate-500 font-bold">لوحة: ${data.plate}</span>
-        <span class="font-black text-blue-600 text-sm">${data.total.toFixed(2)} ج</span>
-      </div>
-      ${data.trips.map(t=>`
-        <div class="flex justify-between items-center py-1.5 px-2 border-b border-slate-50 text-xs">
-          <span class="text-slate-600">${fmtDate(t.tripDate||t.createdAt)}</span>
-          <span class="text-slate-700 font-bold flex-1 mx-2 truncate">${t.destination||'—'}</span>
-          <div class="flex items-center gap-1">${statusChip(t.status)}<span class="font-black text-slate-700">${t.price||0} ج</span></div>
-        </div>`).join('')}
-      <div class="text-left py-1.5 px-2 text-xs font-black text-green-700">الإجمالي: ${data.total.toFixed(2)} جنيه</div>
-    </div>`;
+    html+=`<div class="mb-4"><div class="flex justify-between items-center mb-2 bg-slate-100 rounded-xl px-3 py-2"><span class="font-black text-slate-700 text-sm">🚗 ${name}</span><span class="text-xs text-slate-500">لوحة: ${data.plate}</span><span class="font-black text-blue-600 text-sm">${data.total.toFixed(2)} ج</span></div>
+    ${data.trips.map(t=>`<div class="flex items-center py-1.5 px-2 border-b border-slate-50 text-xs gap-2"><span class="text-slate-500">${fmtDate(t.tripDate||t.createdAt)}</span><span class="text-slate-700 font-bold flex-1 truncate">${t.destination||'—'}</span>${statusChip(t.status)}<span class="font-black text-slate-700">${t.price||0} ج</span>${t.paymentConfirmed?'<span class="text-green-600">💰</span>':''}</div>`).join('')}
+    <div class="text-left py-1.5 px-2 text-xs font-black text-green-700">الإجمالي: ${data.total.toFixed(2)} جنيه</div></div>`;
   });
   el.innerHTML=html;
 }
 function buildPrintHTML(){
-  const from=document.getElementById('rpt-from')?.value||'—';
-  const to=document.getElementById('rpt-to')?.value||'—';
+  const from=document.getElementById('rpt-from')?.value||'—';const to=document.getElementById('rpt-to')?.value||'—';
   if(!reportExportData.length)return'<p>لا توجد بيانات</p>';
-  const grouped={};
-  reportExportData.forEach(t=>{
-    const key=t.driverName||'غير محدد';
-    if(!grouped[key])grouped[key]={trips:[],total:0,plate:t.plate||'—'};
-    grouped[key].trips.push(t);grouped[key].total+=parseFloat(t.price)||0;
-  });
-  const grandTotal=reportExportData.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
-  let html=`<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير Royal Drive</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
-  <style>*{font-family:'Cairo',sans-serif;box-sizing:border-box}body{padding:30px;color:#1e293b;background:#fff}
-  h1{font-size:1.6rem;font-weight:900;margin-bottom:4px}.sub{color:#64748b;font-size:.85rem;margin-bottom:20px}
-  table{width:100%;border-collapse:collapse;margin-bottom:20px}
-  th{background:#1e293b;color:#fff;padding:8px 12px;font-size:.8rem;text-align:right}
-  td{padding:8px 12px;font-size:.78rem;border-bottom:1px solid #f1f5f9;text-align:right}
-  tr:nth-child(even)td{background:#f8fafc}
-  .sh{background:#eff6ff;font-weight:900;padding:10px 12px;font-size:.85rem;color:#1e40af;margin-top:20px;border-right:4px solid #2563eb}
-  .tr td{font-weight:900;background:#f0fdf4;color:#166534}
-  .gt{background:#1e293b;color:#fff;padding:12px 20px;text-align:left;font-weight:900;font-size:1rem;margin-top:10px}
-  @page{margin:1.5cm}</style></head><body>
-  <h1>تقرير Royal Drive</h1>
-  <p class="sub">الفترة: ${from} إلى ${to} · إجمالي الرحلات: ${reportExportData.length}</p>`;
+  const grouped={};reportExportData.forEach(t=>{const k=t.driverName||'غير محدد';if(!grouped[k])grouped[k]={trips:[],total:0,plate:t.plate||'—'};grouped[k].trips.push(t);grouped[k].total+=parseFloat(t.price)||0;});
+  const gt=reportExportData.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
+  let html=`<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير Royal Drive</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet"><style>*{font-family:'Cairo',sans-serif;box-sizing:border-box}body{padding:28px;color:#1e293b;background:#fff}h1{font-size:1.5rem;font-weight:900;margin-bottom:4px}.sub{color:#64748b;font-size:.82rem;margin-bottom:18px}table{width:100%;border-collapse:collapse;margin-bottom:16px}th{background:#1e293b;color:#fff;padding:8px 10px;font-size:.78rem;text-align:right}td{padding:7px 10px;font-size:.75rem;border-bottom:1px solid #f1f5f9;text-align:right}tr:nth-child(even)td{background:#f8fafc}.sh{background:#eff6ff;font-weight:900;padding:9px 10px;font-size:.82rem;color:#1e40af;margin-top:18px;border-right:4px solid #2563eb}.tr td{font-weight:900;background:#f0fdf4;color:#166534}.gt{background:#1e293b;color:#fff;padding:11px 18px;text-align:left;font-weight:900;font-size:.95rem;margin-top:8px}@page{margin:1.4cm}</style></head><body><h1>📊 تقرير Royal Drive</h1><p class="sub">الفترة: ${from} إلى ${to} · إجمالي: ${reportExportData.length} رحلة</p>`;
   Object.entries(grouped).forEach(([name,data])=>{
-    html+=`<div class="sh">🚗 السائق: ${name} &nbsp;|&nbsp; رقم اللوحة: ${data.plate}</div>
-    <table><thead><tr><th>التاريخ</th><th>الوجهة</th><th>الحالة</th><th>السعر (جنيه)</th><th>ملاحظات</th></tr></thead><tbody>`;
-    data.trips.forEach(t=>{
-      html+=`<tr><td>${fmtDate(t.tripDate||t.createdAt)}</td><td>${t.destination||'—'}</td><td>${statusAr(t.status)}</td><td>${t.price||0}</td><td>${t.notes||'—'}</td></tr>`;
-    });
-    html+=`<tr class="tr"><td colspan="3">إجمالي السائق</td><td>${data.total.toFixed(2)} جنيه</td><td></td></tr></tbody></table>`;
+    html+=`<div class="sh">🚗 السائق: ${name} | لوحة: ${data.plate}</div><table><thead><tr><th>التاريخ</th><th>الوجهة</th><th>الحالة</th><th>السعر</th><th>المبلغ مُستلم</th></tr></thead><tbody>`;
+    data.trips.forEach(t=>{html+=`<tr><td>${fmtDate(t.tripDate||t.createdAt)}</td><td>${t.destination||'—'}</td><td>${statusAr(t.status)}</td><td>${t.price||0} ج</td><td>${t.paymentConfirmed?'✅':'—'}</td></tr>`;});
+    html+=`<tr class="tr"><td colspan="3">إجمالي ${name}</td><td>${data.total.toFixed(2)} ج</td><td></td></tr></tbody></table>`;
   });
-  html+=`<div class="gt">الإجمالي الكلي: ${grandTotal.toFixed(2)} جنيه</div></body></html>`;
+  html+=`<div class="gt">الإجمالي الكلي: ${gt.toFixed(2)} جنيه</div></body></html>`;
   return html;
 }
-function doPrint(){const w=window.open('','_blank','width=900,height=700');w.document.write(buildPrintHTML());w.document.close();w.onload=()=>w.print();}
-function doPDF(){const w=window.open('','_blank','width=900,height=700');w.document.write(buildPrintHTML()+'<script>window.onload=()=>{window.print();}<\/script>');w.document.close();}
+function doPrint(){const w=window.open('','_blank');w.document.write(buildPrintHTML());w.document.close();w.onload=()=>w.print();}
+function doPDF(){const w=window.open('','_blank');w.document.write(buildPrintHTML()+'<script>window.onload=()=>window.print()<\/script>');w.document.close();}
 function doExcel(){
-  if(!reportExportData.length)return toast('لا توجد بيانات للتصدير','warning');
-  const wb=XLSX.utils.book_new();
-  const grouped={};
-  reportExportData.forEach(t=>{
-    const key=(t.driverName||'غير محدد').substring(0,28);
-    if(!grouped[key])grouped[key]=[];
-    grouped[key].push(t);
-  });
+  if(!reportExportData.length)return toast('لا توجد بيانات','warning');
+  const wb=XLSX.utils.book_new();const grouped={};
+  reportExportData.forEach(t=>{const k=(t.driverName||'غير محدد').substring(0,28);if(!grouped[k])grouped[k]=[];grouped[k].push(t);});
   Object.entries(grouped).forEach(([name,trips])=>{
-    const rows=trips.map(t=>({
-      'التاريخ':fmtDate(t.tripDate||t.createdAt),
-      'الوجهة':t.destination||'—',
-      'رقم اللوحة':t.plate||'—',
-      'الحالة':statusAr(t.status),
-      'السعر (جنيه)':parseFloat(t.price)||0,
-      'ملاحظات':t.notes||'—'
-    }));
+    const rows=trips.map(t=>({'التاريخ':fmtDate(t.tripDate||t.createdAt),'الوجهة':t.destination||'—','مكان التحرك':t.origin||'—','رقم اللوحة':t.plate||'—','الحالة':statusAr(t.status),'السعر (جنيه)':parseFloat(t.price)||0,'المبلغ مُستلم':t.paymentConfirmed?'نعم':'لا'}));
     const total=trips.reduce((s,t)=>s+(parseFloat(t.price)||0),0);
-    rows.push({'التاريخ':'','الوجهة':'الإجمالي','رقم اللوحة':'','الحالة':'','السعر (جنيه)':total,'ملاحظات':''});
-    const ws=XLSX.utils.json_to_sheet(rows);
-    ws['!cols']=[{wch:22},{wch:28},{wch:14},{wch:14},{wch:14},{wch:22}];
+    rows.push({'التاريخ':'','الوجهة':'الإجمالي','مكان التحرك':'','رقم اللوحة':'','الحالة':'','السعر (جنيه)':total,'المبلغ مُستلم':''});
+    const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[{wch:22},{wch:26},{wch:20},{wch:14},{wch:14},{wch:14},{wch:14}];
     XLSX.utils.book_append_sheet(wb,ws,name);
   });
   XLSX.writeFile(wb,`تقرير-رويال-درايف-${todayStr()}.xlsx`);
 }
-
 async function submitIssue(){
-  const title=(document.getElementById('iss-title').value||'').trim();
-  const desc=(document.getElementById('iss-desc').value||'').trim();
-  if(!title)return toast('أدخل عنوان المشكلة','warning');
-  if(!desc)return toast('أدخل وصف المشكلة','warning');
+  const title=(document.getElementById('iss-title').value||'').trim();const desc=(document.getElementById('iss-desc').value||'').trim();
+  if(!title)return toast('أدخل عنوان المشكلة','warning');if(!desc)return toast('أدخل وصف المشكلة','warning');
   setBtn('btn-iss',true,'');
   try{
-    await db.collection('issues').add({
-      title,description:desc,
-      reportedBy:CU.uid,reportedByName:CUD.name,
-      status:'open',
-      createdAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
+    await db.collection('issues').add({title,description:desc,reportedBy:CU.uid,reportedByName:CUD.name,status:'open',createdAt:firebase.firestore.FieldValue.serverTimestamp()});
     toast('تم إرسال البلاغ للمالك ✅','success');
-    document.getElementById('iss-title').value='';
-    document.getElementById('iss-desc').value='';
-    closeMod('mod-issue');
+    document.getElementById('iss-title').value='';document.getElementById('iss-desc').value='';closeMod('mod-issue');
   }catch(e){toast('فشل الإرسال','error');}
-  setBtn('btn-iss',false,'<i data-lucide="flag" class="w-4 h-4"></i> إرسال البلاغ');
-  lucide.createIcons();
+  setBtn('btn-iss',false,'<i data-lucide="flag" class="w-4 h-4"></i> إرسال البلاغ');lucide.createIcons();
 }
-
 function openWhatsApp(){
-  const vf=APP.vfNumber||'01552610460';
-  const num='2'+vf.replace(/^0/,'');
-  const msg=encodeURIComponent(`مرحباً، قمت بتحويل مبلغ الاشتراك على رقم ${vf}. يرجى تفعيل اشتراك حسابي: ${CU?CU.email:''}. مرفق صورة رسالة التأكيد من فودافون.`);
+  const vf=APP.vfNumber||'01552610460';const num='2'+vf.replace(/^0/,'');
+  const msg=encodeURIComponent(`مرحباً، قمت بتحويل مبلغ الاشتراك على رقم ${vf}. يرجى تفعيل اشتراك حسابي: ${CU?CU.email:''}. مرفق صورة SMS التأكيدية.`);
   window.open(`https://wa.me/${num}?text=${msg}`,'_blank');
 }
 
-// ════════════════════════════════════════════════
-// لوحة المالك
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// OWNER DASHBOARD
+// ══════════════════════════════════════════
 async function loadOwnerDash(){
   try{
     const [drv,stf,trps,iss]=await Promise.all([
@@ -1795,53 +1630,60 @@ async function loadOwnerDash(){
       db.collection('trips').where('status','==','completed').get(),
       db.collection('issues').where('status','==','open').get()
     ]);
-    const dEl=document.getElementById('ow-dc');const sEl=document.getElementById('ow-sc');
-    const tEl=document.getElementById('ow-tc');const iEl=document.getElementById('ow-ic');
-    if(dEl)dEl.textContent=drv.size;if(sEl)sEl.textContent=stf.size;
-    if(tEl)tEl.textContent=trps.size;if(iEl)iEl.textContent=iss.size;
-    renderOwnerStaff(stf.docs);
-    renderOwnerIssues(iss.docs);
+    ['ow-dc','ow-sc','ow-tc','ow-ic'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent=[drv,stf,trps,iss][i].size;});
+    renderOwnerStaff(stf.docs);renderOwnerIssues(iss.docs);loadOwnerTrips();
   }catch(e){console.error('owner dash:',e);}
 }
 function renderOwnerStaff(docs){
   const el=document.getElementById('ow-staff');if(!el)return;
   if(!docs.length){el.innerHTML='<p class="text-slate-500 text-sm text-center py-4">لا يوجد موظفون</p>';return;}
-  el.innerHTML=docs.map(d=>{
-    const u=d.data();
-    return`<div class="card-d p-3 rounded-2xl">
-      <div class="flex items-center justify-between mb-2">
-        <div>
-          <p class="font-black text-white text-sm">${u.name||'—'}</p>
-          <p class="text-slate-400 text-xs">${u.email}</p>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <span class="chip ${u.isPremium?'cp-acc':'cp-pend'}">${u.isPremium?'👑 مميز':'مجاني'}</span>
-          <span class="chip ${u.status==='active'?'cp-acc':'cp-rej'}">${u.status==='active'?'نشط':'مجمد'}</span>
-        </div>
+  el.innerHTML=docs.map(d=>{const u=d.data();return`<div class="card-d p-3 rounded-2xl">
+    <div class="flex items-center justify-between mb-2">
+      <div><p class="font-black text-white text-sm">${u.name||'—'}</p><p class="text-slate-400 text-xs">${u.email}</p></div>
+      <div class="flex items-center gap-1.5">
+        <span class="chip ${u.isPremium?'cp-acc':'cp-pend'}">${u.isPremium?'👑 مميز':'مجاني'}</span>
+        <span class="chip ${u.status==='active'?'cp-acc':'cp-rej'}">${u.status==='active'?'نشط':'مجمد'}</span>
       </div>
-      <div class="flex gap-1.5 flex-wrap">
-        <button onclick="toggleFreeze('${d.id}','${u.status}')" class="btn btn-sm ${u.status==='active'?'btn-muted text-red-500':'btn-muted text-green-600'}">
-          ${u.status==='active'?'🔒 تجميد':'🔓 تفعيل'}</button>
-        ${!u.isPremium?`<button onclick="activatePremium('${d.id}')" class="btn btn-gld btn-sm">👑 تفعيل مميز</button>`:''}
-        <button onclick="deleteUser('${d.id}')" class="btn btn-red btn-sm">🗑️ حذف</button>
-      </div>
-    </div>`;
-  }).join('');
+    </div>
+    <div class="flex gap-1.5 flex-wrap">
+      <button onclick="toggleFreeze('${d.id}','${u.status}')" class="btn btn-sm ${u.status==='active'?'btn-muted text-red-500':'btn-muted text-green-600'}">${u.status==='active'?'🔒 تجميد':'🔓 تفعيل'}</button>
+      ${!u.isPremium?`<button onclick="activatePremium('${d.id}')" class="btn btn-gld btn-sm">👑 تفعيل مميز</button>`:''}
+      <button onclick="deleteUser('${d.id}')" class="btn btn-red btn-sm">🗑️ حذف</button>
+    </div>
+  </div>`;}).join('');
 }
 function renderOwnerIssues(docs){
   const el=document.getElementById('ow-issues');if(!el)return;
   if(!docs.length){el.innerHTML='<p class="text-slate-500 text-sm text-center py-4">لا توجد بلاغات</p>';return;}
-  el.innerHTML=docs.map(d=>{
-    const i=d.data();
-    return`<div class="card-d p-3 rounded-2xl">
-      <div class="flex items-start justify-between mb-1">
-        <p class="font-black text-white text-sm">${i.title}</p>
-        <button onclick="closeIssue('${d.id}')" class="text-green-400 text-xs font-bold">✓ حل</button>
+  el.innerHTML=docs.map(d=>{const i=d.data();return`<div class="card-d p-3 rounded-2xl">
+    <div class="flex items-start justify-between mb-1">
+      <p class="font-black text-white text-sm">${i.title}</p>
+      <button onclick="closeIssue('${d.id}')" class="text-green-400 text-xs font-bold">✓ حل</button>
+    </div>
+    <p class="text-slate-400 text-xs mb-1">${i.description}</p>
+    <p class="text-slate-500 text-xs">بواسطة: ${i.reportedByName||'—'} · ${fmtShort(i.createdAt)}</p>
+  </div>`;}).join('');
+}
+// FIX #4: owner trip management
+async function loadOwnerTrips(){
+  const el=document.getElementById('ow-trips');if(!el)return;
+  try{
+    const snap=await db.collection('trips').get();
+    const trips=snap.docs.map(d=>({id:d.id,...d.data()}))
+      .sort((a,b)=>(b.createdAt?.toDate?.()?.getTime()||0)-(a.createdAt?.toDate?.()?.getTime()||0)).slice(0,25);
+    if(!trips.length){el.innerHTML='<p class="text-slate-500 text-sm text-center py-4">لا توجد رحلات</p>';return;}
+    el.innerHTML=trips.map(t=>`<div class="card-d p-3 rounded-2xl">
+      <div class="flex items-start justify-between mb-2">
+        <div><p class="font-black text-white text-sm">${t.destination||'—'}</p>
+          <p class="text-slate-400 text-xs">🚗 ${t.driverName||'عامة'} · ${fmtShort(t.createdAt)}</p></div>
+        <div class="flex flex-col items-end gap-1">${statusChip(t.status)}${t.price?`<span class="text-yellow-300 font-black text-xs">${t.price} ج</span>`:''}</div>
       </div>
-      <p class="text-slate-400 text-xs mb-1">${i.description}</p>
-      <p class="text-slate-500 text-xs">بواسطة: ${i.reportedByName||'—'} · ${fmtDateShort(i.createdAt)}</p>
-    </div>`;
-  }).join('');
+      <div class="flex gap-1.5">
+        <button onclick="openEditTrip('${t.id}')" class="btn btn-muted btn-sm">✏️ تعديل</button>
+        <button onclick="deleteTripById('${t.id}')" class="btn btn-red btn-sm">🗑️ حذف</button>
+      </div>
+    </div>`).join('');
+  }catch(e){el.innerHTML='<p class="text-red-400 text-sm text-center py-4">خطأ</p>';console.error(e);}
 }
 async function toggleFreeze(uid,cs){
   if(!confirm(cs==='active'?'تجميد هذا الموظف؟':'تفعيل هذا الموظف؟'))return;
@@ -1849,8 +1691,8 @@ async function toggleFreeze(uid,cs){
   catch(e){toast('فشل التحديث','error');}
 }
 async function activatePremium(uid){
-  if(!confirm('تفعيل الخطة المميزة لهذا الموظف؟'))return;
-  try{await db.collection('users').doc(uid).update({isPremium:true});toast('تم تفعيل الخطة المميزة ✅','success');loadOwnerDash();}
+  if(!confirm('تفعيل الخطة المميزة؟'))return;
+  try{await db.collection('users').doc(uid).update({isPremium:true});toast('تم التفعيل ✅','success');loadOwnerDash();}
   catch(e){toast('فشل التفعيل','error');}
 }
 async function deleteUser(uid){
@@ -1859,329 +1701,265 @@ async function deleteUser(uid){
   catch(e){toast('فشل الحذف','error');}
 }
 async function closeIssue(id){
-  try{await db.collection('issues').doc(id).update({status:'closed'});toast('تم وضع البلاغ كمحلول ✅','success');loadOwnerDash();}
+  try{await db.collection('issues').doc(id).update({status:'closed'});toast('تم الحل ✅','success');loadOwnerDash();}
   catch(e){toast('فشل التحديث','error');}
 }
 async function addStaff(){
   const email=(document.getElementById('ns-email').value||'').trim().toLowerCase();
-  if(!email||!email.includes('@'))return toast('أدخل بريداً إلكترونياً صحيحاً','warning');
+  if(!email||!email.includes('@'))return toast('أدخل بريداً صحيحاً','warning');
   setBtn('btn-add-stf',true,'');
   try{
-    await db.collection('allowed_users').doc(email).set({
-      email,role:'staff',addedBy:'owner',
-      addedAt:firebase.firestore.FieldValue.serverTimestamp()
-    });
-    toast('تم منح الصلاحية للموظف ✅','success');
-    document.getElementById('ns-email').value='';
-    closeMod('mod-add-staff');
+    await db.collection('allowed_users').doc(email).set({email,role:'staff',addedBy:'owner',addedAt:firebase.firestore.FieldValue.serverTimestamp()});
+    toast('تم منح الصلاحية للموظف ✅','success');document.getElementById('ns-email').value='';closeMod('mod-add-staff');
   }catch(e){toast('فشل الإضافة','error');}
   setBtn('btn-add-stf',false,'منح الصلاحية');
 }
 function openSettings(){
-  const set={
-    'set-sub':APP.sub,
-    'set-owner-email':APP.ownerEmail,
-    'set-price':APP.price,
-    'set-vf':APP.vfNumber,
-    'set-dlimit':APP.dLimit,
-    'set-rlimit':APP.rLimit,
-    'set-announce':APP.announce||''
-  };
-  Object.entries(set).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val;});
+  const set={'set-sub':APP.sub,'set-owner-email':APP.ownerEmail,'set-price':APP.price,'set-vf':APP.vfNumber,'set-dlimit':APP.dLimit,'set-rlimit':APP.rLimit,'set-announce':APP.announce||''};
+  Object.entries(set).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;});
   openMod('mod-settings');
 }
 async function saveSettings(){
-  const newSettings={
-    // BUG FIX #11: اسم التطبيق لا يُحفظ في الإعدادات
-    sub:document.getElementById('set-sub').value.trim()||'نظام إدارة المركبات الذكي',
-    ownerEmail:(document.getElementById('set-owner-email').value.trim()||APP.ownerEmail).toLowerCase(),
-    price:parseInt(document.getElementById('set-price').value)||99,
-    vfNumber:document.getElementById('set-vf').value.trim()||'01552610460',
-    dLimit:parseInt(document.getElementById('set-dlimit').value)||2,
-    rLimit:parseInt(document.getElementById('set-rlimit').value)||5,
-    announce:document.getElementById('set-announce').value.trim()||''
-  };
+  const ns={sub:document.getElementById('set-sub').value.trim()||'نظام إدارة المركبات الذكي',ownerEmail:(document.getElementById('set-owner-email').value.trim()||APP.ownerEmail).toLowerCase(),price:parseInt(document.getElementById('set-price').value)||99,vfNumber:document.getElementById('set-vf').value.trim()||'01552610460',dLimit:parseInt(document.getElementById('set-dlimit').value)||2,rLimit:parseInt(document.getElementById('set-rlimit').value)||5,announce:document.getElementById('set-announce').value.trim()||''};
   setBtn('btn-save-set',true,'');
   try{
-    await db.collection('settings').doc('app').set(newSettings,{merge:true});
-    APP={...APP,...newSettings};
-    applyAppUI();
-    toast('تم حفظ الإعدادات ✅','success');
-    closeMod('mod-settings');
+    await db.collection('settings').doc('app').set(ns,{merge:true});
+    APP={...APP,...ns};applyAppUI();toast('تم حفظ الإعدادات ✅','success');closeMod('mod-settings');
   }catch(e){toast('فشل الحفظ','error');console.error(e);}
-  setBtn('btn-save-set',false,'<i data-lucide="save" class="w-4 h-4"></i> حفظ الإعدادات');
-  lucide.createIcons();
+  setBtn('btn-save-set',false,'<i data-lucide="save" class="w-4 h-4"></i> حفظ الإعدادات');lucide.createIcons();
 }
 
-// ════════════════════════════════════════════════
-// إشعارات
-// ════════════════════════════════════════════════
-// BUG FIX #4: حذف orderBy('createdAt','desc') لأنه يحتاج composite index
-// الترتيب يتم client-side
+// ══════════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════════
 function listenNotifications(uid){
   if(notifUnsub)notifUnsub();
-  notifUnsub=db.collection('notifications')
-    .where('uid','==',uid)
-    .limit(50)
+  notifUnsub=db.collection('notifications').where('uid','==',uid).limit(50)
     .onSnapshot(snap=>{
-      // ترتيب client-side
-      const items=snap.docs
-        .map(d=>({id:d.id,...d.data()}))
-        .sort((a,b)=>(b.createdAt?.toDate?.()?.getTime()||0)-(a.createdAt?.toDate?.()?.getTime()||0));
+      const items=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.toDate?.()?.getTime()||0)-(a.createdAt?.toDate?.()?.getTime()||0));
       const unread=items.filter(n=>!n.read).length;
-      ['bdg-dn','bdg-sn'].forEach(id=>{
-        const b=document.getElementById(id);
-        if(b){b.textContent=unread;b.classList.toggle('hidden',unread===0);}
-      });
+      ['bdg-dn','bdg-sn'].forEach(id=>{const b=document.getElementById(id);if(b){b.textContent=unread;b.classList.toggle('hidden',unread===0);}});
+      if(unread>prevNotifCount){SND.notif();}
+      prevNotifCount=unread;
       renderNotifList(items);
     },e=>console.warn('notif:',e));
 }
 function renderNotifList(items){
   const el=document.getElementById('notif-list');if(!el)return;
   if(!items.length){el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">لا توجد إشعارات</p>';return;}
-  el.innerHTML=items.map(n=>`
-    <div class="flex items-start gap-3 p-3 rounded-2xl ${n.read?'bg-slate-50':'bg-blue-50 border border-blue-100'}">
-      <div class="text-xl flex-shrink-0">${n.read?'🔔':'🔵'}</div>
-      <div class="flex-1">
-        <p class="font-black text-slate-800 text-sm">${n.title||'إشعار'}</p>
-        <p class="text-slate-500 text-xs mt-0.5">${n.body||''}</p>
-        <p class="text-slate-400 text-xs mt-1">${fmtDateShort(n.createdAt)}</p>
-      </div>
+  el.innerHTML=items.map(n=>`<div class="flex items-start gap-3 p-3 rounded-2xl ${n.read?'bg-slate-50':'bg-blue-50 border border-blue-100'}">
+    <div class="text-xl flex-shrink-0">${n.read?'🔔':'🔵'}</div>
+    <div class="flex-1">
+      <p class="font-black text-slate-800 text-sm">${n.title||'إشعار'}</p>
+      <p class="text-slate-500 text-xs mt-0.5">${n.body||''}</p>
+      <p class="text-slate-400 text-xs mt-1">${fmtShort(n.createdAt)}</p>
     </div>
-  `).join('');
+  </div>`).join('');
 }
 async function markAllRead(){
   if(!CU)return;
-  try{
-    const snap=await db.collection('notifications').where('uid','==',CU.uid).where('read','==',false).get();
-    const batch=db.batch();
-    snap.docs.forEach(d=>batch.update(d.ref,{read:true}));
-    await batch.commit();
-  }catch(e){console.warn(e);}
+  try{const snap=await db.collection('notifications').where('uid','==',CU.uid).where('read','==',false).get();const batch=db.batch();snap.docs.forEach(d=>batch.update(d.ref,{read:true}));await batch.commit();}
+  catch(e){console.warn(e);}
 }
 
-// ════════════════════════════════════════════════
-// BUG FIX #1 — المراسلة (الإصلاح الكامل)
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// FIX #1 + #5: MESSAGING (fixed + group)
+// ══════════════════════════════════════════
 function listenMessages(uid){
   if(msgUnsub)msgUnsub();
-  msgUnsub=db.collection('chats')
-    .where('participants','array-contains',uid)
+  msgUnsub=db.collection('chats').where('participants','array-contains',uid)
     .onSnapshot(snap=>{
       let unread=0;
-      snap.docs.forEach(d=>{
-        const data=d.data();
-        if(data.unread&&data.unread[uid])unread+=data.unread[uid];
-      });
-      ['bdg-dm','bdg-sm'].forEach(id=>{
-        const b=document.getElementById(id);
-        if(b){b.textContent=unread;b.classList.toggle('hidden',unread===0);}
-      });
-    },e=>console.warn('msg listen:',e));
+      snap.docs.forEach(d=>{const data=d.data();if(data.unread&&data.unread[uid])unread+=data.unread[uid];});
+      ['bdg-dm','bdg-sm'].forEach(id=>{const b=document.getElementById(id);if(b){b.textContent=unread;b.classList.toggle('hidden',unread===0);}});
+    },e=>console.warn('msg:',e));
+}
+// FIX #5: group chat listener
+function listenGroupChat(){
+  if(grpUnsub)grpUnsub();
+  grpUnsub=db.collection('chats').doc('group_all').collection('msgs')
+    .orderBy('createdAt','desc').limit(1)
+    .onSnapshot(snap=>{
+      if(snap.docs.length&&snap.docs[0].data().from!==CU?.uid){
+        const b=document.getElementById('bdg-grp');if(b)b.classList.remove('hidden');
+        SND.msg();
+      }
+    },e=>console.warn('grp:',e));
 }
 
-async function openMessages(){
-  openMod('mod-messages');
-  await showConvList();
+async function openMessages(){openMod('mod-messages');setMsgTab('private');await showConvList();}
+
+function setMsgTab(tab){
+  msgTab=tab;
+  document.getElementById('mtab-p').className=`mtab${tab==='private'?' on':''}`;
+  document.getElementById('mtab-g').className=`mtab${tab==='group'?' on':''}`;
+  document.getElementById('conv-list').classList.toggle('hidden',tab!=='private');
+  document.getElementById('group-chat-view').classList.toggle('hidden',tab!=='group');
+  document.getElementById('chat-view').classList.add('hidden');
+  if(chatUnsub&&tab==='group'){chatUnsub();chatUnsub=null;}
+  if(tab==='group'){
+    document.getElementById('msg-back').classList.add('hidden');
+    document.getElementById('msg-hdr').textContent='المجموعة';
+    const b=document.getElementById('bdg-grp');if(b)b.classList.add('hidden');
+    loadGroupMsgs();
+  }
 }
 
 async function showConvList(){
   document.getElementById('msg-back').classList.add('hidden');
   document.getElementById('msg-hdr').textContent='الرسائل';
-  document.getElementById('conv-list').classList.remove('hidden');
+  document.getElementById('conv-list').classList.toggle('hidden',msgTab!=='private');
   document.getElementById('chat-view').classList.add('hidden');
   if(chatUnsub){chatUnsub();chatUnsub=null;}
   currentConvId=null;
-
+  if(msgTab!=='private')return;
   const el=document.getElementById('conv-list');
   el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">جاري التحميل...</p>';
   try{
-    // BUG FIX #1 الرئيسي: حذف orderBy('lastTime','desc')
-    // هذا كان يتطلب Firestore composite index غير موجود → يسبب crash للدردشة
-    // الحل: جلب بـ where فقط ثم ترتيب client-side
-    const snap=await db.collection('chats')
-      .where('participants','array-contains',CU.uid)
-      .get();
-
-    // ترتيب client-side بدلاً من orderBy
+    // FIX #1: NO orderBy — sort client-side to avoid composite index
+    const snap=await db.collection('chats').where('participants','array-contains',CU.uid).get();
     const docs=snap.docs.sort((a,b)=>{
       const at=a.data().lastTime?.toDate?.()?.getTime()||0;
       const bt=b.data().lastTime?.toDate?.()?.getTime()||0;
       return bt-at;
     });
-
     el.innerHTML='';
-    if(!docs.length){
-      if(CUD.role==='staff'||CUD.role==='owner')renderNewChatBtn(el);
-      else el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">لا توجد محادثات بعد</p>';
-      return;
-    }
-
     for(const doc of docs){
       const data=doc.data();
-      const otherUid=data.participants.find(p=>p!==CU.uid);
-      if(!otherUid)continue;
+      const otherUid=data.participants.find(p=>p!==CU.uid);if(!otherUid)continue;
       const otherSnap=await db.collection('users').doc(otherUid).get();
       const other=otherSnap.exists?otherSnap.data():{name:'مستخدم',role:'—'};
       const unreadCount=data.unread&&data.unread[CU.uid]?data.unread[CU.uid]:0;
       const btn=document.createElement('button');
       btn.className='w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition-colors text-right';
-      btn.innerHTML=`
-        <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0"
-          style="background:${other.role==='driver'?'#dbeafe':'#dcfce7'};color:${other.role==='driver'?'#1e40af':'#166534'}">
-          ${(other.name||'?').charAt(0)}
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="font-bold text-slate-800 text-sm">${other.name}</p>
-          <p class="text-slate-400 text-xs truncate">${data.lastMsg||'...'}</p>
-        </div>
-        <div class="flex flex-col items-end gap-1">
-          <span class="text-slate-400 text-xs">${data.lastTime?fmtDateShort(data.lastTime):''}</span>
-          ${unreadCount>0?`<span class="bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">${unreadCount}</span>`:''}
-        </div>`;
+      btn.innerHTML=`<div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0" style="background:${other.role==='driver'?'#dbeafe':other.role==='owner'?'#fef3c7':'#dcfce7'};color:${other.role==='driver'?'#1e40af':other.role==='owner'?'#92400e':'#166534'}">${(other.name||'?').charAt(0)}</div>
+        <div class="flex-1 min-w-0"><p class="font-bold text-slate-800 text-sm">${other.name}</p><p class="text-slate-400 text-xs truncate">${data.lastMsg||'...'}</p></div>
+        <div class="flex flex-col items-end gap-1"><span class="text-slate-400 text-xs">${data.lastTime?fmtShort(data.lastTime):''}</span>${unreadCount>0?`<span class="bg-blue-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">${unreadCount}</span>`:''}</div>`;
       btn.onclick=()=>openChat(otherUid,other.name,doc.id);
       el.appendChild(btn);
     }
-    if(CUD.role==='staff'||CUD.role==='owner')renderNewChatBtn(el);
-  }catch(e){
-    el.innerHTML='<p class="text-center text-red-400 py-8 text-sm">خطأ في التحميل</p>';
-    console.error(e);
-  }
+    if(!docs.length)el.innerHTML='<p class="text-center text-slate-400 py-8 text-sm">لا توجد محادثات بعد</p>';
+    if(CUD.role==='staff'||CUD.role==='owner'){
+      const btn=document.createElement('button');
+      btn.className='w-full flex items-center justify-center gap-2 p-3 mt-2 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-sm hover:border-blue-300 hover:text-blue-500 transition-colors';
+      btn.innerHTML='<i data-lucide="plus" class="w-4 h-4"></i> محادثة جديدة';
+      btn.onclick=showUserPicker;
+      el.appendChild(btn);lucide.createIcons();
+    }
+  }catch(e){el.innerHTML='<p class="text-center text-red-400 py-8 text-sm">خطأ في التحميل</p>';console.error(e);}
 }
-
-function renderNewChatBtn(el){
-  const btn=document.createElement('button');
-  btn.className='w-full flex items-center justify-center gap-2 p-3 mt-2 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold text-sm hover:border-blue-300 hover:text-blue-500 transition-colors';
-  btn.innerHTML='<i data-lucide="plus" class="w-4 h-4"></i> محادثة جديدة';
-  btn.onclick=showUserPicker;
-  el.appendChild(btn);
-  lucide.createIcons();
-}
-
 async function showUserPicker(){
   const el=document.getElementById('conv-list');
   el.innerHTML='<p class="text-xs font-bold text-slate-400 mb-2 px-1">اختر شخصاً للتواصل:</p>';
   try{
     const snap=await db.collection('users').where('status','==','active').get();
-    snap.docs
-      .filter(d=>d.id!==CU.uid)
-      .forEach(d=>{
-        const u=d.data();
-        const btn=document.createElement('button');
-        btn.className='w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition-colors text-right';
-        const bg=u.role==='driver'?'#dbeafe':u.role==='owner'?'#fef3c7':'#dcfce7';
-        const fg=u.role==='driver'?'#1e40af':u.role==='owner'?'#92400e':'#166534';
-        btn.innerHTML=`<div class="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm" style="background:${bg};color:${fg}">${(u.name||'?').charAt(0)}</div>
-          <div>
-            <p class="font-bold text-slate-800 text-sm">${u.name}</p>
-            <p class="text-slate-400 text-xs">${u.role==='driver'?'سائق':u.role==='owner'?'المالك':'موظف'}${u.plate?' · '+u.plate:''}</p>
-          </div>`;
-        btn.onclick=()=>openChat(d.id,u.name,getConvId(CU.uid,d.id));
-        el.appendChild(btn);
-      });
+    snap.docs.filter(d=>d.id!==CU.uid).forEach(d=>{
+      const u=d.data();
+      const bg=u.role==='driver'?'#dbeafe':u.role==='owner'?'#fef3c7':'#dcfce7';
+      const fg=u.role==='driver'?'#1e40af':u.role==='owner'?'#92400e':'#166534';
+      const btn=document.createElement('button');
+      btn.className='w-full flex items-center gap-3 p-3 hover:bg-slate-50 rounded-2xl transition-colors text-right';
+      btn.innerHTML=`<div class="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0" style="background:${bg};color:${fg}">${(u.name||'?').charAt(0)}</div>
+        <div><p class="font-bold text-slate-800 text-sm">${u.name}</p><p class="text-slate-400 text-xs">${u.role==='driver'?'سائق':u.role==='owner'?'المالك':'موظف'}${u.plate?' · '+u.plate:''}</p></div>`;
+      btn.onclick=()=>openChat(d.id,u.name,getConvId(CU.uid,d.id));
+      el.appendChild(btn);
+    });
   }catch(e){console.error(e);}
 }
-
 async function openChat(otherUid,name,convId){
   chatWith=otherUid;
-  // BUG FIX #3: نحتفظ بـ convId هنا ليستخدمه sendMsg
-  currentConvId=convId||getConvId(CU.uid,otherUid);
-
+  currentConvId=convId||getConvId(CU.uid,otherUid); // FIX #1: store convId
   document.getElementById('msg-back').classList.remove('hidden');
   document.getElementById('msg-hdr').textContent=name;
   document.getElementById('conv-list').classList.add('hidden');
+  document.getElementById('group-chat-view').classList.add('hidden');
   document.getElementById('chat-view').classList.remove('hidden');
-
   const el=document.getElementById('chat-msgs');
   el.innerHTML='<p class="text-center text-slate-400 text-xs py-4">جاري التحميل...</p>';
-
-  // إعادة تعيين عداد الرسائل غير المقروءة
-  try{
-    const upd={};
-    upd[`unread.${CU.uid}`]=0;
-    await db.collection('chats').doc(currentConvId).set(upd,{merge:true});
-  }catch(e){}
-
+  try{const upd={};upd[`unread.${CU.uid}`]=0;await db.collection('chats').doc(currentConvId).set(upd,{merge:true});}catch(e){}
   if(chatUnsub){chatUnsub();chatUnsub=null;}
-
   chatUnsub=db.collection('chats').doc(currentConvId).collection('msgs')
-    .orderBy('createdAt','asc')
-    .limit(100)
+    .orderBy('createdAt','asc').limit(100)
     .onSnapshot(snap=>{
       el.innerHTML='';
       snap.docs.forEach(d=>{
-        const m=d.data();
-        const mine=m.from===CU.uid;
+        const m=d.data();const mine=m.from===CU.uid;
         const div=document.createElement('div');
-        // BUG FIX #1 اتجاه: في RTL
-        // justify-start = يمين (رسائلي)، justify-end = يسار (رسائلهم)
+        // FIX #1: RTL direction - my msgs on right (justify-start), theirs on left (justify-end)
         div.className=`flex ${mine?'justify-start':'justify-end'}`;
-        div.innerHTML=`<div class="${mine?'b-out':'b-in'} px-4 py-2.5 text-sm">
+        div.innerHTML=`<div class="${mine?'b-out':'b-in'} px-3 py-2.5 text-sm">
           ${!mine?`<p class="text-xs font-black opacity-60 mb-0.5">${m.fromName||''}</p>`:''}
           <p>${m.text}</p>
-          <p class="text-xs mt-1 opacity-60">${fmtDateShort(m.createdAt)}</p>
+          <p class="text-xs mt-1 opacity-55">${fmtShort(m.createdAt)}</p>
         </div>`;
         el.appendChild(div);
       });
-      el.scrollTop=el.scrollHeight;
+      el.scrollTop=el.scrollHeight;SND.msg();
     },e=>console.warn('chat snap:',e));
 }
-
 async function sendMsg(){
   const inp=document.getElementById('chat-inp');
   const text=(inp.value||'').trim();
   if(!text||!chatWith||!CU)return;
   inp.value='';
-
-  // BUG FIX #3: استخدم currentConvId بدلاً من إعادة حساب getConvId
-  const convId=currentConvId||getConvId(CU.uid,chatWith);
-
+  const cid=currentConvId||getConvId(CU.uid,chatWith); // FIX #1: use stored convId
   try{
-    // BUG FIX #2 (الرئيسي): أنشئ document المحادثة أولاً مع participants
-    // ثم أضف الرسالة ثم حدّث الـ metadata بـ update (لا set مع spread)
-    // السبب: spread operator مع dot-notation keys ينشئ حقولاً حرفية مثل "unread.uid"
-    // وليس nested path — Firestore update() هو الوحيد الذي يفسر dot-notation كـ nested
-
-    // خطوة 1: تأكد من وجود doc المحادثة
-    await db.collection('chats').doc(convId).set({
-      participants:[CU.uid,chatWith]
-    },{merge:true});
-
-    // خطوة 2: أضف الرسالة
-    await db.collection('chats').doc(convId).collection('msgs').add({
-      from:CU.uid,
-      fromName:CUD.name,
-      to:chatWith,
-      text,
+    // FIX #1: Step 1 - ensure doc exists with participants
+    await db.collection('chats').doc(cid).set({participants:[CU.uid,chatWith]},{merge:true});
+    // Step 2 - add message
+    await db.collection('chats').doc(cid).collection('msgs').add({
+      from:CU.uid,fromName:CUD.name,to:chatWith,text,
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
-
-    // خطوة 3: حدّث metadata + عداد الرسائل غير المقروءة
-    // update() يفسر "unread.chatWith" كـ nested field صحيح
-    const updateData={
-      lastMsg:text,
-      lastTime:firebase.firestore.FieldValue.serverTimestamp()
-    };
-    updateData[`unread.${chatWith}`]=firebase.firestore.FieldValue.increment(1);
-    await db.collection('chats').doc(convId).update(updateData);
-
-    // إشعار
+    // FIX #1: Step 3 - use update() with dot-notation for nested unread field
+    const upd={lastMsg:text,lastTime:firebase.firestore.FieldValue.serverTimestamp()};
+    upd[`unread.${chatWith}`]=firebase.firestore.FieldValue.increment(1);
+    await db.collection('chats').doc(cid).update(upd);
     await db.collection('notifications').add({
-      uid:chatWith,
-      title:`💬 رسالة من ${CUD.name}`,
-      body:text.substring(0,60),
-      read:false,
+      uid:chatWith,title:`💬 رسالة من ${CUD.name}`,body:text.substring(0,60),
+      read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+  }catch(e){console.error('sendMsg:',e);toast('فشل إرسال الرسالة','error');}
+}
+// FIX #5: Group chat
+async function loadGroupMsgs(){
+  const el=document.getElementById('group-msgs');
+  el.innerHTML='<p class="text-center text-slate-400 text-xs py-4">جاري التحميل...</p>';
+  if(chatUnsub){chatUnsub();chatUnsub=null;}
+  chatUnsub=db.collection('chats').doc('group_all').collection('msgs')
+    .orderBy('createdAt','asc').limit(100)
+    .onSnapshot(snap=>{
+      el.innerHTML='';
+      snap.docs.forEach(d=>{
+        const m=d.data();const mine=m.from===CU.uid;
+        const div=document.createElement('div');
+        div.className=`flex ${mine?'justify-start':'justify-end'}`;
+        div.innerHTML=`<div class="${mine?'b-out':'b-in'} px-3 py-2.5 text-sm">
+          ${!mine?`<p class="text-xs font-black opacity-60 mb-0.5">${m.fromName||''} ${m.fromRole==='owner'?'👑':m.fromRole==='staff'?'💼':'🚗'}</p>`:''}
+          <p>${m.text}</p>
+          <p class="text-xs mt-1 opacity-55">${fmtShort(m.createdAt)}</p>
+        </div>`;
+        el.appendChild(div);
+      });
+      el.scrollTop=el.scrollHeight;
+    },e=>console.warn('grp snap:',e));
+}
+async function sendGroupMsg(){
+  const inp=document.getElementById('grp-inp');
+  const text=(inp.value||'').trim();if(!text||!CU)return;
+  inp.value='';
+  try{
+    await db.collection('chats').doc('group_all').set({name:'Royal Drive Group',isGroup:true},{merge:true});
+    await db.collection('chats').doc('group_all').collection('msgs').add({
+      from:CU.uid,fromName:CUD.name,fromRole:CUD.role,text,
       createdAt:firebase.firestore.FieldValue.serverTimestamp()
     });
-  }catch(e){
-    console.error('sendMsg:',e);
-    toast('فشل إرسال الرسالة','error');
-  }
+  }catch(e){console.error('sendGroupMsg:',e);toast('فشل الإرسال','error');}
 }
 
-// ════════════════════════════════════════════════
-// التهيئة
-// ════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// STARTUP
+// ══════════════════════════════════════════
 loadAppSettings();
 loadEmailHistory();
 </script>
